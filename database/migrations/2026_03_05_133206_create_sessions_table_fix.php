@@ -8,7 +8,6 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Guard: kalau tabel sudah ada, jangan bikin ulang.
         if (Schema::hasTable('sessions')) {
             return;
         }
