@@ -18,19 +18,23 @@ use App\Http\Controllers\Admin\Inventory\Adjustments\{
     CreateController as AdjCreate,
     StoreController as AdjStore
 };
+use App\Http\Controllers\Admin\Invoices\Proofs\{
+    IndexController as InvoiceProofIndex,
+    UploadController as InvoiceProofUpload,
+    DownloadController as InvoiceProofDownload
+};
 
 /*
 |--------------------------------------------------------------------------
-| Root Route (Auto-Redirect)
+| Root Route
 |--------------------------------------------------------------------------
 */
 Route::get('/', function () {
-    // Jika user sudah login, arahkan ke dashboard admin
     if (auth()->check()) {
         return redirect()->route('admin.dashboard');
     }
-    // Jika belum login, arahkan ke halaman login
-    return redirect()->route('login.show');
+    // Audit: Sudah disesuaikan ke 'login' agar sinkron dengan rute baru
+    return redirect()->route('login');
 });
 
 /*
@@ -39,13 +43,14 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    Route::get('/login', ShowLoginController::class)->name('login.show');
+    // Audit: Menggunakan nama 'login' untuk mencegah RouteNotFoundException dari middleware auth
+    Route::get('/login', ShowLoginController::class)->name('login');
     Route::post('/login', LoginController::class)->name('login.perform');
 });
 
 /*
 |--------------------------------------------------------------------------
-| Authenticated Routes (Sudah Login)
+| Authenticated Routes
 |--------------------------------------------------------------------------
 */
 Route::post('/logout', LogoutController::class)
@@ -79,6 +84,15 @@ Route::middleware(['auth', 'admin.only'])
         Route::prefix('inventory/adjustments')->name('inventory.adjustments.')->group(function () {
             Route::get('/create', AdjCreate::class)->name('create');
             Route::post('/', AdjStore::class)->name('store');
+        });
+
+        // Invoices Proofs
+        // Audit: Dipindahkan ke dalam grup admin agar otomatis mendapatkan prefix 'admin/' 
+        // dan nama 'admin.invoices.proofs.*' secara konsisten.
+        Route::prefix('invoices/{invoice}/proofs')->name('invoices.proofs.')->group(function () {
+            Route::get('/', InvoiceProofIndex::class)->name('index');
+            Route::post('/', InvoiceProofUpload::class)->name('upload');
+            Route::get('/{media}', InvoiceProofDownload::class)->name('download');
         });
         
     });

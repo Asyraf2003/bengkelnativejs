@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class SupplierInvoice extends Model
 {
@@ -32,5 +33,10 @@ class SupplierInvoice extends Model
     public function items(): HasMany
     {
         return $this->hasMany(SupplierInvoiceItem::class, 'supplier_invoice_id');
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(SupplierInvoiceMedia::class, 'supplier_invoice_id');
     }
 }
