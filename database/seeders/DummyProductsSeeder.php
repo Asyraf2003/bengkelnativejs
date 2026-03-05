@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductInventory;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DummyProductsSeeder extends Seeder
 {
