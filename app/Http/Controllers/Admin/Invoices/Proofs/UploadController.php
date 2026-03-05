@@ -28,7 +28,7 @@ class UploadController
             $uuid = (string) Str::uuid();
             $ext  = $file->getClientOriginalExtension() ?: 'bin';
 
-            $dir  = "private/invoices/{$invoice->id}";
+            $dir  = "invoices/{$invoice->id}";
             $name = "{$uuid}.{$ext}";
             $path = $file->storeAs($dir, $name, ['disk' => 'local']); // storage/app/...
 
