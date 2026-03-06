@@ -63,7 +63,7 @@
           <td>{{ $remaining }}</td>
           <td>{{ $r->note }}</td>
           <td>
-            <a href="{{ route('admin.employee_loan_payments.index', $r->id) }}">Payments</a>
+            <a href="{{ route('admin.employee_loans.payments.index', $r->id) }}">Payments</a>
             &nbsp;|&nbsp;
             <a href="{{ route('admin.employee_loans.edit', $r->id) }}">Edit</a>
             <form method="POST" action="{{ route('admin.employee_loans.delete', $r->id) }}" style="display:inline;">

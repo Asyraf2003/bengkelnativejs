@@ -24,7 +24,7 @@
   </p>
 
   <div style="margin:12px 0;">
-    <a href="{{ route('admin.employee_loan_payments.create', $loan->id) }}">+ Tambah Payment</a>
+    <a href="{{ route('admin.employee_loans.payments.create', $loan->id) }}">+ Tambah Payment</a>
     &nbsp;|&nbsp;
     <a href="{{ route('admin.employee_loans.index') }}">Kembali ke daftar pinjaman</a>
   </div>
@@ -47,8 +47,8 @@
           <td>{{ $p->amount }}</td>
           <td>{{ $p->note }}</td>
           <td>
-            <a href="{{ route('admin.employee_loan_payments.edit', [$loan->id, $p->id]) }}">Edit</a>
-            <form method="POST" action="{{ route('admin.employee_loan_payments.delete', [$loan->id, $p->id]) }}" style="display:inline;">
+            <a href="{{ route('admin.employee_loans.payments.edit', [$loan->id, $p->id]) }}">Edit</a>
+            <form method="POST" action="{{ route('admin.employee_loans.payments.delete', [$loan->id, $p->id]) }}" style="display:inline;">
               @csrf
               <button type="submit" onclick="return confirm('Hapus payment?')">Delete</button>
             </form>

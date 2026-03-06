@@ -13,6 +13,6 @@ class CreateController
             ->withSum('payments as paid_total', 'amount')
             ->findOrFail($loan);
 
-        return view('admin.employee_loan_payments.create', compact('loan'));
+        return view('admin.employee_loans.payments.create', compact('loan'));
     }
 }

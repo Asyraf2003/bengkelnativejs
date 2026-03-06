@@ -35,7 +35,7 @@ class StoreController
             ]);
         });
 
-        return redirect()->route('admin.employee_loan_payments.index', $loan)
+        return redirect()->route('admin.employee_loans.payments.index', $loan)
             ->with('status', 'Pembayaran tersimpan.');
     }
 }

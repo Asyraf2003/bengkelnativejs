@@ -18,6 +18,6 @@ class IndexController
             ->orderByDesc('id')
             ->paginate(20);
 
-        return view('admin.employee_loan_payments.index', compact('loan','payments'));
+        return view('admin.employee_loans.payments.index', compact('loan','payments'));
     }
 }

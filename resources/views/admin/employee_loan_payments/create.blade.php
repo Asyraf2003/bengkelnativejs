@@ -22,7 +22,7 @@
     Remaining: <b>{{ $remaining }}</b>
   </p>
 
-  <form method="POST" action="{{ route('admin.employee_loan_payments.store', $loan->id) }}">
+  <form method="POST" action="{{ route('admin.employee_loans.payments.store', $loan->id) }}">
     @csrf
 
     <div style="margin-top:8px;">
@@ -42,7 +42,7 @@
 
     <div style="margin-top:12px;">
       <button type="submit">Simpan</button>
-      <a href="{{ route('admin.employee_loan_payments.index', $loan->id) }}">Kembali</a>
+      <a href="{{ route('admin.employee_loans.payments.index', $loan->id) }}">Kembali</a>
     </div>
   </form>
 </body>

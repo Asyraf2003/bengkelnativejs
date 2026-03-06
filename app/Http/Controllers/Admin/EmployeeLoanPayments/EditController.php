@@ -20,6 +20,6 @@ class EditController
             abort(404);
         }
 
-        return view('admin.employee_loan_payments.edit', compact('loan','payment'));
+        return view('admin.employee_loans.payments.edit', compact('loan','payment'));
     }
 }
