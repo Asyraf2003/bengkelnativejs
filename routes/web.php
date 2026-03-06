@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
-// Auth Controllers
-use App\Http\Controllers\Auth\{ShowLoginController, LoginController, LogoutController};
-
-// Admin Controllers
+use App\Http\Controllers\Auth\{
+    ShowLoginController,
+    LoginController,
+    LogoutController
+};
 use App\Http\Controllers\Admin\Products\{
     IndexController as ProductsIndex,
     CreateController as ProductsCreate,
@@ -63,52 +63,36 @@ use App\Http\Controllers\Admin\EmployeeLoanPayments\{
     UpdateController as PayUpdate,
     DeleteController as PayDelete
 };
+use App\Http\Controllers\Admin\Reports\{
+    DailyProfitController,
+    MonthlyProfitController,
+    StockController,
+    InvoiceDueSoonController
+};
 
-/*
-|--------------------------------------------------------------------------
-| Root Route
-|--------------------------------------------------------------------------
-*/
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('admin.dashboard');
     }
+
     return redirect()->route('login');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Guest Routes (Belum Login)
-|--------------------------------------------------------------------------
-*/
 Route::middleware('guest')->group(function () {
     Route::get('/login', ShowLoginController::class)->name('login');
     Route::post('/login', LoginController::class)->name('login.perform');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
 Route::post('/logout', LogoutController::class)
     ->middleware('auth')
     ->name('logout');
 
-/*
-|--------------------------------------------------------------------------
-| Admin Only Routes
-|--------------------------------------------------------------------------
-*/
 Route::middleware(['auth', 'admin.only'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        
-        // Dashboard
         Route::view('/', 'admin.dashboard')->name('dashboard');
 
-        // Products Management
         Route::prefix('products')->name('products.')->group(function () {
             Route::get('/', ProductsIndex::class)->name('index');
             Route::get('/create', ProductsCreate::class)->name('create');
@@ -118,20 +102,17 @@ Route::middleware(['auth', 'admin.only'])
             Route::post('/{product}/toggle-active', ProductsToggle::class)->name('toggle');
         });
 
-        // Inventory Adjustments
         Route::prefix('inventory/adjustments')->name('inventory.adjustments.')->group(function () {
             Route::get('/create', AdjCreate::class)->name('create');
             Route::post('/', AdjStore::class)->name('store');
         });
 
-        // Invoices Proofs
         Route::prefix('invoices/{invoice}/proofs')->name('invoices.proofs.')->group(function () {
             Route::get('/', InvoiceProofIndex::class)->name('index');
             Route::post('/', InvoiceProofUpload::class)->name('upload');
             Route::get('/{media}', InvoiceProofDownload::class)->name('download');
         });
 
-        // Operational Expenses
         Route::prefix('operational-expenses')->name('operational_expenses.')->group(function () {
             Route::get('/', OpIndex::class)->name('index');
             Route::get('/create', OpCreate::class)->name('create');
@@ -141,7 +122,6 @@ Route::middleware(['auth', 'admin.only'])
             Route::post('/{expense}/delete', OpDelete::class)->name('delete');
         });
 
-        // Employees
         Route::prefix('employees')->name('employees.')->group(function () {
             Route::get('/', EmpIndex::class)->name('index');
             Route::get('/create', EmpCreate::class)->name('create');
@@ -151,7 +131,6 @@ Route::middleware(['auth', 'admin.only'])
             Route::post('/{employee}/delete', EmpDelete::class)->name('delete');
         });
 
-        // Salaries
         Route::prefix('salaries')->name('salaries.')->group(function () {
             Route::get('/', SalIndex::class)->name('index');
             Route::get('/create', SalCreate::class)->name('create');
@@ -161,7 +140,6 @@ Route::middleware(['auth', 'admin.only'])
             Route::post('/{salary}/delete', SalDelete::class)->name('delete');
         });
 
-        // Employee Loans & Payments
         Route::prefix('employee-loans')->name('employee_loans.')->group(function () {
             Route::get('/', LoanIndex::class)->name('index');
             Route::get('/create', LoanCreate::class)->name('create');
@@ -170,7 +148,6 @@ Route::middleware(['auth', 'admin.only'])
             Route::put('/{loan}', LoanUpdate::class)->name('update');
             Route::post('/{loan}/delete', LoanDelete::class)->name('delete');
 
-            // Nested Loan Payments
             Route::prefix('{loan}/payments')->name('payments.')->group(function () {
                 Route::get('/', PayIndex::class)->name('index');
                 Route::get('/create', PayCreate::class)->name('create');
@@ -180,5 +157,11 @@ Route::middleware(['auth', 'admin.only'])
                 Route::post('/{payment}/delete', PayDelete::class)->name('delete');
             });
         });
-        
+
+        Route::prefix('reports')->name('reports.')->group(function () {
+            Route::get('/daily-profit', DailyProfitController::class)->name('daily_profit');
+            Route::get('/monthly-profit', MonthlyProfitController::class)->name('monthly_profit');
+            Route::get('/stock', StockController::class)->name('stock');
+            Route::get('/invoice-due-soon', InvoiceDueSoonController::class)->name('invoice_due_soon');
+        });
     });
