@@ -23,6 +23,46 @@ use App\Http\Controllers\Admin\Invoices\Proofs\{
     UploadController as InvoiceProofUpload,
     DownloadController as InvoiceProofDownload
 };
+use App\Http\Controllers\Admin\OperationalExpenses\{
+    IndexController as OpIndex,
+    CreateController as OpCreate,
+    StoreController as OpStore,
+    EditController as OpEdit,
+    UpdateController as OpUpdate,
+    DeleteController as OpDelete
+};
+use App\Http\Controllers\Admin\Employees\{
+    IndexController as EmpIndex,
+    CreateController as EmpCreate,
+    StoreController as EmpStore,
+    EditController as EmpEdit,
+    UpdateController as EmpUpdate,
+    DeleteController as EmpDelete
+};
+use App\Http\Controllers\Admin\Salaries\{
+    IndexController as SalIndex,
+    CreateController as SalCreate,
+    StoreController as SalStore,
+    EditController as SalEdit,
+    UpdateController as SalUpdate,
+    DeleteController as SalDelete
+};
+use App\Http\Controllers\Admin\EmployeeLoans\{
+    IndexController as LoanIndex,
+    CreateController as LoanCreate,
+    StoreController as LoanStore,
+    EditController as LoanEdit,
+    UpdateController as LoanUpdate,
+    DeleteController as LoanDelete
+};
+use App\Http\Controllers\Admin\EmployeeLoanPayments\{
+    IndexController as PayIndex,
+    CreateController as PayCreate,
+    StoreController as PayStore,
+    EditController as PayEdit,
+    UpdateController as PayUpdate,
+    DeleteController as PayDelete
+};
 
 /*
 |--------------------------------------------------------------------------
@@ -33,7 +73,6 @@ Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('admin.dashboard');
     }
-    // Audit: Sudah disesuaikan ke 'login' agar sinkron dengan rute baru
     return redirect()->route('login');
 });
 
@@ -43,7 +82,6 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 Route::middleware('guest')->group(function () {
-    // Audit: Menggunakan nama 'login' untuk mencegah RouteNotFoundException dari middleware auth
     Route::get('/login', ShowLoginController::class)->name('login');
     Route::post('/login', LoginController::class)->name('login.perform');
 });
@@ -87,12 +125,60 @@ Route::middleware(['auth', 'admin.only'])
         });
 
         // Invoices Proofs
-        // Audit: Dipindahkan ke dalam grup admin agar otomatis mendapatkan prefix 'admin/' 
-        // dan nama 'admin.invoices.proofs.*' secara konsisten.
         Route::prefix('invoices/{invoice}/proofs')->name('invoices.proofs.')->group(function () {
             Route::get('/', InvoiceProofIndex::class)->name('index');
             Route::post('/', InvoiceProofUpload::class)->name('upload');
             Route::get('/{media}', InvoiceProofDownload::class)->name('download');
+        });
+
+        // Operational Expenses
+        Route::prefix('operational-expenses')->name('operational_expenses.')->group(function () {
+            Route::get('/', OpIndex::class)->name('index');
+            Route::get('/create', OpCreate::class)->name('create');
+            Route::post('/', OpStore::class)->name('store');
+            Route::get('/{expense}/edit', OpEdit::class)->name('edit');
+            Route::put('/{expense}', OpUpdate::class)->name('update');
+            Route::post('/{expense}/delete', OpDelete::class)->name('delete');
+        });
+
+        // Employees
+        Route::prefix('employees')->name('employees.')->group(function () {
+            Route::get('/', EmpIndex::class)->name('index');
+            Route::get('/create', EmpCreate::class)->name('create');
+            Route::post('/', EmpStore::class)->name('store');
+            Route::get('/{employee}/edit', EmpEdit::class)->name('edit');
+            Route::put('/{employee}', EmpUpdate::class)->name('update');
+            Route::post('/{employee}/delete', EmpDelete::class)->name('delete');
+        });
+
+        // Salaries
+        Route::prefix('salaries')->name('salaries.')->group(function () {
+            Route::get('/', SalIndex::class)->name('index');
+            Route::get('/create', SalCreate::class)->name('create');
+            Route::post('/', SalStore::class)->name('store');
+            Route::get('/{salary}/edit', SalEdit::class)->name('edit');
+            Route::put('/{salary}', SalUpdate::class)->name('update');
+            Route::post('/{salary}/delete', SalDelete::class)->name('delete');
+        });
+
+        // Employee Loans & Payments
+        Route::prefix('employee-loans')->name('employee_loans.')->group(function () {
+            Route::get('/', LoanIndex::class)->name('index');
+            Route::get('/create', LoanCreate::class)->name('create');
+            Route::post('/', LoanStore::class)->name('store');
+            Route::get('/{loan}/edit', LoanEdit::class)->name('edit');
+            Route::put('/{loan}', LoanUpdate::class)->name('update');
+            Route::post('/{loan}/delete', LoanDelete::class)->name('delete');
+
+            // Nested Loan Payments
+            Route::prefix('{loan}/payments')->name('payments.')->group(function () {
+                Route::get('/', PayIndex::class)->name('index');
+                Route::get('/create', PayCreate::class)->name('create');
+                Route::post('/', PayStore::class)->name('store');
+                Route::get('/{payment}/edit', PayEdit::class)->name('edit');
+                Route::put('/{payment}', PayUpdate::class)->name('update');
+                Route::post('/{payment}/delete', PayDelete::class)->name('delete');
+            });
         });
         
     });

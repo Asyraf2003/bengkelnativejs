@@ -11,7 +11,6 @@ use Carbon\CarbonImmutable;
 use Faker\Factory as Faker;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class DummyPhase4Seeder extends Seeder
 {
@@ -34,8 +33,21 @@ class DummyPhase4Seeder extends Seeder
         $today = CarbonImmutable::today();
         $start = $today->subDays($rangeDays);
 
+        // ✅ RESET HARUS DI LUAR TRANSACTION (TRUNCATE implicit commit di MySQL)
+        if ($reset) {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0');
+
+            DB::statement('TRUNCATE TABLE employee_loan_payments');
+            DB::statement('TRUNCATE TABLE employee_loans');
+            DB::statement('TRUNCATE TABLE salaries');
+            DB::statement('TRUNCATE TABLE operational_expenses');
+            DB::statement('TRUNCATE TABLE employees');
+
+            DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+
+        // ✅ INSERT DATA BARU AMAN DI TRANSACTION
         DB::transaction(function () use (
-            $reset,
             $employeesCount,
             $expensesCount,
             $salariesCount,
@@ -45,26 +57,12 @@ class DummyPhase4Seeder extends Seeder
             $start,
             $today
         ) {
-            if ($reset) {
-                // MySQL truncate with FK
-                DB::statement('SET FOREIGN_KEY_CHECKS=0');
-                DB::table('employee_loan_payments')->truncate();
-                DB::table('employee_loans')->truncate();
-                DB::table('salaries')->truncate();
-                DB::table('operational_expenses')->truncate();
-                DB::table('employees')->truncate();
-                DB::statement('SET FOREIGN_KEY_CHECKS=1');
-            }
-
             // Employees
             $employeeIds = [];
             for ($i = 1; $i <= $employeesCount; $i++) {
-                $name = sprintf('Karyawan %02d', $i);
-
                 $e = Employee::query()->create([
-                    'name' => $name,
+                    'name' => sprintf('Karyawan %02d', $i),
                 ]);
-
                 $employeeIds[] = $e->id;
             }
 
@@ -114,7 +112,7 @@ class DummyPhase4Seeder extends Seeder
                 ];
             }
 
-            // Loan payments (multi payment, tidak boleh melebihi remaining)
+            // Loan payments (multi payment, tidak melebihi remaining)
             for ($i = 0; $i < $paymentsCount; $i++) {
                 if (count($loans) === 0) break;
 
@@ -128,7 +126,6 @@ class DummyPhase4Seeder extends Seeder
 
                 $paidAt = $faker->dateTimeBetween($start, $today)->format('Y-m-d');
 
-                // bayar 10% - 60% dari sisa, min 10rb, snap 1000
                 $raw = (int) max(10_000, (int) round($remaining * $faker->randomFloat(2, 0.10, 0.60)));
                 $amount = (int) (round($raw / 1000) * 1000);
                 if ($amount > $remaining) $amount = $remaining;
