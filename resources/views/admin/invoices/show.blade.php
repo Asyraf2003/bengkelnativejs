@@ -18,12 +18,30 @@
         </div>
     @endif
 
-    <div class="mb-3 d-flex gap-2 flex-wrap">
+    <div class="mb-3 d-flex gap-2 flex-wrap align-items-end">
         <a href="{{ route('admin.invoices.index') }}" class="btn btn-outline-secondary">Kembali ke List</a>
 
         <a href="{{ route('admin.invoices.proofs.index', $invoice) }}" class="btn btn-secondary">
             Proofs
         </a>
+
+        @if (! $invoice->is_paid)
+            <form method="POST" action="{{ route('admin.invoices.mark_paid', $invoice) }}" class="d-flex gap-2 align-items-end">
+                @csrf
+                <div>
+                    <label for="paid_at" class="form-label mb-1">Tanggal Bayar</label>
+                    <input
+                        type="date"
+                        id="paid_at"
+                        name="paid_at"
+                        class="form-control"
+                        value="{{ old('paid_at', now()->toDateString()) }}"
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn btn-success">Mark Paid</button>
+            </form>
+        @endif
     </div>
 
     <div class="card mb-3">
