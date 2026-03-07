@@ -2,17 +2,15 @@
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Models\Product;
+use App\Application\UseCases\Reports\BuildStockReportUseCase;
 
 class StockController
 {
-    public function __invoke()
+    public function __invoke(BuildStockReportUseCase $useCase)
     {
-        $rows = Product::query()
-            ->with('inventory')
-            ->orderBy('name')
-            ->orderBy('id')
-            ->paginate(20);
+        $rows = $useCase->execute([
+            'per_page' => 20,
+        ]);
 
         return view('admin.reports.stock', compact('rows'));
     }

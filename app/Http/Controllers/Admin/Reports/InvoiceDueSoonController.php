@@ -2,24 +2,21 @@
 
 namespace App\Http\Controllers\Admin\Reports;
 
-use App\Models\SupplierInvoice;
-use Carbon\CarbonImmutable;
+use App\Application\UseCases\Reports\BuildInvoiceDueSoonReportUseCase;
 
 class InvoiceDueSoonController
 {
-    public function __invoke()
+    public function __invoke(BuildInvoiceDueSoonReportUseCase $useCase)
     {
-        $today = CarbonImmutable::today()->toDateString();
-        $until = CarbonImmutable::today()->addDays(5)->toDateString();
+        $report = $useCase->execute([
+            'days' => 5,
+            'per_page' => 20,
+        ]);
 
-        $rows = SupplierInvoice::query()
-            ->whereDate('due_at', '>=', $today)
-            ->whereDate('due_at', '<=', $until)
-            ->orderBy('due_at')
-            ->orderBy('id')
-            ->paginate(20)
-            ->withQueryString();
+        $today = $report['today'];
+        $until = $report['until'];
+        $rows = $report['rows'];
 
-        return view('admin.reports.invoice_due_soon', compact('rows', 'today', 'until'));
+        return view('admin.reports.invoice_due_soon', compact('today', 'until', 'rows'));
     }
 }

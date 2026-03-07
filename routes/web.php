@@ -69,6 +69,14 @@ use App\Http\Controllers\Admin\Reports\{
     StockController,
     InvoiceDueSoonController
 };
+use App\Http\Controllers\Admin\Transactions\{
+    IndexController as TxIndex,
+    CreateController as TxCreate,
+    StoreController as TxStore,
+    MarkPaidController as TxMarkPaid,
+    CancelController as TxCancel,
+    RefundController as TxRefund
+};
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -163,5 +171,15 @@ Route::middleware(['auth', 'admin.only'])
             Route::get('/monthly-profit', MonthlyProfitController::class)->name('monthly_profit');
             Route::get('/stock', StockController::class)->name('stock');
             Route::get('/invoice-due-soon', InvoiceDueSoonController::class)->name('invoice_due_soon');
+        });
+
+        Route::prefix('transactions')->name('transactions.')->group(function () {
+            Route::get('/', TxIndex::class)->name('index');
+            Route::get('/create', TxCreate::class)->name('create');
+            Route::post('/', TxStore::class)->name('store');
+            Route::post('/{transaction}/mark-paid', TxMarkPaid::class)->name('mark_paid');
+            Route::post('/{transaction}/cancel', TxCancel::class)->name('cancel');
+            Route::get('/{transaction}/refund', TxRefund::class)->name('refund');
+            Route::post('/{transaction}/refund', TxRefund::class)->name('refund.store');
         });
     });
