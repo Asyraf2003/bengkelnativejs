@@ -77,6 +77,11 @@ use App\Http\Controllers\Admin\Transactions\{
     CancelController as TxCancel,
     RefundController as TxRefund
 };
+use App\Http\Controllers\Admin\Invoices\{
+    IndexController as InvoiceIndex,
+    CreateController as InvoiceCreate,
+    StoreController as InvoiceStore
+};
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -181,5 +186,17 @@ Route::middleware(['auth', 'admin.only'])
             Route::post('/{transaction}/cancel', TxCancel::class)->name('cancel');
             Route::get('/{transaction}/refund', TxRefund::class)->name('refund');
             Route::post('/{transaction}/refund', TxRefund::class)->name('refund.store');
+        });
+
+        Route::prefix('invoices')->name('invoices.')->group(function () {
+            Route::get('/', InvoiceIndex::class)->name('index');
+            Route::get('/create', InvoiceCreate::class)->name('create');
+            Route::post('/', InvoiceStore::class)->name('store');
+
+            Route::prefix('{invoice}/proofs')->name('proofs.')->group(function () {
+                Route::get('/', InvoiceProofIndex::class)->name('index');
+                Route::post('/', InvoiceProofUpload::class)->name('upload');
+                Route::get('/{media}', InvoiceProofDownload::class)->name('download');
+            });
         });
     });

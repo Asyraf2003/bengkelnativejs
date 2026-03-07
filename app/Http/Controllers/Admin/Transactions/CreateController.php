@@ -13,7 +13,13 @@ class CreateController
             ->where('is_active', true)
             ->orderBy('name')
             ->orderBy('id')
-            ->get();
+            ->get([
+                'id',
+                'code',
+                'name',
+                'sale_price',
+                'is_active',
+            ]);
 
         return view('admin.transactions.create', compact('products'));
     }
