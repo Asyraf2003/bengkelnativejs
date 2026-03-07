@@ -22,9 +22,6 @@
     ])->values()->all();
 @endphp
 
-@extends('layouts.app')
-
-@section('content')
 <div class="container py-4">
     <h1 class="mb-4">Buat Draft Transaksi</h1>
 
