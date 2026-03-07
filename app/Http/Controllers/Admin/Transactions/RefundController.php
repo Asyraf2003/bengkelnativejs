@@ -15,9 +15,20 @@ class RefundController
     ) {
         $transaction->load(['lines.product']);
 
+        $alreadyRefunded = $transaction->refunded_at !== null
+            || (int) $transaction->refund_amount > 0
+            || $transaction->lines->contains(fn ($line) => (int) $line->refunded_qty > 0);
+
+        if ($alreadyRefunded) {
+            return redirect()
+                ->route('admin.transactions.show', $transaction)
+                ->withErrors(['refund' => 'Transaksi ini sudah pernah direfund. Refund hanya boleh sekali per nota.']);
+        }
+
         if ($request->isMethod('get')) {
             $stockLines = $transaction->lines
                 ->filter(fn ($line) => in_array($line->kind, ['product_sale', 'service_product'], true))
+                ->filter(fn ($line) => ((int) $line->qty - (int) $line->refunded_qty) > 0)
                 ->values();
 
             return view('admin.transactions.refund', [
@@ -28,21 +39,24 @@ class RefundController
 
         $data = $request->validated();
 
+        $items = collect($data['items'])
+            ->map(fn (array $item): array => [
+                'line_id' => (int) $item['line_id'],
+                'qty' => (int) ($item['qty'] ?? 0),
+            ])
+            ->filter(fn (array $item) => $item['qty'] > 0)
+            ->values()
+            ->all();
+
         $useCase->execute([
             'transaction_id' => (int) $transaction->id,
             'refunded_at' => (string) $data['refunded_at'],
             'refund_amount' => (int) $data['refund_amount'],
-            'items' => collect($data['items'])
-                ->map(fn (array $item): array => [
-                    'line_id' => (int) $item['line_id'],
-                    'qty' => (int) $item['qty'],
-                ])
-                ->values()
-                ->all(),
+            'items' => $items,
         ]);
 
         return redirect()
-            ->route('admin.transactions.index')
+            ->route('admin.transactions.show', $transaction)
             ->with('status', "Refund transaksi #{$transaction->id} berhasil disimpan.");
     }
 }

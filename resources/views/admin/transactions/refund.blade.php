@@ -14,6 +14,10 @@
         </div>
     @endif
 
+    <div class="alert alert-warning">
+        Refund hanya boleh <strong>sekali</strong> per nota. Isi qty hanya pada line yang benar-benar direturn.
+    </div>
+
     <form method="POST" action="{{ route('admin.transactions.refund.store', $transaction) }}">
         @csrf
 
@@ -26,20 +30,25 @@
 
                 <div class="mb-3">
                     <label class="form-label">Refund Amount</label>
-                    <input type="number" name="refund_amount" min="0" class="form-control" value="{{ old('refund_amount', 0) }}" required>
+                    <input type="number" name="refund_amount" min="1" class="form-control" value="{{ old('refund_amount', 0) }}" required>
                 </div>
             </div>
         </div>
 
         @forelse ($stockLines as $i => $line)
+            @php
+                $remainingQty = (int) $line->qty - (int) $line->refunded_qty;
+            @endphp
+
             <div class="card mb-3">
                 <div class="card-header">
                     Line #{{ $line->id }} - {{ $line->kind }}
                 </div>
                 <div class="card-body">
                     <p class="mb-1"><strong>Produk:</strong> {{ $line->product?->name }}</p>
-                    <p class="mb-1"><strong>Qty:</strong> {{ $line->qty }}</p>
-                    <p class="mb-3"><strong>Sudah Refund:</strong> {{ $line->refunded_qty }}</p>
+                    <p class="mb-1"><strong>Qty Awal:</strong> {{ $line->qty }}</p>
+                    <p class="mb-1"><strong>Sudah Refund:</strong> {{ $line->refunded_qty }}</p>
+                    <p class="mb-3"><strong>Sisa Maksimal Refund:</strong> {{ $remainingQty }}</p>
 
                     <input type="hidden" name="items[{{ $i }}][line_id]" value="{{ $line->id }}">
 
@@ -49,6 +58,7 @@
                             type="number"
                             name="items[{{ $i }}][qty]"
                             min="0"
+                            max="{{ $remainingQty }}"
                             class="form-control"
                             value="{{ old("items.{$i}.qty", 0) }}"
                         >
@@ -61,7 +71,9 @@
             </div>
         @endforelse
 
-        <button type="submit" class="btn btn-warning">Simpan Refund</button>
+        @if ($stockLines->isNotEmpty())
+            <button type="submit" class="btn btn-warning">Simpan Refund</button>
+        @endif
     </form>
 </div>
 @endsection

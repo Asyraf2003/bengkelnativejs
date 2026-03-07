@@ -22,6 +22,8 @@
         <a href="{{ route('admin.transactions.index') }}" class="btn btn-outline-secondary">Kembali ke List</a>
 
         @if ($transaction->status === 'draft')
+            <a href="{{ route('admin.transactions.edit', $transaction) }}" class="btn btn-primary">Edit Draft</a>
+
             <form method="POST" action="{{ route('admin.transactions.mark_paid', $transaction) }}">
                 @csrf
                 <input type="hidden" name="paid_at" value="{{ now()->toDateString() }}">
@@ -37,9 +39,12 @@
         @if ($transaction->status === 'paid')
             @php
                 $hasRefundableStockLine = $transaction->lines->contains(fn ($line) => in_array($line->kind, ['product_sale', 'service_product'], true));
+                $alreadyRefunded = $transaction->refunded_at !== null
+                    || (int) $transaction->refund_amount > 0
+                    || $transaction->lines->contains(fn ($line) => (int) $line->refunded_qty > 0);
             @endphp
 
-            @if ($hasRefundableStockLine)
+            @if ($hasRefundableStockLine && ! $alreadyRefunded)
                 <a href="{{ route('admin.transactions.refund', $transaction) }}" class="btn btn-warning">Refund</a>
             @endif
         @endif

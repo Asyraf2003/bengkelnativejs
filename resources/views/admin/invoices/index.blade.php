@@ -38,7 +38,11 @@
                                 <td>{{ $row->due_at?->toDateString() }}</td>
                                 <td>{{ $row->is_paid ? 'Paid' : 'Unpaid' }}</td>
                                 <td class="text-end">{{ number_format($row->grand_total, 0, ',', '.') }}</td>
-                                <td>
+                                <td class="d-flex gap-2 flex-wrap">
+                                    <a href="{{ route('admin.invoices.show', $row) }}" class="btn btn-sm btn-outline-primary">
+                                        Detail
+                                    </a>
+
                                     <a href="{{ route('admin.invoices.proofs.index', $row) }}" class="btn btn-sm btn-secondary">
                                         Proofs
                                     </a>

@@ -12,11 +12,6 @@ use Illuminate\Support\Facades\DB;
 class RefundCustomerTransactionUseCase
 {
     /**
-     * refund partial:
-     * - status transaksi tetap paid (opsi 1)
-     * - refunded_at diset dari input
-     * - refund_amount ditambah (akumulatif)
-     *
      * @param array{
      *   transaction_id:int,
      *   refunded_at:string,
@@ -36,11 +31,19 @@ class RefundCustomerTransactionUseCase
                 throw new \DomainException('Refund hanya untuk transaksi status paid.');
             }
 
+            $alreadyRefunded = $trx->refunded_at !== null
+                || (int) $trx->refund_amount > 0
+                || $trx->lines->contains(fn ($ln) => (int) $ln->refunded_qty > 0);
+
+            if ($alreadyRefunded) {
+                throw new \DomainException('Refund untuk transaksi ini hanya boleh sekali.');
+            }
+
             $refundedAt = CarbonImmutable::parse($input['refunded_at'])->startOfDay();
 
             $refundAmount = (int) ($input['refund_amount'] ?? 0);
-            if ($refundAmount < 0) {
-                throw new \InvalidArgumentException('refund_amount tidak boleh negatif.');
+            if ($refundAmount <= 0) {
+                throw new \InvalidArgumentException('refund_amount harus > 0.');
             }
 
             $items = $input['items'] ?? [];
@@ -48,26 +51,28 @@ class RefundCustomerTransactionUseCase
                 throw new \InvalidArgumentException('Minimal 1 line untuk refund.');
             }
 
-            // map line by id untuk validasi cepat
             $lineMap = [];
             foreach ($trx->lines as $ln) {
                 $lineMap[(int) $ln->id] = $ln;
             }
 
-            // agregasi on_hand add per product
             $aggIn = []; // product_id => qty_sum
 
             foreach ($items as $it) {
                 $lineId = (int) $it['line_id'];
                 $qtyRefund = (int) $it['qty'];
 
-                if ($qtyRefund <= 0) throw new \InvalidArgumentException('qty refund harus > 0.');
+                if ($qtyRefund <= 0) {
+                    throw new \InvalidArgumentException('qty refund harus > 0.');
+                }
 
                 /** @var CustomerTransactionLine|null $ln */
                 $ln = $lineMap[$lineId] ?? null;
-                if (!$ln) throw new \DomainException("Line tidak ditemukan: {$lineId}");
+                if (!$ln) {
+                    throw new \DomainException("Line tidak ditemukan: {$lineId}");
+                }
 
-                if (!in_array($ln->kind, ['product_sale','service_product'], true)) {
+                if (!in_array($ln->kind, ['product_sale', 'service_product'], true)) {
                     throw new \DomainException("Line bukan stok: {$lineId}");
                 }
 
@@ -86,12 +91,10 @@ class RefundCustomerTransactionUseCase
                 $aggIn[$pid] = ($aggIn[$pid] ?? 0) + $qtyRefund;
             }
 
-            // lock inventory rows
             foreach ($aggIn as $productId => $qtyIn) {
                 ProductInventory::query()->lockForUpdate()->findOrFail($productId);
             }
 
-            // apply per line: update refunded_qty + ledger refund_in
             foreach ($items as $it) {
                 $lineId = (int) $it['line_id'];
                 $qtyRefund = (int) $it['qty'];
@@ -102,11 +105,9 @@ class RefundCustomerTransactionUseCase
                 $pid = (int) $ln->product_id;
                 $unitCost = (int) $ln->sale_unit_cost;
 
-                // update refunded_qty
                 $ln->refunded_qty = (int) $ln->refunded_qty + $qtyRefund;
                 $ln->save();
 
-                // add on_hand
                 $inv = ProductInventory::query()->lockForUpdate()->findOrFail($pid);
                 $inv->on_hand_qty = (int) $inv->on_hand_qty + $qtyRefund;
                 $inv->save();
@@ -114,17 +115,16 @@ class RefundCustomerTransactionUseCase
                 InventoryMovement::query()->create([
                     'product_id' => $pid,
                     'type'       => 'refund_in',
-                    'qty'        => $qtyRefund, // +
+                    'qty'        => $qtyRefund,
                     'unit_cost'  => $unitCost,
                     'ref_type'   => 'customer_transaction',
                     'ref_id'     => $trx->id,
-                    'note'       => 'Refund in (partial)',
+                    'note'       => 'Refund in (once per transaction)',
                 ]);
             }
 
-            // set refunded_at (tanggal refund) + tambah cash out refund_amount
             $trx->refunded_at = $refundedAt->toDateString();
-            $trx->refund_amount = (int) $trx->refund_amount + $refundAmount;
+            $trx->refund_amount = $refundAmount;
             $trx->save();
         });
     }

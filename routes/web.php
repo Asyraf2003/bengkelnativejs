@@ -71,18 +71,22 @@ use App\Http\Controllers\Admin\Reports\{
 };
 use App\Http\Controllers\Admin\Transactions\{
     IndexController as TxIndex,
+    ShowController as TxShow,
     CreateController as TxCreate,
     StoreController as TxStore,
+    EditController as TxEdit,
+    UpdateController as TxUpdate,
     MarkPaidController as TxMarkPaid,
     CancelController as TxCancel,
-    ShowController as TxShow,
-    RefundController as TxRefund, 
+    RefundController as TxRefund,
     DeleteLineController as TxDeleteLine
 };
 use App\Http\Controllers\Admin\Invoices\{
     IndexController as InvoiceIndex,
+    ShowController as InvoiceShow,
     CreateController as InvoiceCreate,
-    StoreController as InvoiceStore
+    StoreController as InvoiceStore,
+    MarkPaidController as InvoiceMarkPaid
 };
 
 Route::get('/', function () {
@@ -185,6 +189,8 @@ Route::middleware(['auth', 'admin.only'])
             Route::get('/create', TxCreate::class)->name('create');
             Route::post('/', TxStore::class)->name('store');
             Route::get('/{transaction}', TxShow::class)->name('show');
+            Route::get('/{transaction}/edit', TxEdit::class)->name('edit');
+            Route::put('/{transaction}', TxUpdate::class)->name('update');
             Route::post('/{transaction}/mark-paid', TxMarkPaid::class)->name('mark_paid');
             Route::post('/{transaction}/cancel', TxCancel::class)->name('cancel');
             Route::get('/{transaction}/refund', TxRefund::class)->name('refund');
@@ -196,6 +202,8 @@ Route::middleware(['auth', 'admin.only'])
             Route::get('/', InvoiceIndex::class)->name('index');
             Route::get('/create', InvoiceCreate::class)->name('create');
             Route::post('/', InvoiceStore::class)->name('store');
+            Route::get('/{invoice}', InvoiceShow::class)->name('show');
+            Route::post('/{invoice}/mark-paid', InvoiceMarkPaid::class)->name('mark_paid');
 
             Route::prefix('{invoice}/proofs')->name('proofs.')->group(function () {
                 Route::get('/', InvoiceProofIndex::class)->name('index');
