@@ -75,7 +75,9 @@ use App\Http\Controllers\Admin\Transactions\{
     StoreController as TxStore,
     MarkPaidController as TxMarkPaid,
     CancelController as TxCancel,
-    RefundController as TxRefund
+    ShowController as TxShow,
+    RefundController as TxRefund, 
+    DeleteLineController as TxDeleteLine
 };
 use App\Http\Controllers\Admin\Invoices\{
     IndexController as InvoiceIndex,
@@ -182,10 +184,12 @@ Route::middleware(['auth', 'admin.only'])
             Route::get('/', TxIndex::class)->name('index');
             Route::get('/create', TxCreate::class)->name('create');
             Route::post('/', TxStore::class)->name('store');
+            Route::get('/{transaction}', TxShow::class)->name('show');
             Route::post('/{transaction}/mark-paid', TxMarkPaid::class)->name('mark_paid');
             Route::post('/{transaction}/cancel', TxCancel::class)->name('cancel');
             Route::get('/{transaction}/refund', TxRefund::class)->name('refund');
             Route::post('/{transaction}/refund', TxRefund::class)->name('refund.store');
+            Route::post('/{transaction}/lines/{line}/delete', TxDeleteLine::class)->name('lines.delete');
         });
 
         Route::prefix('invoices')->name('invoices.')->group(function () {

@@ -15,6 +15,9 @@ class IndexController
         $q = trim((string) $request->query('q', ''));
 
         $rows = CustomerTransaction::query()
+            ->with([
+                'lines.product:id,name,code',
+            ])
             ->withCount('lines')
             ->withCount([
                 'lines as refundable_stock_lines_count' => function ($qb) {
