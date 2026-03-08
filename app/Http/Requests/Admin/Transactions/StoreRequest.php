@@ -16,10 +16,10 @@ class StoreRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_order_id' => ['nullable', 'integer', 'exists:customer_orders,id'],
             'customer_name' => ['required', 'string', 'max:150'],
             'transacted_at' => ['required', 'date'],
             'note' => ['nullable', 'string'],
-
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.kind' => ['required', 'in:product_sale,service_fee,service_product,outside_cost'],
             'lines.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
@@ -54,6 +54,7 @@ class StoreRequest extends FormRequest
                     }
 
                     $product = Product::query()->find((int) $productId);
+
                     if (!$product) {
                         $validator->errors()->add("lines.{$index}.product_id", 'Produk tidak ditemukan.');
                         continue;

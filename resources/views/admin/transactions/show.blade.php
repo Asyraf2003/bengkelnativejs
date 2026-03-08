@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $displayStatus = match ($transaction->status) {
+        'draft' => 'Hutang',
+        'paid' => 'Lunas',
+        'canceled', 'refunded' => 'Batal',
+        default => $transaction->status,
+    };
+@endphp
+
 <div class="container py-4">
     <h1 class="mb-4">Detail Transaksi #{{ $transaction->id }}</h1>
 
@@ -19,7 +28,15 @@
     @endif
 
     <div class="mb-3 d-flex gap-2 flex-wrap">
-        <a href="{{ route('admin.transactions.index') }}" class="btn btn-outline-secondary">Kembali ke List</a>
+        @if ($transaction->customerOrder)
+            <a href="{{ route('admin.customer_orders.show', $transaction->customerOrder) }}" class="btn btn-outline-secondary">
+                Kembali ke Pesanan Pelanggan
+            </a>
+        @else
+            <a href="{{ route('admin.customer_orders.index') }}" class="btn btn-outline-secondary">
+                Kembali ke List
+            </a>
+        @endif
 
         @if ($transaction->status === 'draft')
             <a href="{{ route('admin.transactions.edit', $transaction) }}" class="btn btn-primary">Edit Draft</a>
@@ -27,25 +44,31 @@
             <form method="POST" action="{{ route('admin.transactions.mark_paid', $transaction) }}">
                 @csrf
                 <input type="hidden" name="paid_at" value="{{ now()->toDateString() }}">
-                <button type="submit" class="btn btn-success">Mark Paid</button>
+                <button type="submit" class="btn btn-success">Lunaskan</button>
             </form>
 
             <form method="POST" action="{{ route('admin.transactions.cancel', $transaction) }}">
                 @csrf
-                <button type="submit" class="btn btn-danger">Cancel Draft</button>
+                <button type="submit" class="btn btn-danger">Batalkan</button>
             </form>
         @endif
 
         @if ($transaction->status === 'paid')
             @php
-                $hasRefundableStockLine = $transaction->lines->contains(fn ($line) => in_array($line->kind, ['product_sale', 'service_product'], true));
-                $alreadyRefunded = $transaction->refunded_at !== null
+                $hasRefundableStockLine = $transaction->lines->contains(
+                    fn ($line) => in_array($line->kind, ['product_sale', 'service_product'], true)
+                );
+
+                $alreadyRefunded =
+                    $transaction->refunded_at !== null
                     || (int) $transaction->refund_amount > 0
                     || $transaction->lines->contains(fn ($line) => (int) $line->refunded_qty > 0);
             @endphp
 
             @if ($hasRefundableStockLine && ! $alreadyRefunded)
-                <a href="{{ route('admin.transactions.refund', $transaction) }}" class="btn btn-warning">Refund</a>
+                <a href="{{ route('admin.transactions.refund', $transaction) }}" class="btn btn-warning">
+                    Batalkan / Refund
+                </a>
             @endif
         @endif
     </div>
@@ -58,23 +81,38 @@
                     <strong>ID</strong>
                     <div>{{ $transaction->id }}</div>
                 </div>
+
+                <div class="col-md-4">
+                    <strong>Pesanan Pelanggan</strong>
+                    <div>
+                        @if ($transaction->customerOrder)
+                            #{{ $transaction->customerOrder->id }}
+                        @else
+                            -
+                        @endif
+                    </div>
+                </div>
+
                 <div class="col-md-4">
                     <strong>Customer</strong>
                     <div>{{ $transaction->customer_name }}</div>
                 </div>
+
                 <div class="col-md-4">
                     <strong>Status</strong>
-                    <div>{{ $transaction->status }}</div>
+                    <div>{{ $displayStatus }}</div>
                 </div>
 
                 <div class="col-md-4">
                     <strong>Transacted At</strong>
                     <div>{{ $transaction->transacted_at?->toDateString() }}</div>
                 </div>
+
                 <div class="col-md-4">
                     <strong>Paid At</strong>
                     <div>{{ $transaction->paid_at?->toDateString() ?? '-' }}</div>
                 </div>
+
                 <div class="col-md-4">
                     <strong>Refunded At</strong>
                     <div>{{ $transaction->refunded_at?->toDateString() ?? '-' }}</div>
@@ -84,7 +122,13 @@
                     <strong>Refund Amount</strong>
                     <div>{{ number_format((int) $transaction->refund_amount, 0, ',', '.') }}</div>
                 </div>
-                <div class="col-md-8">
+
+                <div class="col-md-4">
+                    <strong>Tanggal Nota Dibuat</strong>
+                    <div>{{ $transaction->customerOrder?->created_at?->format('Y-m-d H:i:s') ?? '-' }}</div>
+                </div>
+
+                <div class="col-md-12">
                     <strong>Catatan Transaksi</strong>
                     <div>{{ $transaction->note ?: '-' }}</div>
                 </div>
@@ -127,8 +171,12 @@
                                 </td>
                                 <td class="text-end">{{ $line->qty ?? '-' }}</td>
                                 <td class="text-end">{{ number_format((int) $line->amount, 0, ',', '.') }}</td>
-                                <td class="text-end">{{ $line->cogs_amount !== null ? number_format((int) $line->cogs_amount, 0, ',', '.') : '-' }}</td>
-                                <td class="text-end">{{ $line->sale_unit_cost !== null ? number_format((int) $line->sale_unit_cost, 0, ',', '.') : '-' }}</td>
+                                <td class="text-end">
+                                    {{ $line->cogs_amount !== null ? number_format((int) $line->cogs_amount, 0, ',', '.') : '-' }}
+                                </td>
+                                <td class="text-end">
+                                    {{ $line->sale_unit_cost !== null ? number_format((int) $line->sale_unit_cost, 0, ',', '.') : '-' }}
+                                </td>
                                 <td class="text-end">{{ number_format((int) $line->refunded_qty, 0, ',', '.') }}</td>
                                 <td>{{ $line->note ?: '-' }}</td>
 
@@ -147,7 +195,9 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ $transaction->status === 'draft' ? 10 : 9 }}" class="text-center">Tidak ada line.</td>
+                                <td colspan="{{ $transaction->status === 'draft' ? 10 : 9 }}" class="text-center">
+                                    Tidak ada line.
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>

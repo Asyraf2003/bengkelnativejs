@@ -9,6 +9,7 @@ class ShowController
     public function __invoke(CustomerTransaction $transaction)
     {
         $transaction->load([
+            'customerOrder',
             'lines.product:id,code,name',
         ]);
 

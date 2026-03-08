@@ -11,21 +11,25 @@ return new class extends Migration
         Schema::create('customer_transactions', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('customer_order_id')
+                ->constrained('customer_orders')
+                ->cascadeOnDelete();
+
             $table->string('customer_name');
 
             $table->enum('status', ['draft', 'paid', 'canceled', 'refunded'])->index();
 
-            $table->date('transacted_at'); // tanggal dibuat
-            $table->date('paid_at')->nullable(); // tanggal pelunasan
-            $table->date('refunded_at')->nullable(); // tanggal refund (1x per transaksi)
+            $table->date('transacted_at'); // tanggal transaksi anak dibuat
+            $table->date('paid_at')->nullable(); // tanggal uang masuk
+            $table->date('refunded_at')->nullable(); // tanggal uang keluar balik
 
-            // untuk mendukung refund partial: total uang refund (cash-out)
             $table->unsignedBigInteger('refund_amount')->default(0);
 
             $table->text('note')->nullable();
 
             $table->timestamps();
 
+            $table->index(['customer_order_id', 'transacted_at']);
             $table->index(['status', 'transacted_at']);
         });
     }

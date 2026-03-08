@@ -20,10 +20,15 @@
         'name' => (string) $product->name,
         'sale_price' => (int) $product->sale_price,
     ])->values()->all();
+
+    $selectedCustomerOrderId = old('customer_order_id', $customerOrder?->id);
+    $selectedCustomerName = old('customer_name', $customerOrder?->customer_name);
 @endphp
 
 <div class="container py-4">
-    <h1 class="mb-4">Buat Draft Transaksi</h1>
+    <h1 class="mb-4">
+        {{ $customerOrder ? 'Tambah Transaksi ke Pesanan Pelanggan' : 'Buat Draft Transaksi' }}
+    </h1>
 
     @if ($errors->any())
         <div class="alert alert-danger mb-3">
@@ -38,16 +43,42 @@
     <form method="POST" action="{{ route('admin.transactions.store') }}">
         @csrf
 
+        @if ($selectedCustomerOrderId)
+            <input type="hidden" name="customer_order_id" value="{{ $selectedCustomerOrderId }}">
+        @endif
+
         <div class="card mb-3">
             <div class="card-body">
+                @if ($customerOrder)
+                    <div class="alert alert-info">
+                        <div><strong>Pesanan Pelanggan:</strong> #{{ $customerOrder->id }}</div>
+                        <div><strong>Dibuat:</strong> {{ $customerOrder->created_at?->format('Y-m-d H:i:s') }}</div>
+                    </div>
+                @endif
+
                 <div class="mb-3">
                     <label class="form-label">Nama Customer</label>
-                    <input type="text" name="customer_name" class="form-control" value="{{ old('customer_name') }}" required>
+                    <input
+                        type="text"
+                        name="customer_name"
+                        class="form-control"
+                        value="{{ $selectedCustomerName }}"
+                        {{ $customerOrder ? 'readonly' : 'required' }}
+                    >
+                    @if ($customerOrder)
+                        <div class="form-text">Nama customer mengikuti Pesanan Pelanggan.</div>
+                    @endif
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label">Tanggal Transaksi</label>
-                    <input type="date" name="transacted_at" class="form-control" value="{{ old('transacted_at', now()->toDateString()) }}" required>
+                    <input
+                        type="date"
+                        name="transacted_at"
+                        class="form-control"
+                        value="{{ old('transacted_at', now()->toDateString()) }}"
+                        required
+                    >
                 </div>
 
                 <div class="mb-3">
@@ -70,7 +101,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const products = @json($productOptions);
     const initialLines = @json($oldLines);
-
     const root = document.getElementById('transaction-lines-root');
     const addLineBtn = document.getElementById('add-line-btn');
 
@@ -80,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function productById(productId) {
         const id = parseInt(productId || '0', 10);
+
         if (!id) {
             return null;
         }
@@ -89,7 +120,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function buildProductOptions(selectedId) {
         const selected = String(selectedId ?? '');
-
         let html = '<option value="">-- pilih produk --</option>';
 
         for (const product of products) {
@@ -129,10 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function render() {
         root.innerHTML = '';
-
         const cards = state.lines.map((line, index) => buildLineCard(line, index)).join('');
         root.innerHTML = cards;
-
         bindLineEvents();
         refreshAllHints();
     }
@@ -164,6 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         Hapus
                     </button>
                 </div>
+
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Jenis</label>
@@ -188,12 +217,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     <div class="mb-3">
                         <label class="form-label">Qty</label>
-                        <input type="number" name="lines[${index}][qty]" min="1" class="form-control line-qty" value="${escapeHtml(line.qty ?? '')}">
+                        <input
+                            type="number"
+                            name="lines[${index}][qty]"
+                            min="1"
+                            class="form-control line-qty"
+                            value="${escapeHtml(line.qty ?? '')}"
+                        >
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Amount (total line)</label>
-                        <input type="number" name="lines[${index}][amount]" min="0" class="form-control line-amount" value="${escapeHtml(line.amount ?? 0)}" required>
+                        <input
+                            type="number"
+                            name="lines[${index}][amount]"
+                            min="0"
+                            class="form-control line-amount"
+                            value="${escapeHtml(line.amount ?? 0)}"
+                            required
+                        >
                         <div class="form-text line-amount-hint">${escapeHtml(amountHint)}</div>
                     </div>
 
@@ -209,7 +251,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function bindLineEvents() {
         root.querySelectorAll('.transaction-line-card').forEach((card) => {
             const index = parseInt(card.dataset.index, 10);
-
             const kindEl = card.querySelector('.line-kind');
             const productEl = card.querySelector('.line-product-id');
             const qtyEl = card.querySelector('.line-qty');
@@ -283,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateSingleHints(index) {
         const card = root.querySelector(`.transaction-line-card[data-index="${index}"]`);
+
         if (!card) {
             return;
         }
@@ -293,7 +335,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const salePrice = product ? Number(product.sale_price) : 0;
         const qty = parseInt(line.qty || '0', 10) > 0 ? parseInt(line.qty || '0', 10) : 0;
         const minimumAmount = stockMode ? salePrice * qty : 0;
-
         const priceHintEl = card.querySelector('.line-product-price-hint');
         const amountHintEl = card.querySelector('.line-amount-hint');
 
@@ -301,6 +342,7 @@ document.addEventListener('DOMContentLoaded', function () {
             priceHintEl.textContent = salePrice > 0
                 ? `Harga jual master: ${formatNumber(salePrice)}.`
                 : 'Pilih produk untuk mengambil harga jual master.';
+
             amountHintEl.textContent = minimumAmount > 0
                 ? `Total minimum line stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
                 : 'Isi produk dan qty untuk menghitung total minimum line stok.';
@@ -323,10 +365,7 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     addLineBtn.addEventListener('click', function () {
-        state.lines.push({
-            ...defaultLine(),
-            _amountTouched: false,
-        });
+        state.lines.push({ ...defaultLine(), _amountTouched: false });
         maybeAutofillAmount(state.lines.length - 1, true);
         render();
     });

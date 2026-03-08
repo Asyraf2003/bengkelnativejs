@@ -69,6 +69,10 @@ use App\Http\Controllers\Admin\Reports\{
     StockController,
     InvoiceDueSoonController
 };
+use App\Http\Controllers\Admin\CustomerOrders\{
+    IndexController as CustomerOrdersIndex,
+    ShowController as CustomerOrdersShow
+};
 use App\Http\Controllers\Admin\Transactions\{
     IndexController as TxIndex,
     ShowController as TxShow,
@@ -111,6 +115,11 @@ Route::middleware(['auth', 'admin.only'])
     ->name('admin.')
     ->group(function () {
         Route::view('/', 'admin.dashboard')->name('dashboard');
+
+        Route::prefix('customer-orders')->name('customer_orders.')->group(function () {
+            Route::get('/', CustomerOrdersIndex::class)->name('index');
+            Route::get('/{customerOrder}', CustomerOrdersShow::class)->name('show');
+        });
 
         Route::prefix('products')->name('products.')->group(function () {
             Route::get('/', ProductsIndex::class)->name('index');

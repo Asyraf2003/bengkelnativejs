@@ -2,6 +2,7 @@
 
 namespace App\Application\UseCases\Transactions;
 
+use App\Models\CustomerOrder;
 use App\Models\CustomerTransaction;
 use App\Models\CustomerTransactionLine;
 use App\Models\InventoryMovement;
@@ -13,6 +14,7 @@ class CreateDraftCustomerTransactionUseCase
 {
     /**
      * @param array{
+     *  customer_order_id?:int|null,
      *  customer_name:string,
      *  transacted_at:string,
      *  note?:string|null,
@@ -40,13 +42,12 @@ class CreateDraftCustomerTransactionUseCase
                 throw new \InvalidArgumentException('Minimal 1 line item.');
             }
 
-            // validasi & normalisasi line + agregasi reserve per product
-            $reserveAgg = []; // product_id => qty_sum
+            $reserveAgg = [];
             $lineRows = [];
 
             foreach ($lines as $ln) {
                 $kind = (string) ($ln['kind'] ?? '');
-                if (!in_array($kind, ['product_sale','service_fee','service_product','outside_cost'], true)) {
+                if (!in_array($kind, ['product_sale', 'service_fee', 'service_product', 'outside_cost'], true)) {
                     throw new \InvalidArgumentException("kind invalid: {$kind}");
                 }
 
@@ -58,15 +59,19 @@ class CreateDraftCustomerTransactionUseCase
                 $productId = isset($ln['product_id']) ? (int) $ln['product_id'] : null;
                 $qty = isset($ln['qty']) ? (int) $ln['qty'] : null;
 
-                $usesStock = in_array($kind, ['product_sale','service_product'], true);
+                $usesStock = in_array($kind, ['product_sale', 'service_product'], true);
 
                 if ($usesStock) {
-                    if (!$productId) throw new \InvalidArgumentException('product_id wajib untuk line stok.');
-                    if (!$qty || $qty <= 0) throw new \InvalidArgumentException('qty wajib > 0 untuk line stok.');
+                    if (!$productId) {
+                        throw new \InvalidArgumentException('product_id wajib untuk line stok.');
+                    }
+
+                    if (!$qty || $qty <= 0) {
+                        throw new \InvalidArgumentException('qty wajib > 0 untuk line stok.');
+                    }
 
                     $reserveAgg[$productId] = ($reserveAgg[$productId] ?? 0) + $qty;
                 } else {
-                    // non-stok: pastikan tidak nyelip qty
                     $productId = null;
                     $qty = null;
                 }
@@ -80,7 +85,6 @@ class CreateDraftCustomerTransactionUseCase
                 ];
             }
 
-            // VALIDASI RESERVE: lock inventory row per product
             foreach ($reserveAgg as $productId => $reserveQty) {
                 /** @var ProductInventory $inv */
                 $inv = ProductInventory::query()->lockForUpdate()->findOrFail($productId);
@@ -91,18 +95,32 @@ class CreateDraftCustomerTransactionUseCase
                 }
             }
 
-            // create transaction
+            $customerOrderId = isset($input['customer_order_id']) && $input['customer_order_id']
+                ? (int) $input['customer_order_id']
+                : null;
+
+            if ($customerOrderId) {
+                $order = CustomerOrder::query()->findOrFail($customerOrderId);
+            } else {
+                $order = CustomerOrder::query()->create([
+                    'customer_name' => $customerName,
+                    'note' => $input['note'] ?? null,
+                ]);
+
+                $customerOrderId = (int) $order->id;
+            }
+
             $trx = CustomerTransaction::query()->create([
-                'customer_name' => $customerName,
-                'status'        => 'draft',
-                'transacted_at' => $transactedAt->toDateString(),
-                'paid_at'       => null,
-                'refunded_at'   => null,
-                'refund_amount' => 0,
-                'note'          => $input['note'] ?? null,
+                'customer_order_id' => $customerOrderId,
+                'customer_name'     => $customerName,
+                'status'            => 'draft',
+                'transacted_at'     => $transactedAt->toDateString(),
+                'paid_at'           => null,
+                'refunded_at'       => null,
+                'refund_amount'     => 0,
+                'note'              => $input['note'] ?? null,
             ]);
 
-            // insert lines
             foreach ($lineRows as $row) {
                 CustomerTransactionLine::query()->create([
                     'customer_transaction_id' => $trx->id,
@@ -114,7 +132,6 @@ class CreateDraftCustomerTransactionUseCase
                 ]);
             }
 
-            // apply reserve + ledger
             foreach ($reserveAgg as $productId => $reserveQty) {
                 $inv = ProductInventory::query()->lockForUpdate()->findOrFail($productId);
 
@@ -124,7 +141,7 @@ class CreateDraftCustomerTransactionUseCase
                 InventoryMovement::query()->create([
                     'product_id' => $productId,
                     'type'       => 'reserve',
-                    'qty'        => (int) $reserveQty, // + reserve
+                    'qty'        => (int) $reserveQty,
                     'unit_cost'  => null,
                     'ref_type'   => 'customer_transaction',
                     'ref_id'     => $trx->id,
