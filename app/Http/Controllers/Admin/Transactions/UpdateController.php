@@ -35,7 +35,7 @@ class UpdateController
         ]);
 
         return redirect()
-            ->route('admin.transactions.show', $transaction)
-            ->with('status', "Draft transaksi #{$transaction->id} berhasil diupdate.");
+            ->route('admin.customer_orders.show', $transaction->customer_order_id)
+            ->with('status', "Draft kasus #{$transaction->id} berhasil diperbarui.");
     }
 }

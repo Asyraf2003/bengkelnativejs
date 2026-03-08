@@ -22,6 +22,6 @@ class MarkPaidController
 
         return redirect()
             ->route('admin.customer_orders.show', $transaction->customer_order_id)
-            ->with('status', "Transaksi #{$transaction->id} berhasil ditandai lunas.");
+            ->with('status', "Kasus #{$transaction->id} berhasil dilunaskan.");
     }
 }

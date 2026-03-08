@@ -14,7 +14,7 @@ class CancelController
         $useCase->execute((int) $transaction->id);
 
         return redirect()
-            ->route('admin.transactions.index')
-            ->with('status', "Draft transaksi #{$transaction->id} berhasil dibatalkan.");
+            ->route('admin.customer_orders.show', $transaction->customer_order_id)
+            ->with('status', "Kasus draft #{$transaction->id} berhasil dibatalkan.");
     }
 }

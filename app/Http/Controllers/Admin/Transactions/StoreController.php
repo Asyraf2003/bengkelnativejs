@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin\Transactions;
 use App\Application\UseCases\Transactions\CreateDraftCustomerTransactionUseCase;
 use App\Http\Requests\Admin\Transactions\StoreRequest;
 use App\Models\CustomerOrder;
+use App\Models\CustomerTransaction;
 
 class StoreController
 {
@@ -48,8 +49,10 @@ class StoreController
                 ->all(),
         ]);
 
+        $transaction = CustomerTransaction::query()->findOrFail($transactionId);
+
         return redirect()
-            ->route('admin.transactions.show', $transactionId)
-            ->with('status', "Draft transaksi #{$transactionId} tersimpan.");
+            ->route('admin.customer_orders.show', $transaction->customer_order_id)
+            ->with('status', "Draft kasus #{$transaction->id} berhasil disimpan.");
     }
 }

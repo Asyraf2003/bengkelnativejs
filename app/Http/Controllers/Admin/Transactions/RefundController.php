@@ -21,8 +21,8 @@ class RefundController
 
         if ($alreadyRefunded) {
             return redirect()
-                ->route('admin.transactions.show', $transaction)
-                ->withErrors(['refund' => 'Transaksi ini sudah pernah direfund. Refund hanya boleh sekali per nota.']);
+                ->route('admin.customer_orders.show', $transaction->customer_order_id)
+                ->withErrors(['refund' => 'Kasus ini sudah pernah direfund. Refund hanya boleh sekali per kasus.']);
         }
 
         if ($request->isMethod('get')) {
@@ -56,7 +56,7 @@ class RefundController
         ]);
 
         return redirect()
-            ->route('admin.transactions.show', $transaction)
-            ->with('status', "Refund transaksi #{$transaction->id} berhasil disimpan.");
+            ->route('admin.customer_orders.show', $transaction->customer_order_id)
+            ->with('status', "Refund kasus #{$transaction->id} berhasil disimpan.");
     }
 }
