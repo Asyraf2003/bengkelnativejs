@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container py-4">
-    <h1 class="mb-4">Refund Transaksi #{{ $transaction->id }}</h1>
+    <h1 class="mb-4">Refund Kasus #{{ $transaction->id }}</h1>
 
     @if ($errors->any())
         <div class="alert alert-danger mb-3">
@@ -14,8 +14,20 @@
         </div>
     @endif
 
+    <div class="mb-3">
+        @if ($transaction->customer_order_id)
+            <a href="{{ route('admin.customer_orders.show', $transaction->customer_order_id) }}" class="btn btn-outline-secondary">
+                Kembali ke Nota Pelanggan
+            </a>
+        @else
+            <a href="{{ route('admin.transactions.show', $transaction) }}" class="btn btn-outline-secondary">
+                Kembali ke Detail Kasus
+            </a>
+        @endif
+    </div>
+
     <div class="alert alert-warning">
-        Refund hanya boleh <strong>sekali</strong> per nota. Isi qty hanya pada line yang benar-benar direturn.
+        Refund hanya boleh <strong>sekali</strong> per kasus. Isi qty hanya pada rincian yang benar-benar direturn.
     </div>
 
     <form method="POST" action="{{ route('admin.transactions.refund.store', $transaction) }}">
@@ -25,12 +37,25 @@
             <div class="card-body">
                 <div class="mb-3">
                     <label class="form-label">Tanggal Refund</label>
-                    <input type="date" name="refunded_at" class="form-control" value="{{ old('refunded_at', now()->toDateString()) }}" required>
+                    <input
+                        type="date"
+                        name="refunded_at"
+                        class="form-control"
+                        value="{{ old('refunded_at', now()->toDateString()) }}"
+                        required
+                    >
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Refund Amount</label>
-                    <input type="number" name="refund_amount" min="1" class="form-control" value="{{ old('refund_amount', 0) }}" required>
+                    <label class="form-label">Nominal Refund</label>
+                    <input
+                        type="number"
+                        name="refund_amount"
+                        min="1"
+                        class="form-control"
+                        value="{{ old('refund_amount', 0) }}"
+                        required
+                    >
                 </div>
             </div>
         </div>
@@ -42,10 +67,10 @@
 
             <div class="card mb-3">
                 <div class="card-header">
-                    Line #{{ $line->id }} - {{ $line->kind }}
+                    Rincian #{{ $line->id }} - {{ $line->kind }}
                 </div>
                 <div class="card-body">
-                    <p class="mb-1"><strong>Produk:</strong> {{ $line->product?->name }}</p>
+                    <p class="mb-1"><strong>Produk:</strong> {{ $line->product?->name ?: '-' }}</p>
                     <p class="mb-1"><strong>Qty Awal:</strong> {{ $line->qty }}</p>
                     <p class="mb-1"><strong>Sudah Refund:</strong> {{ $line->refunded_qty }}</p>
                     <p class="mb-3"><strong>Sisa Maksimal Refund:</strong> {{ $remainingQty }}</p>
@@ -67,7 +92,7 @@
             </div>
         @empty
             <div class="alert alert-warning">
-                Tidak ada line stok yang bisa direfund.
+                Tidak ada rincian stok yang bisa direfund.
             </div>
         @endforelse
 

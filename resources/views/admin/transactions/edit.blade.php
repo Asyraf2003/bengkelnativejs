@@ -33,7 +33,7 @@
 @endphp
 
 <div class="container py-4">
-    <h1 class="mb-4">Edit Draft Transaksi #{{ $transaction->id }}</h1>
+    <h1 class="mb-4">Edit Draft Kasus #{{ $transaction->id }}</h1>
 
     @if ($errors->any())
         <div class="alert alert-danger mb-3">
@@ -45,25 +45,44 @@
         </div>
     @endif
 
+    <div class="mb-3 d-flex gap-2 flex-wrap">
+        @if ($transaction->customer_order_id)
+            <a href="{{ route('admin.customer_orders.show', $transaction->customer_order_id) }}" class="btn btn-outline-secondary">
+                Kembali ke Nota Pelanggan
+            </a>
+        @else
+            <a href="{{ route('admin.transactions.show', $transaction) }}" class="btn btn-outline-secondary">
+                Kembali ke Detail Kasus
+            </a>
+        @endif
+    </div>
+
     <form method="POST" action="{{ route('admin.transactions.update', $transaction) }}">
         @csrf
         @method('PUT')
 
         <div class="card mb-3">
             <div class="card-body">
+                @if ($transaction->customer_order_id)
+                    <div class="alert alert-info">
+                        <div><strong>Nota Pelanggan:</strong> #{{ $transaction->customer_order_id }}</div>
+                        <div>Nama pelanggan mengikuti Nota Pelanggan.</div>
+                    </div>
+                @endif
+
                 <div class="mb-3">
-                    <label class="form-label">Nama Customer</label>
+                    <label class="form-label">Nama Pelanggan</label>
                     <input
                         type="text"
                         name="customer_name"
                         class="form-control"
                         value="{{ old('customer_name', $transaction->customer_name) }}"
-                        required
+                        {{ $transaction->customer_order_id ? 'readonly' : 'required' }}
                     >
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Tanggal Transaksi</label>
+                    <label class="form-label">Tanggal Kasus</label>
                     <input
                         type="date"
                         name="transacted_at"
@@ -74,7 +93,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Catatan Transaksi</label>
+                    <label class="form-label">Catatan Kasus</label>
                     <textarea name="note" class="form-control">{{ old('note', $transaction->note) }}</textarea>
                 </div>
             </div>
@@ -82,10 +101,9 @@
 
         <div id="transaction-lines-root"></div>
 
-        <div class="d-flex gap-2">
-            <a href="{{ route('admin.transactions.show', $transaction) }}" class="btn btn-outline-secondary">Kembali</a>
-            <button type="button" id="add-line-btn" class="btn btn-outline-secondary">Tambah Line</button>
-            <button type="submit" class="btn btn-primary">Update Draft</button>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" id="add-line-btn" class="btn btn-outline-secondary">Tambah Rincian</button>
+            <button type="submit" class="btn btn-primary">Simpan Perubahan Draft Kasus</button>
         </div>
     </form>
 </div>
@@ -172,18 +190,18 @@ document.addEventListener('DOMContentLoaded', function () {
             ? (salePrice > 0
                 ? `Harga jual master: ${formatNumber(salePrice)}.`
                 : 'Pilih produk untuk mengambil harga jual master.')
-            : 'Line non-stok tidak memakai harga produk.';
+            : 'Rincian non-stok tidak memakai harga produk.';
 
         const amountHint = stockMode
             ? (minimumAmount > 0
-                ? `Total minimum line stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
-                : 'Isi produk dan qty untuk menghitung total minimum line stok.')
+                ? `Total minimum rincian stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
+                : 'Isi produk dan qty untuk menghitung total minimum rincian stok.')
             : 'Untuk service_fee dan outside_cost, amount diisi manual.';
 
         return `
             <div class="card mb-3 transaction-line-card" data-index="${index}">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Line ${index + 1}</span>
+                    <span>Rincian ${index + 1}</span>
                     <button type="button" class="btn btn-sm btn-outline-danger remove-line-btn" ${state.lines.length === 1 ? 'disabled' : ''}>
                         Hapus
                     </button>
@@ -212,17 +230,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
                     <div class="mb-3">
                         <label class="form-label">Qty</label>
-                        <input type="number" name="lines[${index}][qty]" min="1" class="form-control line-qty" value="${escapeHtml(line.qty ?? '')}">
+                        <input
+                            type="number"
+                            name="lines[${index}][qty]"
+                            min="1"
+                            class="form-control line-qty"
+                            value="${escapeHtml(line.qty ?? '')}"
+                        >
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Amount (total line)</label>
-                        <input type="number" name="lines[${index}][amount]" min="0" class="form-control line-amount" value="${escapeHtml(line.amount ?? 0)}" required>
+                        <label class="form-label">Amount (total rincian)</label>
+                        <input
+                            type="number"
+                            name="lines[${index}][amount]"
+                            min="0"
+                            class="form-control line-amount"
+                            value="${escapeHtml(line.amount ?? 0)}"
+                            required
+                        >
                         <div class="form-text line-amount-hint">${escapeHtml(amountHint)}</div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Catatan Line</label>
+                        <label class="form-label">Catatan Rincian</label>
                         <textarea name="lines[${index}][note]" class="form-control line-note">${escapeHtml(line.note ?? '')}</textarea>
                     </div>
                 </div>
@@ -326,10 +357,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 ? `Harga jual master: ${formatNumber(salePrice)}.`
                 : 'Pilih produk untuk mengambil harga jual master.';
             amountHintEl.textContent = minimumAmount > 0
-                ? `Total minimum line stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
-                : 'Isi produk dan qty untuk menghitung total minimum line stok.';
+                ? `Total minimum rincian stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
+                : 'Isi produk dan qty untuk menghitung total minimum rincian stok.';
         } else {
-            priceHintEl.textContent = 'Line non-stok tidak memakai harga produk.';
+            priceHintEl.textContent = 'Rincian non-stok tidak memakai harga produk.';
             amountHintEl.textContent = 'Untuk service_fee dan outside_cost, amount diisi manual.';
         }
     }

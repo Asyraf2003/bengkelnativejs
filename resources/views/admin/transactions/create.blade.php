@@ -27,7 +27,7 @@
 
 <div class="container py-4">
     <h1 class="mb-4">
-        {{ $customerOrder ? 'Tambah Transaksi ke Pesanan Pelanggan' : 'Buat Draft Transaksi' }}
+        {{ $customerOrder ? 'Tambah Kasus ke Nota Pelanggan #'.$customerOrder->id : 'Buat Draft Kasus' }}
     </h1>
 
     @if ($errors->any())
@@ -40,6 +40,18 @@
         </div>
     @endif
 
+    <div class="mb-3">
+        @if ($customerOrder)
+            <a href="{{ route('admin.customer_orders.show', $customerOrder) }}" class="btn btn-outline-secondary">
+                Kembali ke Nota Pelanggan
+            </a>
+        @else
+            <a href="{{ route('admin.customer_orders.index') }}" class="btn btn-outline-secondary">
+                Kembali ke Daftar Nota
+            </a>
+        @endif
+    </div>
+
     <form method="POST" action="{{ route('admin.transactions.store') }}">
         @csrf
 
@@ -51,13 +63,13 @@
             <div class="card-body">
                 @if ($customerOrder)
                     <div class="alert alert-info">
-                        <div><strong>Pesanan Pelanggan:</strong> #{{ $customerOrder->id }}</div>
+                        <div><strong>Nota Pelanggan:</strong> #{{ $customerOrder->id }}</div>
                         <div><strong>Dibuat:</strong> {{ $customerOrder->created_at?->format('Y-m-d H:i:s') }}</div>
                     </div>
                 @endif
 
                 <div class="mb-3">
-                    <label class="form-label">Nama Customer</label>
+                    <label class="form-label">Nama Pelanggan</label>
                     <input
                         type="text"
                         name="customer_name"
@@ -66,12 +78,12 @@
                         {{ $customerOrder ? 'readonly' : 'required' }}
                     >
                     @if ($customerOrder)
-                        <div class="form-text">Nama customer mengikuti Pesanan Pelanggan.</div>
+                        <div class="form-text">Nama pelanggan mengikuti Nota Pelanggan.</div>
                     @endif
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Tanggal Transaksi</label>
+                    <label class="form-label">Tanggal Kasus</label>
                     <input
                         type="date"
                         name="transacted_at"
@@ -82,7 +94,7 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Catatan Transaksi</label>
+                    <label class="form-label">Catatan Kasus</label>
                     <textarea name="note" class="form-control">{{ old('note') }}</textarea>
                 </div>
             </div>
@@ -90,9 +102,9 @@
 
         <div id="transaction-lines-root"></div>
 
-        <div class="d-flex gap-2">
-            <button type="button" id="add-line-btn" class="btn btn-outline-secondary">Tambah Line</button>
-            <button type="submit" class="btn btn-primary">Simpan Draft</button>
+        <div class="d-flex gap-2 flex-wrap">
+            <button type="button" id="add-line-btn" class="btn btn-outline-secondary">Tambah Rincian</button>
+            <button type="submit" class="btn btn-primary">Simpan Draft Kasus</button>
         </div>
     </form>
 </div>
@@ -176,18 +188,18 @@ document.addEventListener('DOMContentLoaded', function () {
             ? (salePrice > 0
                 ? `Harga jual master: ${formatNumber(salePrice)}.`
                 : 'Pilih produk untuk mengambil harga jual master.')
-            : 'Line non-stok tidak memakai harga produk.';
+            : 'Rincian non-stok tidak memakai harga produk.';
 
         const amountHint = stockMode
             ? (minimumAmount > 0
-                ? `Total minimum line stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
-                : 'Isi produk dan qty untuk menghitung total minimum line stok.')
+                ? `Total minimum rincian stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
+                : 'Isi produk dan qty untuk menghitung total minimum rincian stok.')
             : 'Untuk service_fee dan outside_cost, amount diisi manual.';
 
         return `
             <div class="card mb-3 transaction-line-card" data-index="${index}">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <span>Line ${index + 1}</span>
+                    <span>Rincian ${index + 1}</span>
                     <button type="button" class="btn btn-sm btn-outline-danger remove-line-btn" ${state.lines.length === 1 ? 'disabled' : ''}>
                         Hapus
                     </button>
@@ -227,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Amount (total line)</label>
+                        <label class="form-label">Amount (total rincian)</label>
                         <input
                             type="number"
                             name="lines[${index}][amount]"
@@ -240,7 +252,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label">Catatan Line</label>
+                        <label class="form-label">Catatan Rincian</label>
                         <textarea name="lines[${index}][note]" class="form-control line-note">${escapeHtml(line.note ?? '')}</textarea>
                     </div>
                 </div>
@@ -344,10 +356,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 : 'Pilih produk untuk mengambil harga jual master.';
 
             amountHintEl.textContent = minimumAmount > 0
-                ? `Total minimum line stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
-                : 'Isi produk dan qty untuk menghitung total minimum line stok.';
+                ? `Total minimum rincian stok = qty × harga jual = ${formatNumber(minimumAmount)}.`
+                : 'Isi produk dan qty untuk menghitung total minimum rincian stok.';
         } else {
-            priceHintEl.textContent = 'Line non-stok tidak memakai harga produk.';
+            priceHintEl.textContent = 'Rincian non-stok tidak memakai harga produk.';
             amountHintEl.textContent = 'Untuk service_fee dan outside_cost, amount diisi manual.';
         }
     }

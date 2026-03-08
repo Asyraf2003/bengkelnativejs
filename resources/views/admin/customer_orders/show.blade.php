@@ -20,8 +20,21 @@
         <div class="alert alert-success mb-3">{{ session('status') }}</div>
     @endif
 
+    @if ($errors->any())
+        <div class="alert alert-danger mb-3">
+            <ul class="mb-0">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <div class="mb-3 d-flex gap-2 flex-wrap">
-        <a href="{{ route('admin.customer_orders.index') }}" class="btn btn-outline-secondary">Kembali ke Daftar Nota</a>
+        <a href="{{ route('admin.customer_orders.index') }}" class="btn btn-outline-secondary">
+            Kembali ke Daftar Nota
+        </a>
+
         <a href="{{ route('admin.transactions.create', ['customer_order_id' => $customerOrder->id]) }}" class="btn btn-primary">
             Tambah Kasus
         </a>
@@ -81,37 +94,39 @@
 
                             <tr>
                                 <td>{{ $transaction->id }}</td>
-                                <td>{{ $transaction->transacted_at?->toDateString() }}</td>
+                                <td>{{ $transaction->transacted_at?->toDateString() ?? '-' }}</td>
                                 <td>{{ $mapStatus($transaction->status) }}</td>
                                 <td>{{ $transaction->lines_count }}</td>
                                 <td>{{ $transaction->note ?: '-' }}</td>
-                                <td class="d-flex gap-2 flex-wrap">
-                                    <a href="{{ route('admin.transactions.show', $transaction) }}" class="btn btn-sm btn-outline-primary">
-                                        Detail Kasus
-                                    </a>
-
-                                    @if ($transaction->status === 'draft')
-                                        <a href="{{ route('admin.transactions.edit', $transaction) }}" class="btn btn-sm btn-primary">
-                                            Edit Kasus
+                                <td>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a href="{{ route('admin.transactions.show', $transaction) }}" class="btn btn-sm btn-outline-primary">
+                                            Detail Kasus
                                         </a>
 
-                                        <form method="POST" action="{{ route('admin.transactions.mark_paid', $transaction) }}">
-                                            @csrf
-                                            <input type="hidden" name="paid_at" value="{{ now()->toDateString() }}">
-                                            <button type="submit" class="btn btn-sm btn-success">Lunaskan</button>
-                                        </form>
+                                        @if ($transaction->status === 'draft')
+                                            <a href="{{ route('admin.transactions.edit', $transaction) }}" class="btn btn-sm btn-primary">
+                                                Edit Kasus
+                                            </a>
 
-                                        <form method="POST" action="{{ route('admin.transactions.cancel', $transaction) }}">
-                                            @csrf
-                                            <button type="submit" class="btn btn-sm btn-danger">Batalkan</button>
-                                        </form>
-                                    @endif
+                                            <form method="POST" action="{{ route('admin.transactions.mark_paid', $transaction) }}" class="m-0">
+                                                @csrf
+                                                <input type="hidden" name="paid_at" value="{{ now()->toDateString() }}">
+                                                <button type="submit" class="btn btn-sm btn-success">Lunaskan</button>
+                                            </form>
 
-                                    @if ($transaction->status === 'paid' && $hasRefundableStockLine && ! $alreadyRefunded)
-                                        <a href="{{ route('admin.transactions.refund', $transaction) }}" class="btn btn-sm btn-warning">
-                                            Refund
-                                        </a>
-                                    @endif
+                                            <form method="POST" action="{{ route('admin.transactions.cancel', $transaction) }}" class="m-0">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-danger">Batalkan</button>
+                                            </form>
+                                        @endif
+
+                                        @if ($transaction->status === 'paid' && $hasRefundableStockLine && ! $alreadyRefunded)
+                                            <a href="{{ route('admin.transactions.refund', $transaction) }}" class="btn btn-sm btn-warning">
+                                                Refund
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty
