@@ -7,6 +7,8 @@ namespace App\Providers;
 use App\Adapters\Out\Audit\NullAuditLogAdapter;
 use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
+use App\Adapters\Out\IdentityAccess\NullActorAccessReaderAdapter;
+use App\Adapters\Out\IdentityAccess\NullAdminTransactionCapabilityStateAdapter;
 use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
 use App\Adapters\Out\Policy\NullCapabilityPolicyAdapter;
 use App\Application\System\Health\HealthCheckHandler;
@@ -14,6 +16,8 @@ use App\Ports\In\HealthCheckUseCase;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\CapabilityPolicyPort;
 use App\Ports\Out\ClockPort;
+use App\Ports\Out\IdentityAccess\ActorAccessReaderPort;
+use App\Ports\Out\IdentityAccess\AdminTransactionCapabilityStatePort;
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
 use Illuminate\Support\ServiceProvider;
@@ -29,5 +33,8 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(AuditLogPort::class, NullAuditLogAdapter::class);
         $this->app->singleton(CapabilityPolicyPort::class, NullCapabilityPolicyAdapter::class);
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
+
+        $this->app->singleton(ActorAccessReaderPort::class, NullActorAccessReaderAdapter::class);
+        $this->app->singleton(AdminTransactionCapabilityStatePort::class, NullAdminTransactionCapabilityStateAdapter::class);
     }
 }
