@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application/System\Health;
+namespace App\Application\System\Health;
 
 use App\Application\Shared\DTO\Result;
 use App\Ports\In\HealthCheckUseCase;
