@@ -9,7 +9,7 @@ use App\Adapters\Out\Auth\LaravelUuidAdapter;
 use App\Adapters\Out\Clock\SystemClockAdapter;
 use App\Adapters\Out\Persistence\DatabaseTransactionManagerAdapter;
 use App\Adapters\Out\Policy\NullCapabilityPolicyAdapter;
-use App\Application/System/Health/HealthCheckHandler;
+use App\Application\System\Health\HealthCheckHandler;
 use App\Ports\In\HealthCheckUseCase;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\CapabilityPolicyPort;
