@@ -140,7 +140,14 @@ final class SupplierInvoice
             $targetYear++;
         }
 
-        $lastDayOfTargetMonth = cal_days_in_month(CAL_GREGORIAN, $targetMonth, $targetYear);
+        $firstDayOfTargetMonth = new DateTimeImmutable(
+            sprintf('%04d-%02d-01', $targetYear, $targetMonth)
+        );
+
+        $lastDayOfTargetMonth = (int) $firstDayOfTargetMonth
+            ->modify('last day of this month')
+            ->format('j');
+
         $targetDay = min($day, $lastDayOfTargetMonth);
 
         return $tanggalPengiriman->setDate($targetYear, $targetMonth, $targetDay);
