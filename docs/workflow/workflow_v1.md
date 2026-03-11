@@ -61,27 +61,31 @@ Output wajib:
 
 ## Step 4 — Product Catalog
 
-Tujuan: master barang resmi jadi sumber validasi.
+Tujuan: master barang resmi menjadi source of truth untuk seluruh domain.
 
 Kerja:
 
-- create/update product master
-- harga jual default/minimum
-- validasi supplier invoice terhadap product master
+- create product master
+- update product master
+- harga_jual sebagai default/minimum price
+- kunci invariant bahwa procurement hanya boleh mereferensikan product master valid
 
 Output wajib:
 
-- product baru tidak bisa lahir dari supplier invoice
-- harga jual minimum tervalidasi
+- product master resmi hidup sebagai source of truth
+- harga_jual minimum tervalidasi
+- invariant domain: supplier flow tidak boleh menciptakan product baru
 
-## Step 5 — Supplier + inventory receiving
 
-Tujuan: jalur stok masuk resmi aktif.
+## Step 5 — Supplier + Inventory Receiving
+
+Tujuan: jalur stok masuk resmi melalui supplier flow.
 
 Kerja:
 
 - supplier
 - supplier invoice
+- validasi line supplier invoice terhadap product master existing
 - harga beli
 - due date
 - receive inventory
@@ -89,8 +93,9 @@ Kerja:
 
 Output wajib:
 
-- stok masuk hanya dari jalur ini
+- product baru tidak bisa lahir dari supplier invoice
 - line invoice ke product master valid
+- stok masuk hanya dari jalur ini
 - receive stok membentuk inventory movement resmi
 
 ## Step 6 — Inventory engine
