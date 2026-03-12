@@ -42,14 +42,6 @@ final class RebuildInventoryCostingProjectionHandler
                 [
                     'total_movements' => count($movements),
                     'total_products' => count($costings),
-                    'products' => array_map(
-                        static fn (ProductInventoryCosting $costing): array => [
-                            'product_id' => $costing->productId(),
-                            'avg_cost_rupiah' => $costing->avgCostRupiah()->amount(),
-                            'inventory_value_rupiah' => $costing->inventoryValueRupiah()->amount(),
-                        ],
-                        $costings,
-                    ),
                 ],
                 'Inventory costing projection berhasil dibangun ulang.'
             );
@@ -77,48 +69,75 @@ final class RebuildInventoryCostingProjectionHandler
      */
     private function rebuildProjection(array $movements): array
     {
-        /** @var array<string, array{qty: int, inventory_value_rupiah: int}> $summariesByProduct */
-        $summariesByProduct = [];
+        /** @var array<string, array{qty:int,value:int}> $state */
+        $state = [];
 
         foreach ($movements as $movement) {
-            if ($movement->movementType() !== 'stock_in') {
-                continue;
-            }
 
             $productId = $movement->productId();
 
-            if (array_key_exists($productId, $summariesByProduct) === false) {
-                $summariesByProduct[$productId] = [
+            if (!isset($state[$productId])) {
+                $state[$productId] = [
                     'qty' => 0,
-                    'inventory_value_rupiah' => 0,
+                    'value' => 0,
                 ];
             }
 
-            $summariesByProduct[$productId]['qty'] += $movement->qtyDelta();
-            $summariesByProduct[$productId]['inventory_value_rupiah'] += $movement->totalCostRupiah()->amount();
+            $qty = $movement->qtyDelta();
+
+            if ($movement->movementType() === 'stock_in') {
+
+                $state[$productId]['qty'] += $qty;
+                $state[$productId]['value'] += $movement->totalCostRupiah()->amount();
+
+                continue;
+            }
+
+            if ($movement->movementType() === 'stock_out') {
+
+                if ($state[$productId]['qty'] <= 0) {
+                    continue;
+                }
+
+                $avgCost = intdiv(
+                    $state[$productId]['value'],
+                    $state[$productId]['qty']
+                );
+
+                $issueQty = abs($qty);
+
+                $state[$productId]['qty'] -= $issueQty;
+                $state[$productId]['value'] -= ($avgCost * $issueQty);
+
+                if ($state[$productId]['value'] < 0) {
+                    $state[$productId]['value'] = 0;
+                }
+            }
         }
 
-        ksort($summariesByProduct);
+        ksort($state);
 
-        $costings = [];
+        $result = [];
 
-        foreach ($summariesByProduct as $productId => $summary) {
+        foreach ($state as $productId => $summary) {
+
             if ($summary['qty'] <= 0) {
                 continue;
             }
 
-            $inventoryValueRupiah = Money::fromInt($summary['inventory_value_rupiah']);
-            $avgCostRupiah = Money::fromInt(
-                intdiv($inventoryValueRupiah->amount(), $summary['qty'])
+            $inventoryValue = Money::fromInt($summary['value']);
+
+            $avgCost = Money::fromInt(
+                intdiv($summary['value'], $summary['qty'])
             );
 
-            $costings[] = ProductInventoryCosting::create(
+            $result[] = ProductInventoryCosting::create(
                 $productId,
-                $avgCostRupiah,
-                $inventoryValueRupiah,
+                $avgCost,
+                $inventoryValue,
             );
         }
 
-        return $costings;
+        return $result;
     }
 }
