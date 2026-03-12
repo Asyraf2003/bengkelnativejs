@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Procurement\UseCases;
 
 use App\Application\Shared\DTO\Result;
+use App\Core\Inventory\Costing\ProductInventoryCosting;
 use App\Core\Inventory\Movement\InventoryMovement;
 use App\Core\Inventory\ProductInventory\ProductInventory;
 use App\Core\Procurement\Supplier\Supplier;
@@ -16,6 +17,8 @@ use App\Core\Procurement\SupplierReceipt\SupplierReceiptLine;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use App\Ports\Out\Inventory\InventoryMovementWriterPort;
+use App\Ports\Out\Inventory\ProductInventoryCostingReaderPort;
+use App\Ports\Out\Inventory\ProductInventoryCostingWriterPort;
 use App\Ports\Out\Inventory\ProductInventoryReaderPort;
 use App\Ports\Out\Inventory\ProductInventoryWriterPort;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
@@ -41,6 +44,8 @@ final class CreateSupplierInvoiceFlowHandler
         private readonly InventoryMovementWriterPort $inventoryMovements,
         private readonly ProductInventoryReaderPort $productInventories,
         private readonly ProductInventoryWriterPort $productInventoryWriter,
+        private readonly ProductInventoryCostingReaderPort $productInventoryCostings,
+        private readonly ProductInventoryCostingWriterPort $productInventoryCostingWriter,
         private readonly TransactionManagerPort $transactions,
         private readonly UuidPort $uuid,
     ) {
@@ -145,6 +150,7 @@ final class CreateSupplierInvoiceFlowHandler
 
                 $this->supplierReceipts->create($supplierReceipt);
                 $this->inventoryMovements->createMany($movements);
+                $this->applyInventoryCostingProjection($movements);
                 $this->applyInventoryProjection($movements);
 
                 $response['auto_received'] = true;
@@ -333,6 +339,52 @@ final class CreateSupplierInvoiceFlowHandler
 
         foreach ($inventoriesByProduct as $inventory) {
             $this->productInventoryWriter->upsert($inventory);
+        }
+    }
+
+    /**
+     * @param list<InventoryMovement> $movements
+     */
+    private function applyInventoryCostingProjection(array $movements): void
+    {
+        /** @var array<string, array{incoming_qty: int, incoming_total_cost_rupiah: int}> $incomingByProduct */
+        $incomingByProduct = [];
+
+        foreach ($movements as $movement) {
+            if ($movement->movementType() !== 'stock_in') {
+                continue;
+            }
+
+            $productId = $movement->productId();
+
+            if (array_key_exists($productId, $incomingByProduct) === false) {
+                $incomingByProduct[$productId] = [
+                    'incoming_qty' => 0,
+                    'incoming_total_cost_rupiah' => 0,
+                ];
+            }
+
+            $incomingByProduct[$productId]['incoming_qty'] += $movement->qtyDelta();
+            $incomingByProduct[$productId]['incoming_total_cost_rupiah'] += $movement->totalCostRupiah()->amount();
+        }
+
+        foreach ($incomingByProduct as $productId => $incoming) {
+            $existingQtyOnHand = $this->productInventories->getByProductId($productId)?->qtyOnHand() ?? 0;
+
+            $costing = $this->productInventoryCostings->getByProductId($productId)
+                ?? ProductInventoryCosting::create(
+                    $productId,
+                    Money::zero(),
+                    Money::zero(),
+                );
+
+            $costing->applyIncomingStock(
+                $existingQtyOnHand,
+                $incoming['incoming_qty'],
+                Money::fromInt($incoming['incoming_total_cost_rupiah']),
+            );
+
+            $this->productInventoryCostingWriter->upsert($costing);
         }
     }
 
