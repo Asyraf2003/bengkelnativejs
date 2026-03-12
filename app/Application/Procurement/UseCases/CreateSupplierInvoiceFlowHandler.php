@@ -10,6 +10,7 @@ use App\Core\Inventory\ProductInventory\ProductInventory;
 use App\Core\Procurement\Supplier\Supplier;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoice;
 use App\Core\Procurement\SupplierInvoice\SupplierInvoiceLine;
+use App\Core\Procurement\SupplierPayment\SupplierPayment;
 use App\Core\Procurement\SupplierReceipt\SupplierReceipt;
 use App\Core\Procurement\SupplierReceipt\SupplierReceiptLine;
 use App\Core\Shared\Exceptions\DomainException;
@@ -19,6 +20,7 @@ use App\Ports\Out\Inventory\ProductInventoryReaderPort;
 use App\Ports\Out\Inventory\ProductInventoryWriterPort;
 use App\Ports\Out\ProductCatalog\ProductReaderPort;
 use App\Ports\Out\Procurement\SupplierInvoiceWriterPort;
+use App\Ports\Out\Procurement\SupplierPaymentWriterPort;
 use App\Ports\Out\Procurement\SupplierReaderPort;
 use App\Ports\Out\Procurement\SupplierReceiptWriterPort;
 use App\Ports\Out\Procurement\SupplierWriterPort;
@@ -34,6 +36,7 @@ final class CreateSupplierInvoiceFlowHandler
         private readonly SupplierWriterPort $supplierWriter,
         private readonly SupplierInvoiceWriterPort $supplierInvoices,
         private readonly SupplierReceiptWriterPort $supplierReceipts,
+        private readonly SupplierPaymentWriterPort $supplierPayments,
         private readonly ProductReaderPort $products,
         private readonly InventoryMovementWriterPort $inventoryMovements,
         private readonly ProductInventoryReaderPort $productInventories,
@@ -84,6 +87,17 @@ final class CreateSupplierInvoiceFlowHandler
 
             $this->supplierInvoices->create($supplierInvoice);
 
+            $supplierPayment = SupplierPayment::create(
+                $this->uuid->generate(),
+                $supplierInvoice->id(),
+                $supplierInvoice->grandTotalRupiah(),
+                $shipmentDate,
+                SupplierPayment::PROOF_STATUS_PENDING,
+                null,
+            );
+
+            $this->supplierPayments->create($supplierPayment);
+
             $response = [
                 'id' => $supplierInvoice->id(),
                 'supplier_id' => $supplierInvoice->supplierId(),
@@ -92,6 +106,15 @@ final class CreateSupplierInvoiceFlowHandler
                 'jatuh_tempo' => $supplierInvoice->jatuhTempo()->format('Y-m-d'),
                 'grand_total_rupiah' => $supplierInvoice->grandTotalRupiah()->amount(),
                 'auto_received' => false,
+                'auto_settled' => true,
+                'supplier_payment' => [
+                    'id' => $supplierPayment->id(),
+                    'supplier_invoice_id' => $supplierPayment->supplierInvoiceId(),
+                    'amount_rupiah' => $supplierPayment->amountRupiah()->amount(),
+                    'paid_at' => $supplierPayment->paidAt()->format('Y-m-d'),
+                    'proof_status' => $supplierPayment->proofStatus(),
+                    'proof_storage_path' => $supplierPayment->proofStoragePath(),
+                ],
                 'lines' => array_map(
                     static fn (SupplierInvoiceLine $line): array => [
                         'id' => $line->id(),

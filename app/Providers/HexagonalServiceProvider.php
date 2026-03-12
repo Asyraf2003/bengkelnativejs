@@ -17,6 +17,8 @@ use App\Adapters\Out\Policy\NullCapabilityPolicyAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierInvoiceLineReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierInvoiceReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierInvoiceWriterAdapter;
+use App\Adapters\Out\Procurement\DatabaseSupplierPaymentReaderAdapter;
+use App\Adapters\Out\Procurement\DatabaseSupplierPaymentWriterAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierReceiptLineReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierReceiptWriterAdapter;
@@ -37,6 +39,8 @@ use App\Ports\Out\Inventory\ProductInventoryWriterPort;
 use App\Ports\Out\Procurement\SupplierInvoiceLineReaderPort;
 use App\Ports\Out\Procurement\SupplierInvoiceReaderPort;
 use App\Ports\Out\Procurement\SupplierInvoiceWriterPort;
+use App\Ports\Out\Procurement\SupplierPaymentReaderPort;
+use App\Ports\Out\Procurement\SupplierPaymentWriterPort;
 use App\Ports\Out\Procurement\SupplierReaderPort;
 use App\Ports\Out\Procurement\SupplierReceiptLineReaderPort;
 use App\Ports\Out\Procurement\SupplierReceiptWriterPort;
@@ -74,6 +78,8 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierInvoiceLineReaderPort::class, DatabaseSupplierInvoiceLineReaderAdapter::class);
         $this->app->singleton(SupplierReceiptLineReaderPort::class, DatabaseSupplierReceiptLineReaderAdapter::class);
         $this->app->singleton(SupplierReceiptWriterPort::class, DatabaseSupplierReceiptWriterAdapter::class);
+        $this->app->singleton(SupplierPaymentWriterPort::class, DatabaseSupplierPaymentWriterAdapter::class);
+        $this->app->singleton(SupplierPaymentReaderPort::class, DatabaseSupplierPaymentReaderAdapter::class);
 
         $this->app->singleton(InventoryMovementWriterPort::class, DatabaseInventoryMovementWriterAdapter::class);
         $this->app->singleton(ProductInventoryReaderPort::class, DatabaseProductInventoryReaderAdapter::class);

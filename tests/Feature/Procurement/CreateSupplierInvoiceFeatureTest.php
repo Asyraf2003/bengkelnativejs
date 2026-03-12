@@ -75,6 +75,14 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
 
         $this->assertNotNull($invoice);
 
+        $this->assertDatabaseHas('supplier_payments', [
+            'supplier_invoice_id' => (string) $invoice->id,
+            'amount_rupiah' => 50000,
+            'paid_at' => '2026-03-12',
+            'proof_status' => 'pending',
+            'proof_storage_path' => null,
+        ]);
+
         $invoiceLine1 = DB::table('supplier_invoice_lines')
             ->where('supplier_invoice_id', (string) $invoice->id)
             ->where('product_id', 'product-1')
@@ -176,6 +184,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
         $this->assertDatabaseCount('suppliers', 0);
         $this->assertDatabaseCount('supplier_invoices', 0);
         $this->assertDatabaseCount('supplier_invoice_lines', 0);
+        $this->assertDatabaseCount('supplier_payments', 0);
         $this->assertDatabaseCount('supplier_receipts', 0);
         $this->assertDatabaseCount('supplier_receipt_lines', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
@@ -210,6 +219,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
         $this->assertDatabaseCount('suppliers', 0);
         $this->assertDatabaseCount('supplier_invoices', 0);
         $this->assertDatabaseCount('supplier_invoice_lines', 0);
+        $this->assertDatabaseCount('supplier_payments', 0);
         $this->assertDatabaseCount('supplier_receipts', 0);
         $this->assertDatabaseCount('supplier_receipt_lines', 0);
         $this->assertDatabaseCount('inventory_movements', 0);
@@ -255,6 +265,20 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
             'tanggal_pengiriman' => '2026-01-30',
             'jatuh_tempo' => '2026-02-28',
             'grand_total_rupiah' => 20000,
+        ]);
+
+        $invoice = DB::table('supplier_invoices')
+            ->where('supplier_id', 'supplier-1')
+            ->first();
+
+        $this->assertNotNull($invoice);
+
+        $this->assertDatabaseHas('supplier_payments', [
+            'supplier_invoice_id' => (string) $invoice->id,
+            'amount_rupiah' => 20000,
+            'paid_at' => '2026-01-30',
+            'proof_status' => 'pending',
+            'proof_storage_path' => null,
         ]);
 
         $this->assertDatabaseCount('supplier_receipts', 0);
