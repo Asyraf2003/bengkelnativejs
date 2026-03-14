@@ -27,22 +27,24 @@ Route::post(
     DisableAdminTransactionCapabilityController::class,
 );
 
-Route::post(
-    '/product-catalog/products/create',
-    CreateProductController::class,
-);
+Route::middleware('transaction.entry')->group(function (): void {
+    Route::post(
+        '/product-catalog/products/create',
+        CreateProductController::class,
+    );
 
-Route::post(
-    '/product-catalog/products/{productId}/update',
-    UpdateProductController::class,
-);
+    Route::post(
+        '/product-catalog/products/{productId}/update',
+        UpdateProductController::class,
+    );
 
-Route::post(
-    '/procurement/supplier-invoices/create',
-    CreateSupplierInvoiceController::class,
-);
+    Route::post(
+        '/procurement/supplier-invoices/create',
+        CreateSupplierInvoiceController::class,
+    );
 
-Route::post(
-    '/procurement/supplier-invoices/{supplierInvoiceId}/receive',
-    ReceiveSupplierInvoiceController::class,
-);
+    Route::post(
+        '/procurement/supplier-invoices/{supplierInvoiceId}/receive',
+        ReceiveSupplierInvoiceController::class,
+    );
+});
