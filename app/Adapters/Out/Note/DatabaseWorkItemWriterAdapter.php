@@ -71,4 +71,13 @@ final class DatabaseWorkItemWriterAdapter implements WorkItemWriterPort
             )
         );
     }
+
+    public function updateStatus(WorkItem $workItem): void
+    {
+        DB::table('work_items')
+            ->where('id', $workItem->id())
+            ->update([
+                'status' => $workItem->status(),
+            ]);
+    }
 }

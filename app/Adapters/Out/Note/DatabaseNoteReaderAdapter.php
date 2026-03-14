@@ -7,6 +7,7 @@ namespace App\Adapters\Out\Note;
 use App\Core\Note\Note\Note;
 use App\Core\Note\WorkItem\ExternalPurchaseLine;
 use App\Core\Note\WorkItem\ServiceDetail;
+use App\Core\Note\WorkItem\StoreStockLine;
 use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
@@ -46,6 +47,7 @@ final class DatabaseNoteReaderAdapter implements NoteReaderPort
 
         $serviceDetailsByWorkItemId = $this->loadServiceDetailsByWorkItemId($workItemIds);
         $externalPurchaseLinesByWorkItemId = $this->loadExternalPurchaseLinesByWorkItemId($workItemIds);
+        $storeStockLinesByWorkItemId = $this->loadStoreStockLinesByWorkItemId($workItemIds);
 
         $workItems = [];
 
@@ -55,8 +57,12 @@ final class DatabaseNoteReaderAdapter implements NoteReaderPort
 
             $serviceDetail = $serviceDetailsByWorkItemId[$workItemId] ?? null;
             $externalPurchaseLines = $externalPurchaseLinesByWorkItemId[$workItemId] ?? [];
+            $storeStockLines = $storeStockLinesByWorkItemId[$workItemId] ?? [];
 
-            if ($transactionType === WorkItem::TYPE_SERVICE_ONLY || $transactionType === WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE) {
+            if (
+                $transactionType === WorkItem::TYPE_SERVICE_ONLY
+                || $transactionType === WorkItem::TYPE_SERVICE_WITH_EXTERNAL_PURCHASE
+            ) {
                 if ($serviceDetail === null) {
                     throw new DomainException('Service detail pada work item tidak ditemukan.');
                 }
@@ -71,6 +77,7 @@ final class DatabaseNoteReaderAdapter implements NoteReaderPort
                 Money::fromInt((int) $workItemRow->subtotal_rupiah),
                 $serviceDetail,
                 $externalPurchaseLines,
+                $storeStockLines,
             );
         }
 
@@ -142,6 +149,43 @@ final class DatabaseNoteReaderAdapter implements NoteReaderPort
                 (string) $row->cost_description,
                 Money::fromInt((int) $row->unit_cost_rupiah),
                 (int) $row->qty,
+            );
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param list<string> $workItemIds
+     * @return array<string, list<StoreStockLine>>
+     */
+    private function loadStoreStockLinesByWorkItemId(array $workItemIds): array
+    {
+        if ($workItemIds === []) {
+            return [];
+        }
+
+        $rows = DB::table('work_item_store_stock_lines')
+            ->whereIn('work_item_id', $workItemIds)
+            ->orderBy('work_item_id')
+            ->orderBy('id')
+            ->get()
+            ->all();
+
+        $result = [];
+
+        foreach ($rows as $row) {
+            $workItemId = (string) $row->work_item_id;
+
+            if (array_key_exists($workItemId, $result) === false) {
+                $result[$workItemId] = [];
+            }
+
+            $result[$workItemId][] = StoreStockLine::rehydrate(
+                (string) $row->id,
+                (string) $row->product_id,
+                (int) $row->qty,
+                Money::fromInt((int) $row->line_total_rupiah),
             );
         }
 
