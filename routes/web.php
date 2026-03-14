@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Adapters\In\Http\Controllers\HealthCheckController;
 use App\Adapters\In\Http\Controllers\IdentityAccess\DisableAdminTransactionCapabilityController;
 use App\Adapters\In\Http\Controllers\IdentityAccess\EnableAdminTransactionCapabilityController;
+use App\Adapters\In\Http\Controllers\Note\CreateNoteController;
 use App\Adapters\In\Http\Controllers\Procurement\CreateSupplierInvoiceController;
 use App\Adapters\In\Http\Controllers\Procurement\ReceiveSupplierInvoiceController;
 use App\Adapters\In\Http\Controllers\ProductCatalog\CreateProductController;
@@ -28,6 +29,11 @@ Route::post(
 );
 
 Route::middleware('transaction.entry')->group(function (): void {
+    Route::post(
+        '/notes/create',
+        CreateNoteController::class,
+    );
+
     Route::post(
         '/product-catalog/products/create',
         CreateProductController::class,
