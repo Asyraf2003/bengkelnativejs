@@ -112,6 +112,7 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(WorkItemFactory::class);
         $this->app->singleton(WorkItemStatusTransitionService::class);
         $this->app->singleton(AddWorkItemErrorClassifier::class);
+        $this->app->singleton(AllocatePaymentErrorClassifier::class);
         $this->app->singleton(SupplierService::class);
         $this->app->singleton(SupplierInvoiceFactory::class);
         $this->app->singleton(SupplierReceiptFactory::class);
