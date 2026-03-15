@@ -45,6 +45,12 @@ reset-db:
 coverage:
 	php artisan test --coverage
 
-ci: audit-hex test-domain test-integration test-money test-stock
+audit-lines:
+	@php scripts/audit-line-count.php
+
+audit-contract: audit-lines
+	@echo "Contract audit passed."
+
+ci: audit-hex audit-contract test-domain test-integration test-money test-stock
 
 check: audit-hex test

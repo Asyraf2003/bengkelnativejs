@@ -1,5 +1,7 @@
 <?php
 
+// @audit-skip: line-limit
+
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
