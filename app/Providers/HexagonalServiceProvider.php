@@ -42,9 +42,12 @@ use App\Adapters\Out\ProductCatalog\DatabaseProductWriterAdapter;
 use App\Application\Inventory\Policies\DefaultNegativeStockPolicy;
 use App\Application\Inventory\Services\InventoryProjectionService;
 use App\Application\Inventory\Services\IssueInventoryOperation;
+use App\Application\Inventory\Services\InventoryCostingProjectionBuilder;
+use App\Application\Inventory\Services\InventoryProjectionBuilder;
 use App\Application\Note\Services\AddWorkItemErrorClassifier;
 use App\Application\Note\Services\WorkItemFactory;
 use App\Application\Note\Services\WorkItemStatusTransitionService;
+use App\Application\Payment\Services\AllocatePaymentErrorClassifier;
 use App\Application\Procurement\Services\SupplierInvoiceFactory;
 use App\Application\Procurement\Services\SupplierReceiptFactory;
 use App\Application\Procurement\Services\SupplierService;
@@ -109,6 +112,8 @@ class HexagonalServiceProvider extends ServiceProvider
         // --- Application Services & Factories (Decoupled Logic) ---
         $this->app->singleton(InventoryProjectionService::class);
         $this->app->singleton(IssueInventoryOperation::class);
+        $this->app->singleton(InventoryCostingProjectionBuilder::class);
+        $this->app->singleton(InventoryProjectionBuilder::class);
         $this->app->singleton(WorkItemFactory::class);
         $this->app->singleton(WorkItemStatusTransitionService::class);
         $this->app->singleton(AddWorkItemErrorClassifier::class);

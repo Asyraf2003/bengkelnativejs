@@ -4,98 +4,52 @@ declare(strict_types=1);
 
 namespace App\Application\Inventory\UseCases;
 
+use App\Application\Inventory\Services\InventoryProjectionBuilder;
 use App\Application\Shared\DTO\Result;
-use App\Core\Inventory\Movement\InventoryMovement;
-use App\Core\Inventory\ProductInventory\ProductInventory;
 use App\Core\Shared\Exceptions\DomainException;
-use App\Ports\Out\Inventory\InventoryMovementReaderPort;
-use App\Ports\Out\Inventory\ProductInventoryProjectionWriterPort;
+use App\Ports\Out\AuditLogPort;
+use App\Ports\Out\Inventory\{InventoryMovementReaderPort, ProductInventoryProjectionWriterPort};
 use App\Ports\Out\TransactionManagerPort;
 use Throwable;
 
 final class RebuildInventoryProjectionHandler
 {
     public function __construct(
-        private readonly InventoryMovementReaderPort $inventoryMovements,
-        private readonly ProductInventoryProjectionWriterPort $inventoryProjection,
+        private readonly InventoryMovementReaderPort $movements,
+        private readonly ProductInventoryProjectionWriterPort $projection,
         private readonly TransactionManagerPort $transactions,
-    ) {
-    }
+        private readonly InventoryProjectionBuilder $builder,
+        private readonly AuditLogPort $audit
+    ) {}
 
     public function handle(): Result
     {
-        $transactionStarted = false;
-
+        $started = false;
         try {
-            $this->transactions->begin();
-            $transactionStarted = true;
+            $this->transactions->begin(); $started = true;
 
-            $movements = $this->inventoryMovements->getAll();
-            $inventories = $this->rebuildProjection($movements);
+            $allMovements = $this->movements->getAll();
+            $inventories = $this->builder->build($allMovements);
 
-            $this->inventoryProjection->replaceAll($inventories);
+            $this->projection->replaceAll($inventories);
+
+            $this->audit->record('inventory_projection_rebuilt', [
+                'movement_count' => count($allMovements),
+                'product_count' => count($inventories)
+            ]);
 
             $this->transactions->commit();
+            return Result::success([
+                'total_movements' => count($allMovements),
+                'total_products' => count($inventories)
+            ], 'Inventory projection rebuilt successfully.');
 
-            return Result::success(
-                [
-                    'total_movements' => count($movements),
-                    'total_products' => count($inventories),
-                    'products' => array_map(
-                        static fn (ProductInventory $inventory): array => [
-                            'product_id' => $inventory->productId(),
-                            'qty_on_hand' => $inventory->qtyOnHand(),
-                        ],
-                        $inventories,
-                    ),
-                ],
-                'Inventory projection berhasil dibangun ulang.'
-            );
         } catch (DomainException $e) {
-            if ($transactionStarted) {
-                $this->transactions->rollBack();
-            }
-
-            return Result::failure(
-                $e->getMessage(),
-                ['inventory' => ['INVALID_INVENTORY_PROJECTION']]
-            );
+            if ($started) $this->transactions->rollBack();
+            return Result::failure($e->getMessage(), ['inventory' => ['REBUILD_FAILED']]);
         } catch (Throwable $e) {
-            if ($transactionStarted) {
-                $this->transactions->rollBack();
-            }
-
+            if ($started) $this->transactions->rollBack();
             throw $e;
         }
-    }
-
-    /**
-     * @param list<InventoryMovement> $movements
-     * @return list<ProductInventory>
-     */
-    private function rebuildProjection(array $movements): array
-    {
-        /** @var array<string, int> $qtyByProduct */
-        $qtyByProduct = [];
-
-        foreach ($movements as $movement) {
-            $productId = $movement->productId();
-
-            if (array_key_exists($productId, $qtyByProduct) === false) {
-                $qtyByProduct[$productId] = 0;
-            }
-
-            $qtyByProduct[$productId] += $movement->qtyDelta();
-        }
-
-        ksort($qtyByProduct);
-
-        $inventories = [];
-
-        foreach ($qtyByProduct as $productId => $qtyOnHand) {
-            $inventories[] = ProductInventory::create($productId, $qtyOnHand);
-        }
-
-        return $inventories;
     }
 }

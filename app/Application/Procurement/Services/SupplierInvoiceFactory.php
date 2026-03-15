@@ -12,22 +12,27 @@ use App\Ports\Out\UuidPort;
 
 final class SupplierInvoiceFactory
 {
-    public function __construct(private ProductReaderPort $products, private UuidPort $uuid) {}
+    public function __construct(
+        private ProductReaderPort $products,
+        private UuidPort $uuid
+    ) {}
 
-    public function makeLines(array $payload): array
+    public function makeLines(array $lines): array
     {
-        if ($payload === []) throw new DomainException('Invoice minimal harus memiliki satu line.');
+        if ($lines === []) throw new DomainException('Invoice minimal 1 line.');
 
-        return array_map(function ($p) {
-            $id = trim((string)($p['product_id'] ?? throw new DomainException('Product id wajib ada.')));
-            if ($this->products->getById($id) === null) throw new DomainException('Product tidak ditemukan.');
+        return array_map(function ($l) {
+            $pId = trim((string)($l['product_id'] ?? ''));
+            if ($pId === '' || !$this->products->getById($pId)) {
+                throw new DomainException('Product tidak ditemukan.');
+            }
 
             return SupplierInvoiceLine::create(
                 $this->uuid->generate(),
-                $id,
-                (int)($p['qty_pcs'] ?? throw new DomainException('Qty wajib ada.')),
-                Money::fromInt((int)($p['line_total_rupiah'] ?? throw new DomainException('Total wajib ada.')))
+                $pId,
+                (int)($l['qty_pcs'] ?? 0),
+                Money::fromInt((int)($l['line_total_rupiah'] ?? 0))
             );
-        }, $payload);
+        }, $lines);
     }
 }

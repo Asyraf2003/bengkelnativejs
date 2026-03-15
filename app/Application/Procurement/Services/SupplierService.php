@@ -12,25 +12,27 @@ use App\Ports\Out\UuidPort;
 final class SupplierService
 {
     public function __construct(
-        private SupplierReaderPort $suppliers,
-        private SupplierWriterPort $writer,
+        private SupplierReaderPort $readers,
+        private SupplierWriterPort $writers,
         private UuidPort $uuid
     ) {}
 
-    public function resolve(string $rawName): Supplier
+    public function resolve(string $ptName): Supplier
     {
-        $normalized = trim($rawName);
-        if ($normalized === '') throw new DomainException('Nama PT pengirim wajib ada.');
-        
-        $normalized = preg_replace('/\s+/', ' ', $normalized) ?? $normalized;
-        $searchKey = mb_strtolower($normalized);
+        $normalized = $this->normalize($ptName);
+        $existing = $this->readers->getByNormalizedNamaPtPengirim($normalized);
+        if ($existing) return $existing;
 
-        $existing = $this->suppliers->getByNormalizedNamaPtPengirim($searchKey);
-        if ($existing !== null) return $existing;
+        $supplier = Supplier::create($this->uuid->generate(), trim($ptName));
+        $this->writers->create($supplier);
+        return $supplier;
+    }
 
-        $new = Supplier::create($this->uuid->generate(), $normalized);
-        $this->writer->create($new);
-
-        return $new;
+    private function normalize(string $name): string
+    {
+        $val = trim($name);
+        if ($val === '') throw new DomainException('Nama PT pengirim wajib ada.');
+        $val = preg_replace('/\s+/', ' ', $val) ?? $val;
+        return mb_strtolower($val);
     }
 }

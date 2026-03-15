@@ -9,11 +9,7 @@ use App\Core\Inventory\Movement\InventoryMovement;
 use App\Core\Inventory\Policies\NegativeStockPolicy;
 use App\Core\Inventory\ProductInventory\ProductInventory;
 use App\Core\Shared\Exceptions\DomainException;
-use App\Ports\Out\Inventory\InventoryMovementWriterPort;
-use App\Ports\Out\Inventory\ProductInventoryCostingReaderPort;
-use App\Ports\Out\Inventory\ProductInventoryCostingWriterPort;
-use App\Ports\Out\Inventory\ProductInventoryReaderPort;
-use App\Ports\Out\Inventory\ProductInventoryWriterPort;
+use App\Ports\Out\Inventory\{InventoryMovementWriterPort, ProductInventoryCostingReaderPort, ProductInventoryCostingWriterPort, ProductInventoryReaderPort, ProductInventoryWriterPort};
 use App\Ports\Out\UuidPort;
 use DateTimeImmutable;
 
@@ -21,83 +17,37 @@ final class IssueInventoryOperation
 {
     public function __construct(
         private readonly ProductInventoryReaderPort $productInventories,
-        private readonly ProductInventoryWriterPort $productInventoryWriter,
-        private readonly ProductInventoryCostingReaderPort $productInventoryCostings,
-        private readonly ProductInventoryCostingWriterPort $productInventoryCostingWriter,
-        private readonly InventoryMovementWriterPort $inventoryMovements,
+        private readonly ProductInventoryWriterPort $inventoryWriter,
+        private readonly ProductInventoryCostingReaderPort $costingReader,
+        private readonly ProductInventoryCostingWriterPort $costingWriter,
+        private readonly InventoryMovementWriterPort $movements,
         private readonly NegativeStockPolicy $negativeStockPolicy,
         private readonly UuidPort $uuid,
-    ) {
-    }
+    ) {}
 
-    /**
-     * @return array{
-     *     movement: InventoryMovement,
-     *     product_inventory: ProductInventory,
-     *     product_inventory_costing: ProductInventoryCosting
-     * }
-     */
-    public function execute(
-        string $productId,
-        int $qtyIssue,
-        DateTimeImmutable $tanggalMutasi,
-        string $sourceType,
-        string $sourceId,
-    ): array {
-        $normalizedProductId = $this->normalizeRequired($productId, 'Product id pada inventory issue wajib ada.');
-        $normalizedSourceType = $this->normalizeRequired($sourceType, 'Source type pada inventory issue wajib ada.');
-        $normalizedSourceId = $this->normalizeRequired($sourceId, 'Source id pada inventory issue wajib ada.');
+    /** @return array{movement: InventoryMovement, product_inventory: ProductInventory, product_inventory_costing: ProductInventoryCosting} */
+    public function execute(string $pId, int $qty, DateTimeImmutable $date, string $sType, string $sId): array
+    {
+        $pId = trim($pId); $sType = trim($sType); $sId = trim($sId);
+        if ($pId === '' || $sType === '' || $sId === '') throw new DomainException('Input inventory issue wajib lengkap.');
+        if ($qty <= 0) throw new DomainException('Qty issue inventory harus > 0.');
 
-        if ($qtyIssue <= 0) {
-            throw new DomainException('Qty issue inventory harus lebih besar dari nol.');
-        }
+        $inv = $this->productInventories->getByProductId($pId) ?? ProductInventory::create($pId, 0);
+        $this->negativeStockPolicy->assertCanIssue($inv->qtyOnHand(), $qty);
 
-        $inventory = $this->productInventories->getByProductId($normalizedProductId)
-            ?? ProductInventory::create($normalizedProductId, 0);
-
-        $availableQty = $inventory->qtyOnHand();
-
-        $this->negativeStockPolicy->assertCanIssue($availableQty, $qtyIssue);
-
-        $costing = $this->productInventoryCostings->getByProductId($normalizedProductId);
-
-        if ($costing === null) {
-            throw new DomainException('Inventory costing projection tidak ditemukan untuk product ini.');
-        }
+        $costing = $this->costingReader->getByProductId($pId) ?? throw new DomainException('Costing tidak ditemukan.');
 
         $movement = InventoryMovement::create(
-            $this->uuid->generate(),
-            $normalizedProductId,
-            'stock_out',
-            $normalizedSourceType,
-            $normalizedSourceId,
-            $tanggalMutasi,
-            -$qtyIssue,
-            $costing->avgCostRupiah(),
+            $this->uuid->generate(), $pId, 'stock_out', $sType, $sId, $date, -$qty, $costing->avgCostRupiah()
         );
 
-        $inventory->decrease($qtyIssue);
-        $costing->applyOutgoingStock($availableQty, $qtyIssue);
+        $inv->decrease($qty);
+        $costing->applyOutgoingStock($inv->qtyOnHand() + $qty, $qty);
 
-        $this->inventoryMovements->createMany([$movement]);
-        $this->productInventoryWriter->upsert($inventory);
-        $this->productInventoryCostingWriter->upsert($costing);
+        $this->movements->createMany([$movement]);
+        $this->inventoryWriter->upsert($inv);
+        $this->costingWriter->upsert($costing);
 
-        return [
-            'movement' => $movement,
-            'product_inventory' => $inventory,
-            'product_inventory_costing' => $costing,
-        ];
-    }
-
-    private function normalizeRequired(string $value, string $message): string
-    {
-        $normalized = trim($value);
-
-        if ($normalized === '') {
-            throw new DomainException($message);
-        }
-
-        return $normalized;
+        return ['movement' => $movement, 'product_inventory' => $inv, 'product_inventory_costing' => $costing];
     }
 }
