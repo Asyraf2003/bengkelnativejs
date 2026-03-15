@@ -15,99 +15,34 @@ final class SupplierInvoiceLine
         private int $qtyPcs,
         private Money $lineTotalRupiah,
         private Money $unitCostRupiah,
-    ) {
-    }
+    ) {}
 
-    public static function create(
-        string $id,
-        string $productId,
-        int $qtyPcs,
-        Money $lineTotalRupiah,
-    ): self {
-        self::assertValid($id, $productId, $qtyPcs, $lineTotalRupiah);
-
-        return new self(
-            $id,
-            trim($productId),
-            $qtyPcs,
-            $lineTotalRupiah,
-            self::calculateUnitCostRupiah($qtyPcs, $lineTotalRupiah),
-        );
-    }
-
-    public static function rehydrate(
-        string $id,
-        string $productId,
-        int $qtyPcs,
-        Money $lineTotalRupiah,
-    ): self {
-        self::assertValid($id, $productId, $qtyPcs, $lineTotalRupiah);
-
-        return new self(
-            $id,
-            trim($productId),
-            $qtyPcs,
-            $lineTotalRupiah,
-            self::calculateUnitCostRupiah($qtyPcs, $lineTotalRupiah),
-        );
-    }
-
-    public function id(): string
+    public static function create(string $id, string $pId, int $qty, Money $total): self
     {
-        return $this->id;
+        self::assertValid($id, $pId, $qty, $total);
+        $unitCost = Money::fromInt(intdiv($total->amount(), $qty));
+        return new self(trim($id), trim($pId), $qty, $total, $unitCost);
     }
 
-    public function productId(): string
+    public static function rehydrate(string $id, string $pId, int $qty, Money $total): self
     {
-        return $this->productId;
+        self::assertValid($id, $pId, $qty, $total);
+        $unitCost = Money::fromInt(intdiv($total->amount(), $qty));
+        return new self(trim($id), trim($pId), $qty, $total, $unitCost);
     }
 
-    public function qtyPcs(): int
+    public function id(): string { return $this->id; }
+    public function productId(): string { return $this->productId; }
+    public function qtyPcs(): int { return $this->qtyPcs; }
+    public function lineTotalRupiah(): Money { return $this->lineTotalRupiah; }
+    public function unitCostRupiah(): Money { return $this->unitCostRupiah; }
+
+    private static function assertValid(string $id, string $pId, int $qty, Money $total): void
     {
-        return $this->qtyPcs;
-    }
-
-    public function lineTotalRupiah(): Money
-    {
-        return $this->lineTotalRupiah;
-    }
-
-    public function unitCostRupiah(): Money
-    {
-        return $this->unitCostRupiah;
-    }
-
-    private static function assertValid(
-        string $id,
-        string $productId,
-        int $qtyPcs,
-        Money $lineTotalRupiah,
-    ): void {
-        if (trim($id) === '') {
-            throw new DomainException('Supplier invoice line id wajib ada.');
-        }
-
-        if (trim($productId) === '') {
-            throw new DomainException('Product id pada supplier invoice line wajib ada.');
-        }
-
-        if ($qtyPcs <= 0) {
-            throw new DomainException('Qty pcs harus lebih besar dari nol.');
-        }
-
-        if ($lineTotalRupiah->greaterThan(Money::zero()) === false) {
-            throw new DomainException('Line total rupiah harus lebih besar dari nol.');
-        }
-
-        if ($lineTotalRupiah->amount() % $qtyPcs !== 0) {
-            throw new DomainException('Line total rupiah harus habis dibagi qty pcs.');
-        }
-    }
-
-    private static function calculateUnitCostRupiah(
-        int $qtyPcs,
-        Money $lineTotalRupiah,
-    ): Money {
-        return Money::fromInt(intdiv($lineTotalRupiah->amount(), $qtyPcs));
+        if (trim($id) === '') throw new DomainException('ID wajib ada.');
+        if (trim($pId) === '') throw new DomainException('Product ID wajib ada.');
+        if ($qty <= 0) throw new DomainException('Qty harus > 0.');
+        if (!$total->greaterThan(Money::zero())) throw new DomainException('Total harus > 0.');
+        if ($total->amount() % $qty !== 0) throw new DomainException('Total harus habis dibagi qty.');
     }
 }

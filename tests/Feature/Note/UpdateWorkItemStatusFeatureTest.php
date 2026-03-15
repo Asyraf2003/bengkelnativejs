@@ -154,7 +154,7 @@ final class UpdateWorkItemStatusFeatureTest extends TestCase
         $this->assertInstanceOf(Result::class, $result);
         $this->assertTrue($result->isFailure());
         $this->assertSame(
-            ['work_item' => ['INVALID_WORK_ITEM']],
+            ['work_item' => ['INVALID_WORK_ITEM_STATE']],
             $result->errors(),
         );
 
@@ -202,7 +202,7 @@ final class UpdateWorkItemStatusFeatureTest extends TestCase
         $this->assertInstanceOf(Result::class, $result);
         $this->assertTrue($result->isFailure());
         $this->assertSame(
-            ['work_item' => ['NOTE_INVALID_WORK_ITEM_STATE']],
+            ['work_item' => ['INVALID_WORK_ITEM_STATE']],
             $result->errors(),
         );
 
