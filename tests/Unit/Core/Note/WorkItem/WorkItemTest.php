@@ -33,7 +33,7 @@ final class WorkItemTest extends TestCase
         $this->assertNotNull($workItem->serviceDetail());
         $this->assertSame(
             ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
-            $workItem->serviceDetail()?->partSource(),
+            $workItem->serviceDetail()->partSource(),
         );
         $this->assertCount(0, $workItem->externalPurchaseLines());
         $this->assertCount(0, $workItem->storeStockLines());

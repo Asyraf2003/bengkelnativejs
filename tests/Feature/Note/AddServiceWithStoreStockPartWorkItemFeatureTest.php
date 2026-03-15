@@ -18,6 +18,7 @@ final class AddServiceWithStoreStockPartWorkItemFeatureTest extends TestCase
 
     public function test_add_service_with_store_stock_part_handler_stores_service_and_stock_lines_updates_note_and_issues_inventory(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 5);
@@ -117,6 +118,7 @@ final class AddServiceWithStoreStockPartWorkItemFeatureTest extends TestCase
 
     public function test_add_service_with_store_stock_part_handler_rejects_when_stock_is_insufficient(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 1);
@@ -174,6 +176,7 @@ final class AddServiceWithStoreStockPartWorkItemFeatureTest extends TestCase
 
     public function test_add_service_with_store_stock_part_handler_rejects_when_line_total_is_below_floor_pricing(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 5);

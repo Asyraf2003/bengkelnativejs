@@ -14,6 +14,7 @@ final class ReceiveSupplierInvoiceFeatureTest extends TestCase
 
     public function test_receive_supplier_invoice_endpoint_stores_receipt_movements_and_updates_inventory_projection(): void
     {
+        $this->loginAsKasir();
         $this->seedProduct('product-1', 'KB-001', 'Supra', 'Federal', 100, 15000);
         $this->seedSupplier('supplier-1', 'PT Sumber Makmur', 'pt sumber makmur');
         $this->seedSupplierInvoice('invoice-1', 'supplier-1', '2026-03-12', '2026-04-12', 100000);
@@ -91,6 +92,7 @@ final class ReceiveSupplierInvoiceFeatureTest extends TestCase
 
     public function test_receive_supplier_invoice_endpoint_rejects_unknown_supplier_invoice(): void
     {
+        $this->loginAsKasir();
         $response = $this->postJson('/procurement/supplier-invoices/unknown-invoice/receive', [
             'tanggal_terima' => '2026-03-13',
             'lines' => [
@@ -112,6 +114,7 @@ final class ReceiveSupplierInvoiceFeatureTest extends TestCase
 
     public function test_receive_supplier_invoice_endpoint_rejects_line_that_does_not_belong_to_target_invoice(): void
     {
+        $this->loginAsKasir();
         $this->seedProduct('product-1', 'KB-001', 'Supra', 'Federal', 100, 15000);
         $this->seedSupplier('supplier-1', 'PT Sumber Makmur', 'pt sumber makmur');
 
@@ -141,6 +144,7 @@ final class ReceiveSupplierInvoiceFeatureTest extends TestCase
 
     public function test_receive_supplier_invoice_endpoint_rejects_over_receive_after_previous_receipts(): void
     {
+        $this->loginAsKasir();
         $this->seedProduct('product-1', 'KB-001', 'Supra', 'Federal', 100, 15000);
         $this->seedSupplier('supplier-1', 'PT Sumber Makmur', 'pt sumber makmur');
         $this->seedSupplierInvoice('invoice-1', 'supplier-1', '2026-03-12', '2026-04-12', 100000);

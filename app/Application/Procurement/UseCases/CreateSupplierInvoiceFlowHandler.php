@@ -16,6 +16,7 @@ use App\Ports\Out\Procurement\{SupplierInvoiceWriterPort, SupplierPaymentWriterP
 use App\Ports\Out\Inventory\InventoryMovementWriterPort;
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
+use App\Ports\Out\AuditLogPort;
 use DateTimeImmutable;
 use Throwable;
 
@@ -30,7 +31,8 @@ final class CreateSupplierInvoiceFlowHandler
         private UuidPort $uuid,
         private SupplierService $supplierService,
         private SupplierInvoiceFactory $invoiceFactory,
-        private InventoryProjectionService $projection
+        private InventoryProjectionService $projection,
+        private AuditLogPort $audit
     ) {}
 
     public function handle(string $pt, string $tglKirim, array $lines, bool $autoRec = true, ?string $tglTerima = null): Result
@@ -41,18 +43,22 @@ final class CreateSupplierInvoiceFlowHandler
             $dateTerima = $autoRec ? (DateTimeImmutable::createFromFormat('!Y-m-d', trim($tglTerima ?? $tglKirim)) ?: throw new DomainException('Tgl terima tidak valid.')) : null;
 
             $this->transactions->begin(); $started = true;
-
             $supplier = $this->supplierService->resolve($pt);
             $invoice = SupplierInvoice::create($this->uuid->generate(), $supplier->id(), $dateKirim, $this->invoiceFactory->makeLines($lines));
+            
             $this->invoiceWriter->create($invoice);
-
-            // Auto Payment
             $payment = SupplierPayment::create($this->uuid->generate(), $invoice->id(), $invoice->grandTotalRupiah(), $dateKirim, SupplierPayment::PROOF_STATUS_PENDING, null);
             $this->paymentWriter->create($payment);
 
-            if ($autoRec && $dateTerima) {
-                $this->processAutoReceive($invoice, $dateTerima);
-            }
+            if ($autoRec && $dateTerima) $this->processAutoReceive($invoice, $dateTerima);
+
+            // ADR-0008: Audit-First Mutation
+            $this->audit->record('supplier_invoice_flow_completed', [
+                'invoice_id' => $invoice->id(),
+                'supplier_name' => $supplier->namaPtPengirim(),
+                'grand_total' => $invoice->grandTotalRupiah()->amount(),
+                'auto_received' => $autoRec
+            ]);
 
             $this->transactions->commit();
             return Result::success(['id' => $invoice->id()], 'Flow Supplier Invoice Berhasil.');
@@ -69,7 +75,6 @@ final class CreateSupplierInvoiceFlowHandler
     {
         $rLines = array_map(fn($l) => SupplierReceiptLine::create($this->uuid->generate(), $l->id(), $l->qtyPcs()), $inv->lines());
         $receipt = SupplierReceipt::create($this->uuid->generate(), $inv->id(), $date, $rLines);
-        
         $movements = array_map(fn($rl, $il) => InventoryMovement::create($this->uuid->generate(), $il->productId(), 'stock_in', 'supplier_receipt_line', $rl->id(), $date, $rl->qtyDiterima(), $il->unitCostRupiah()), $rLines, $inv->lines());
 
         $this->receiptWriter->create($receipt);

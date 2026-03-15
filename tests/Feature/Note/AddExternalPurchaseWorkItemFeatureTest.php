@@ -18,6 +18,7 @@ final class AddExternalPurchaseWorkItemFeatureTest extends TestCase
 
     public function test_add_external_purchase_work_item_handler_stores_lines_and_updates_note_total_without_inventory_movement(): void
     {
+        $this->loginAsKasir();
         DB::table('notes')->insert([
             'id' => 'note-1',
             'customer_name' => 'Budi Santoso',
@@ -106,6 +107,7 @@ final class AddExternalPurchaseWorkItemFeatureTest extends TestCase
 
     public function test_add_external_purchase_work_item_handler_rejects_when_external_purchase_lines_are_empty(): void
     {
+        $this->loginAsKasir();
         DB::table('notes')->insert([
             'id' => 'note-1',
             'customer_name' => 'Budi Santoso',

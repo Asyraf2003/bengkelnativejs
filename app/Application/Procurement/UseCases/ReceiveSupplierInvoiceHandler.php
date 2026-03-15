@@ -11,6 +11,7 @@ use App\Core\Shared\Exceptions\DomainException;
 use App\Ports\Out\Procurement\{SupplierInvoiceReaderPort, SupplierInvoiceLineReaderPort, SupplierReceiptWriterPort};
 use App\Ports\Out\Inventory\InventoryMovementWriterPort;
 use App\Ports\Out\TransactionManagerPort;
+use App\Ports\Out\AuditLogPort;
 use DateTimeImmutable;
 use Throwable;
 
@@ -23,7 +24,8 @@ final class ReceiveSupplierInvoiceHandler
         private InventoryMovementWriterPort $movementWriter,
         private TransactionManagerPort $transactions,
         private SupplierReceiptFactory $factory,
-        private InventoryProjectionService $projection
+        private InventoryProjectionService $projection,
+        private AuditLogPort $audit
     ) {}
 
     public function handle(string $invoiceId, string $tanggal, array $lines): Result
@@ -31,21 +33,24 @@ final class ReceiveSupplierInvoiceHandler
         $started = false;
         try {
             $this->transactions->begin(); $started = true;
-
             $inv = $this->invoices->getById(trim($invoiceId)) ?? throw new DomainException('Invoice tidak ditemukan.');
             $date = DateTimeImmutable::createFromFormat('!Y-m-d', trim($tanggal)) ?: throw new DomainException('Tanggal tidak valid.');
             
-            $indexedLines = $this->indexLines($this->invoiceLines->getBySupplierInvoiceId($inv->id()));
-            
-            [$receipt, $movements] = $this->factory->build($inv->id(), $date, $lines, $indexedLines);
+            [$receipt, $movements] = $this->factory->build($inv->id(), $date, $lines, $this->indexLines($this->invoiceLines->getBySupplierInvoiceId($inv->id())));
 
             $this->receiptWriter->create($receipt);
             $this->movementWriter->createMany($movements);
             $this->projection->applyMovements($movements);
 
+            // ADR-0008: Audit-First Mutation
+            $this->audit->record('supplier_receipt_created', [
+                'receipt_id' => $receipt->id(),
+                'invoice_id' => $inv->id(),
+                'line_count' => count($receipt->lines())
+            ]);
+
             $this->transactions->commit();
             return Result::success(['id' => $receipt->id()], 'Supplier receipt berhasil dibuat.');
-
         } catch (DomainException $e) {
             if ($started) $this->transactions->rollBack();
             return Result::failure($e->getMessage(), ['receipt' => ['INVALID_SUPPLIER_RECEIPT']]);

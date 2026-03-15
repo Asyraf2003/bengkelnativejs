@@ -14,6 +14,7 @@ final class CreateProductFeatureTest extends TestCase
 
     public function test_create_product_endpoint_stores_new_product(): void
     {
+        $this->loginAsKasir();
         $response = $this->postJson('/product-catalog/products/create', [
             'kode_barang' => 'KB-001',
             'nama_barang' => 'Supra',
@@ -35,6 +36,7 @@ final class CreateProductFeatureTest extends TestCase
 
     public function test_create_product_endpoint_rejects_duplicate_when_kode_barang_is_not_distinct_exception(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => null,
@@ -59,6 +61,7 @@ final class CreateProductFeatureTest extends TestCase
 
     public function test_create_product_endpoint_allows_same_nama_and_merek_when_kode_barang_exception_applies(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => 'KB-001',
@@ -89,6 +92,7 @@ final class CreateProductFeatureTest extends TestCase
 
     public function test_create_product_endpoint_validates_harga_jual_must_be_greater_than_zero(): void
     {
+        $this->loginAsKasir();
         $response = $this->postJson('/product-catalog/products/create', [
             'kode_barang' => 'KB-003',
             'nama_barang' => 'Vario',

@@ -17,6 +17,7 @@ final class AddStoreStockSaleOnlyWorkItemFeatureTest extends TestCase
 
     public function test_add_store_stock_sale_only_work_item_handler_stores_lines_updates_note_and_issues_inventory(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 5);
@@ -104,6 +105,7 @@ final class AddStoreStockSaleOnlyWorkItemFeatureTest extends TestCase
 
     public function test_add_store_stock_sale_only_work_item_handler_rejects_when_stock_is_insufficient(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 1);
@@ -156,6 +158,7 @@ final class AddStoreStockSaleOnlyWorkItemFeatureTest extends TestCase
 
     public function test_add_store_stock_sale_only_work_item_handler_rejects_when_line_total_is_below_floor_pricing(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 5);

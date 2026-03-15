@@ -18,6 +18,7 @@ final class AddServiceOnlyWorkItemFeatureTest extends TestCase
 
     public function test_add_service_only_work_item_handler_stores_work_item_and_updates_note_total(): void
     {
+        $this->loginAsKasir();
         DB::table('notes')->insert([
             'id' => 'note-1',
             'customer_name' => 'Budi Santoso',
@@ -74,6 +75,7 @@ final class AddServiceOnlyWorkItemFeatureTest extends TestCase
 
     public function test_add_service_only_work_item_handler_rejects_duplicate_line_no_in_same_note(): void
     {
+        $this->loginAsKasir();
         DB::table('notes')->insert([
             'id' => 'note-1',
             'customer_name' => 'Budi Santoso',

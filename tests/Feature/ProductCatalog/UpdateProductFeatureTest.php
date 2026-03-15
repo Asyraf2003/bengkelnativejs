@@ -14,6 +14,7 @@ final class UpdateProductFeatureTest extends TestCase
 
     public function test_update_product_endpoint_updates_existing_product(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => 'KB-001',
@@ -45,6 +46,7 @@ final class UpdateProductFeatureTest extends TestCase
 
     public function test_update_product_endpoint_rejects_duplicate_variant(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => null,
@@ -84,6 +86,7 @@ final class UpdateProductFeatureTest extends TestCase
 
     public function test_update_product_endpoint_returns_failure_when_product_not_found(): void
     {
+        $this->loginAsKasir();
         $response = $this->postJson('/product-catalog/products/missing-product/update', [
             'kode_barang' => 'KB-404',
             'nama_barang' => 'Revo',

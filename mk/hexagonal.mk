@@ -3,6 +3,9 @@
 dev:
 	php artisan serve
 
+lint:
+	./vendor/bin/phpstan analyze --memory-limit=-1
+
 fmt:
 	./vendor/bin/pint
 
@@ -51,6 +54,6 @@ audit-lines:
 audit-contract: audit-lines
 	@echo "Contract audit passed."
 
-ci: audit-hex audit-contract test-domain test-integration test-money test-stock
+ci: audit-hex lint audit-contract test-domain test-integration test-money test-stock
 
 check: audit-hex test

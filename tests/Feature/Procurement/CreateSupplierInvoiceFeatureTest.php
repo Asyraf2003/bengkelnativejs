@@ -14,6 +14,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
 
     public function test_create_supplier_invoice_endpoint_auto_receives_by_default_and_updates_inventory(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => 'KB-001',
@@ -179,6 +180,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
 
     public function test_create_supplier_invoice_endpoint_rejects_unknown_product(): void
     {
+        $this->loginAsKasir();
         $response = $this->postJson('/procurement/supplier-invoices/create', [
             'nama_pt_pengirim' => 'PT Sumber Makmur',
             'tanggal_pengiriman' => '2026-03-12',
@@ -206,6 +208,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
 
     public function test_create_supplier_invoice_endpoint_rejects_line_total_that_is_not_evenly_divisible_by_qty(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => 'KB-001',
@@ -242,6 +245,7 @@ final class CreateSupplierInvoiceFeatureTest extends TestCase
 
     public function test_create_supplier_invoice_endpoint_can_disable_auto_receive_and_reuse_existing_supplier(): void
     {
+        $this->loginAsKasir();
         DB::table('products')->insert([
             'id' => 'product-1',
             'kode_barang' => 'KB-001',

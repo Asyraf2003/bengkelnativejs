@@ -20,6 +20,7 @@ final class UpdateWorkItemStatusFeatureTest extends TestCase
 
     public function test_update_work_item_status_handler_persists_mixed_statuses_in_same_note(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
 
         $addWorkItem = app(AddWorkItemHandler::class);
@@ -123,6 +124,7 @@ final class UpdateWorkItemStatusFeatureTest extends TestCase
 
     public function test_update_work_item_status_handler_rejects_when_work_item_line_is_not_found(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
 
         $addWorkItem = app(AddWorkItemHandler::class);
@@ -170,6 +172,7 @@ final class UpdateWorkItemStatusFeatureTest extends TestCase
 
     public function test_update_work_item_status_handler_rejects_unsupported_target_status(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
 
         $addWorkItem = app(AddWorkItemHandler::class);

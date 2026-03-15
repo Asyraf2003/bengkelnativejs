@@ -19,6 +19,7 @@ final class ReadNoteMultiItemFeatureTest extends TestCase
 
     public function test_note_reader_can_rehydrate_multi_item_note_with_mixed_work_item_types_and_consistent_total(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
         $this->seedProduct('product-1', 'KB-001', 'Oli Mesin', 'Federal', null, 15000);
         $this->seedInventory('product-1', 10);
@@ -149,7 +150,7 @@ final class ReadNoteMultiItemFeatureTest extends TestCase
         $this->assertNotNull($workItems[0]->serviceDetail());
         $this->assertSame(
             ServiceDetail::PART_SOURCE_CUSTOMER_OWNED,
-            $workItems[0]->serviceDetail()?->partSource(),
+            $workItems[0]->serviceDetail()->partSource(),
         );
         $this->assertCount(0, $workItems[0]->externalPurchaseLines());
         $this->assertCount(0, $workItems[0]->storeStockLines());
@@ -159,7 +160,7 @@ final class ReadNoteMultiItemFeatureTest extends TestCase
         $this->assertSame(WorkItem::STATUS_OPEN, $workItems[1]->status());
         $this->assertSame(110000, $workItems[1]->subtotalRupiah()->amount());
         $this->assertNotNull($workItems[1]->serviceDetail());
-        $this->assertSame(ServiceDetail::PART_SOURCE_NONE, $workItems[1]->serviceDetail()?->partSource());
+        $this->assertSame(ServiceDetail::PART_SOURCE_NONE, $workItems[1]->serviceDetail()->partSource());
         $this->assertCount(2, $workItems[1]->externalPurchaseLines());
         $this->assertCount(0, $workItems[1]->storeStockLines());
 
@@ -179,7 +180,7 @@ final class ReadNoteMultiItemFeatureTest extends TestCase
         $this->assertSame(WorkItem::STATUS_OPEN, $workItems[3]->status());
         $this->assertSame(110000, $workItems[3]->subtotalRupiah()->amount());
         $this->assertNotNull($workItems[3]->serviceDetail());
-        $this->assertSame(ServiceDetail::PART_SOURCE_NONE, $workItems[3]->serviceDetail()?->partSource());
+        $this->assertSame(ServiceDetail::PART_SOURCE_NONE, $workItems[3]->serviceDetail()->partSource());
         $this->assertCount(0, $workItems[3]->externalPurchaseLines());
         $this->assertCount(1, $workItems[3]->storeStockLines());
         $this->assertSame('product-1', $workItems[3]->storeStockLines()[0]->productId());

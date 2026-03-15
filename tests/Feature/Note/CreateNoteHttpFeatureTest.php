@@ -15,6 +15,7 @@ final class CreateNoteHttpFeatureTest extends TestCase
 
     public function test_authenticated_cashier_can_create_note_via_transaction_entry_route(): void
     {
+        $this->loginAsKasir();
         $user = User::query()->create([
             'name' => 'Kasir Aktif',
             'email' => 'cashier@example.test',

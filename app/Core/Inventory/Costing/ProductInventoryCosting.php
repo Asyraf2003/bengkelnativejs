@@ -86,9 +86,6 @@ final class ProductInventoryCosting
 
         $newQtyOnHand = $existingQtyOnHand + $incomingQty;
 
-        if ($newQtyOnHand <= 0) {
-            throw new DomainException('Qty on hand hasil inventory costing harus lebih besar dari nol.');
-        }
 
         $newInventoryValueRupiah = $this->inventoryValueRupiah->add($incomingTotalCostRupiah);
         $newAvgCostRupiah = Money::fromInt(

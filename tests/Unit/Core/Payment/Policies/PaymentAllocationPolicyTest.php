@@ -23,7 +23,6 @@ final class PaymentAllocationPolicyTest extends TestCase
             Money::fromInt(30000),
         );
 
-        $this->assertTrue(true);
     }
 
     public function test_it_rejects_allocation_when_amount_exceeds_remaining_payment(): void

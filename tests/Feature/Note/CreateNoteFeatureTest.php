@@ -15,6 +15,7 @@ final class CreateNoteFeatureTest extends TestCase
 
     public function test_create_note_handler_stores_new_note(): void
     {
+        $this->loginAsKasir();
         $handler = app(CreateNoteHandler::class);
 
         $result = $handler->handle(
@@ -36,6 +37,7 @@ final class CreateNoteFeatureTest extends TestCase
 
     public function test_create_note_handler_rejects_blank_customer_name(): void
     {
+        $this->loginAsKasir();
         $handler = app(CreateNoteHandler::class);
 
         $result = $handler->handle(
@@ -51,6 +53,7 @@ final class CreateNoteFeatureTest extends TestCase
 
     public function test_create_note_handler_rejects_invalid_transaction_date(): void
     {
+        $this->loginAsKasir();
         $handler = app(CreateNoteHandler::class);
 
         $result = $handler->handle(

@@ -18,6 +18,7 @@ final class AddWorkItemToPaidNoteFeatureTest extends TestCase
 
     public function test_add_work_item_handler_rejects_new_item_when_note_is_fully_paid(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 50000);
         $this->seedCustomerPayment('payment-1', 50000, '2026-03-15');
         $this->seedPaymentAllocation('allocation-1', 'payment-1', 'note-1', 50000);
@@ -52,6 +53,7 @@ final class AddWorkItemToPaidNoteFeatureTest extends TestCase
 
     public function test_add_work_item_handler_allows_new_item_for_zero_total_note(): void
     {
+        $this->loginAsKasir();
         $this->seedNote('note-1', 'Budi Santoso', '2026-03-14', 0);
 
         $handler = app(AddWorkItemHandler::class);
