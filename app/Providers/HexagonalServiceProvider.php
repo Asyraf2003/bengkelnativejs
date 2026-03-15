@@ -40,8 +40,17 @@ use App\Adapters\Out\ProductCatalog\DatabaseProductDuplicateCheckerAdapter;
 use App\Adapters\Out\ProductCatalog\DatabaseProductReaderAdapter;
 use App\Adapters\Out\ProductCatalog\DatabaseProductWriterAdapter;
 use App\Application\Inventory\Policies\DefaultNegativeStockPolicy;
+use App\Application\Inventory\Services\InventoryProjectionService;
+use App\Application\Inventory\Services\IssueInventoryOperation;
+use App\Application\Note\Services\AddWorkItemErrorClassifier;
+use App\Application\Note\Services\WorkItemFactory;
+use App\Application\Procurement\Services\SupplierInvoiceFactory;
+use App\Application\Procurement\Services\SupplierReceiptFactory;
+use App\Application\Procurement\Services\SupplierService;
 use App\Application\System\Health\HealthCheckHandler;
 use App\Core\Inventory\Policies\NegativeStockPolicy;
+use App\Core\Note\Policies\NoteAddabilityPolicy;
+use App\Core\ProductCatalog\Policies\MinSellingPricePolicy;
 use App\Ports\In\HealthCheckUseCase;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\ClockPort;
@@ -82,21 +91,39 @@ class HexagonalServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        // --- Inbound Ports / Use Cases ---
         $this->app->bind(HealthCheckUseCase::class, HealthCheckHandler::class);
 
+        // --- Infrastructure Ports ---
         $this->app->singleton(ClockPort::class, SystemClockAdapter::class);
         $this->app->singleton(UuidPort::class, LaravelUuidAdapter::class);
         $this->app->singleton(AuditLogPort::class, DatabaseAuditLogAdapter::class);
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
-        $this->app->singleton(NegativeStockPolicy::class, DefaultNegativeStockPolicy::class);
 
+        // --- Domain Policies ---
+        $this->app->singleton(NegativeStockPolicy::class, DefaultNegativeStockPolicy::class);
+        $this->app->singleton(MinSellingPricePolicy::class);
+        $this->app->singleton(NoteAddabilityPolicy::class);
+
+        // --- Application & Domain Services ---
+        $this->app->singleton(InventoryProjectionService::class);
+        $this->app->singleton(IssueInventoryOperation::class);
+        $this->app->singleton(WorkItemFactory::class);
+        $this->app->singleton(AddWorkItemErrorClassifier::class);
+        $this->app->singleton(SupplierService::class);
+        $this->app->singleton(SupplierInvoiceFactory::class);
+        $this->app->singleton(SupplierReceiptFactory::class);
+
+        // --- Identity & Access ---
         $this->app->singleton(ActorAccessReaderPort::class, DatabaseActorAccessReaderAdapter::class);
         $this->app->singleton(AdminTransactionCapabilityStatePort::class, DatabaseAdminTransactionCapabilityStateAdapter::class);
 
+        // --- Product Catalog ---
         $this->app->singleton(ProductReaderPort::class, DatabaseProductReaderAdapter::class);
         $this->app->singleton(ProductWriterPort::class, DatabaseProductWriterAdapter::class);
         $this->app->singleton(ProductDuplicateCheckerPort::class, DatabaseProductDuplicateCheckerAdapter::class);
 
+        // --- Procurement ---
         $this->app->singleton(SupplierReaderPort::class, DatabaseSupplierReaderAdapter::class);
         $this->app->singleton(SupplierWriterPort::class, DatabaseSupplierWriterAdapter::class);
         $this->app->singleton(SupplierInvoiceWriterPort::class, DatabaseSupplierInvoiceWriterAdapter::class);
@@ -107,21 +134,22 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierPaymentWriterPort::class, DatabaseSupplierPaymentWriterAdapter::class);
         $this->app->singleton(SupplierPaymentReaderPort::class, DatabaseSupplierPaymentReaderAdapter::class);
 
+        // --- Inventory ---
         $this->app->singleton(InventoryMovementReaderPort::class, DatabaseInventoryMovementReaderAdapter::class);
         $this->app->singleton(InventoryMovementWriterPort::class, DatabaseInventoryMovementWriterAdapter::class);
-
         $this->app->singleton(ProductInventoryReaderPort::class, DatabaseProductInventoryReaderAdapter::class);
         $this->app->singleton(ProductInventoryWriterPort::class, DatabaseProductInventoryWriterAdapter::class);
         $this->app->singleton(ProductInventoryProjectionWriterPort::class, DatabaseProductInventoryProjectionWriterAdapter::class);
-
         $this->app->singleton(ProductInventoryCostingReaderPort::class, DatabaseProductInventoryCostingReaderAdapter::class);
         $this->app->singleton(ProductInventoryCostingWriterPort::class, DatabaseProductInventoryCostingWriterAdapter::class);
         $this->app->singleton(ProductInventoryCostingProjectionWriterPort::class, DatabaseProductInventoryCostingProjectionWriterAdapter::class);
 
+        // --- Note ---
         $this->app->singleton(NoteReaderPort::class, DatabaseNoteReaderAdapter::class);
         $this->app->singleton(NoteWriterPort::class, DatabaseNoteWriterAdapter::class);
         $this->app->singleton(WorkItemWriterPort::class, DatabaseWorkItemWriterAdapter::class);
 
+        // --- Payment ---
         $this->app->singleton(CustomerPaymentWriterPort::class, DatabaseCustomerPaymentWriterAdapter::class);
         $this->app->singleton(CustomerPaymentReaderPort::class, DatabaseCustomerPaymentReaderAdapter::class);
         $this->app->singleton(PaymentAllocationWriterPort::class, DatabasePaymentAllocationWriterAdapter::class);
