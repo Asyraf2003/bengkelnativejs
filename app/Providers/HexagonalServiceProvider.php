@@ -44,6 +44,7 @@ use App\Application\Inventory\Services\InventoryProjectionService;
 use App\Application\Inventory\Services\IssueInventoryOperation;
 use App\Application\Note\Services\AddWorkItemErrorClassifier;
 use App\Application\Note\Services\WorkItemFactory;
+use App\Application\Note\Services\WorkItemStatusTransitionService;
 use App\Application\Procurement\Services\SupplierInvoiceFactory;
 use App\Application\Procurement\Services\SupplierReceiptFactory;
 use App\Application\Procurement\Services\SupplierService;
@@ -100,15 +101,16 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(AuditLogPort::class, DatabaseAuditLogAdapter::class);
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
 
-        // --- Domain Policies ---
+        // --- Domain Policies (Blueprint 1.6) ---
         $this->app->singleton(NegativeStockPolicy::class, DefaultNegativeStockPolicy::class);
         $this->app->singleton(MinSellingPricePolicy::class);
         $this->app->singleton(NoteAddabilityPolicy::class);
 
-        // --- Application & Domain Services ---
+        // --- Application Services & Factories (Decoupled Logic) ---
         $this->app->singleton(InventoryProjectionService::class);
         $this->app->singleton(IssueInventoryOperation::class);
         $this->app->singleton(WorkItemFactory::class);
+        $this->app->singleton(WorkItemStatusTransitionService::class);
         $this->app->singleton(AddWorkItemErrorClassifier::class);
         $this->app->singleton(SupplierService::class);
         $this->app->singleton(SupplierInvoiceFactory::class);

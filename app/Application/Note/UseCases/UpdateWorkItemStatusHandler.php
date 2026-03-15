@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Application\Note\UseCases;
 
+use App\Application\Note\Services\WorkItemStatusTransitionService;
 use App\Application\Shared\DTO\Result;
-use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
-use App\Ports\Out\Note\NoteReaderPort;
-use App\Ports\Out\Note\WorkItemWriterPort;
+use App\Ports\Out\AuditLogPort;
+use App\Ports\Out\Note\{NoteReaderPort, WorkItemWriterPort};
 use App\Ports\Out\TransactionManagerPort;
 use Throwable;
 
@@ -18,145 +18,46 @@ final class UpdateWorkItemStatusHandler
         private readonly NoteReaderPort $notes,
         private readonly WorkItemWriterPort $workItems,
         private readonly TransactionManagerPort $transactions,
-    ) {
-    }
+        private readonly WorkItemStatusTransitionService $transition,
+        private readonly AuditLogPort $audit
+    ) {}
 
-    public function handle(
-        string $noteId,
-        int $lineNo,
-        string $targetStatus,
-    ): Result {
+    public function handle(string $noteId, int $lineNo, string $targetStatus): Result
+    {
+        $started = false;
         try {
-            $normalizedNoteId = $this->normalizeRequired(
-                $noteId,
-                'Note id pada update status work item wajib ada.'
-            );
+            if ($lineNo <= 0) throw new DomainException('Line number harus > 0.');
+            
+            $this->transactions->begin(); $started = true;
 
-            $normalizedTargetStatus = $this->normalizeRequired(
-                $targetStatus,
-                'Target status work item wajib ada.'
-            );
-
-            if ($lineNo <= 0) {
-                throw new DomainException('Line number pada update status work item harus lebih besar dari nol.');
-            }
-        } catch (DomainException $e) {
-            return $this->failureFromDomainException($e);
-        }
-
-        $transactionStarted = false;
-
-        try {
-            $this->transactions->begin();
-            $transactionStarted = true;
-
-            $note = $this->notes->getById($normalizedNoteId);
-
-            if ($note === null) {
-                throw new DomainException('Note tidak ditemukan.');
-            }
-
-            $workItem = $this->findWorkItemByLineNo($note->workItems(), $lineNo);
-
-            $this->applyTargetStatus($workItem, $normalizedTargetStatus);
+            $note = $this->notes->getById(trim($noteId)) ?? throw new DomainException('Note tidak ditemukan.');
+            
+            $workItem = $this->transition->findAndApply($note, $lineNo, trim($targetStatus));
 
             $this->workItems->updateStatus($workItem);
 
+            $this->audit->record('work_item_status_updated', [
+                'note_id' => $note->id(),
+                'line_no' => $lineNo,
+                'new_status' => $workItem->status()
+            ]);
+
             $this->transactions->commit();
+            return Result::success($this->mapResponse($note, $workItem), 'Status work item diperbarui.');
 
-            return Result::success(
-                [
-                    'note' => [
-                        'id' => $note->id(),
-                        'customer_name' => $note->customerName(),
-                        'transaction_date' => $note->transactionDate()->format('Y-m-d'),
-                    ],
-                    'work_item' => [
-                        'id' => $workItem->id(),
-                        'note_id' => $workItem->noteId(),
-                        'line_no' => $workItem->lineNo(),
-                        'transaction_type' => $workItem->transactionType(),
-                        'status' => $workItem->status(),
-                        'subtotal_rupiah' => $workItem->subtotalRupiah()->amount(),
-                    ],
-                ],
-                'Status work item berhasil diperbarui.'
-            );
         } catch (DomainException $e) {
-            if ($transactionStarted) {
-                $this->transactions->rollBack();
-            }
-
-            return $this->failureFromDomainException($e);
+            if ($started) $this->transactions->rollBack();
+            return Result::failure($e->getMessage(), ['work_item' => ['INVALID_WORK_ITEM_STATE']]);
         } catch (Throwable $e) {
-            if ($transactionStarted) {
-                $this->transactions->rollBack();
-            }
-
+            if ($started) $this->transactions->rollBack();
             throw $e;
         }
     }
 
-    /**
-     * @param list<WorkItem> $workItems
-     */
-    private function findWorkItemByLineNo(array $workItems, int $lineNo): WorkItem
-    {
-        foreach ($workItems as $workItem) {
-            if ($workItem->lineNo() === $lineNo) {
-                return $workItem;
-            }
-        }
-
-        throw new DomainException('Work item pada note tidak ditemukan.');
-    }
-
-    private function applyTargetStatus(WorkItem $workItem, string $targetStatus): void
-    {
-        if ($targetStatus === WorkItem::STATUS_DONE) {
-            $workItem->markDone();
-            return;
-        }
-
-        if ($targetStatus === WorkItem::STATUS_CANCELED) {
-            $workItem->cancel();
-            return;
-        }
-
-        if ($targetStatus === WorkItem::STATUS_OPEN && $workItem->status() === WorkItem::STATUS_OPEN) {
-            return;
-        }
-
-        throw new DomainException('Target status work item belum didukung pada slice ini.');
-    }
-
-    private function failureFromDomainException(DomainException $e): Result
-    {
-        $errorCode = $this->classifyErrorCode($e->getMessage());
-
-        return Result::failure(
-            $e->getMessage(),
-            ['work_item' => [$errorCode]]
-        );
-    }
-
-    private function classifyErrorCode(string $message): string
-    {
-        if (str_contains($message, 'Target status work item belum didukung')) {
-            return 'NOTE_INVALID_WORK_ITEM_STATE';
-        }
-
-        return 'INVALID_WORK_ITEM';
-    }
-
-    private function normalizeRequired(string $value, string $message): string
-    {
-        $normalized = trim($value);
-
-        if ($normalized === '') {
-            throw new DomainException($message);
-        }
-
-        return $normalized;
+    private function mapResponse($note, $workItem): array {
+        return [
+            'note' => ['id' => $note->id()],
+            'work_item' => ['id' => $workItem->id(), 'status' => $workItem->status()]
+        ];
     }
 }

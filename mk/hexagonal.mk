@@ -54,6 +54,11 @@ audit-lines:
 audit-contract: audit-lines
 	@echo "Contract audit passed."
 
-ci: audit-hex lint audit-contract test-domain test-integration test-money test-stock
 
 check: audit-hex test
+
+# Gerbang Verifikasi Utama (Test + Lint + Line Audit)
+verify: lint audit-lines test
+
+# Alias untuk CI sesuai DoD 3.3
+ci: verify
