@@ -80,3 +80,7 @@ Related to #009, #011, #015, and #018 as part of the cashier access-boundary clu
 Different from those reports because this issue is read-only historical data disclosure through the cashier table endpoint, not mutation/edit/refund workspace authorization.
 
 Related to #018 because both involve cashier access logic around closed/refunded note boundaries, but #019 specifically concerns date-window enumeration and closed historical note listing.
+
+## Related #022 - Cashier refund route bypasses note access guard
+
+#022 is related through cashier historical-note access boundaries. #019 covers read-only disclosure of historical closed notes through the cashier table route. #022 covers unauthorized refund mutation on closed or historical notes when the cashier refund route bypasses `EnsureCashierNoteAccess`.

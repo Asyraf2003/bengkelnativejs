@@ -87,3 +87,7 @@ Related to #013 because forged or invalid refund flows can produce incorrect ref
 Related to #018 because refund lifecycle state affects whether notes remain mutable or terminal.
 
 Related to #009 and #011 because mutation routes must enforce state guards before executing note/payment/refund changes.
+
+## Related #022 - Cashier refund route bypasses note access guard
+
+#022 is a direct follow-up on the same cashier refund endpoint. #021 covers missing whole-note close-state enforcement in the controller. #022 covers route placement outside `EnsureCashierNoteAccess`, allowing direct refund mutation against notes the cashier should not be able to access.

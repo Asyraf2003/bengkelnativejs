@@ -288,3 +288,7 @@ Both are required for safe refund lifecycle enforcement.
 ## Related #021 - Refunds can be recorded on open notes
 
 #021 is a direct follow-up in the refund endpoint policy cluster. #014 covers selected rows that are open/unpaid being accepted by refund validation. #021 covers selected rows that are close but belong to a parent `Nota` that is still open. The safe invariant is that refund mutation requires whole-note close status, not only selected-row close status.
+
+## Related #022 - Cashier refund route bypasses note access guard
+
+#022 is related through the refund endpoint policy cluster. #014 covers invalid row eligibility in refund validation, while #022 covers missing note-level cashier access middleware on the refund route itself.

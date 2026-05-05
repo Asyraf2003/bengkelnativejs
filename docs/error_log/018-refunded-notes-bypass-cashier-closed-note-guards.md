@@ -286,3 +286,7 @@ Patch minimal sudah tepat: refunded sekarang ditolak oleh cashier mutation guard
 ## Related #021 - Refunds can be recorded on open notes
 
 #021 is related through refund lifecycle state boundaries. #018 covers refunded terminal notes becoming mutable again, while #021 covers refunds being recorded before the parent `Nota` reaches operational close status.
+
+## Related #022 - Cashier refund route bypasses note access guard
+
+#022 is related through cashier closed-note and refund lifecycle boundaries. #018 covers refunded terminal notes becoming mutable again, while #022 covers the refund route bypassing per-note cashier access checks before mutation.
