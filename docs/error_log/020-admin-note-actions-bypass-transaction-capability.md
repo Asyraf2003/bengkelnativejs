@@ -124,3 +124,7 @@ Reported verification:
 - `git commit -m "Protect admin note mutation routes with transaction-entry middleware"`
 
 No progress increase because this is the same root cause and same target file as #020.
+
+## Related #027 - Admin invoice creation bypasses transaction-entry gate
+
+#027 is related through the same admin transaction-entry capability boundary. #020 covers admin note mutation routes missing `EnsureTransactionEntryAllowed`, while #027 covers admin procurement supplier-invoice creation missing `transaction.entry`.

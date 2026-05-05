@@ -294,3 +294,7 @@ Patch minimal sudah tepat untuk root cause langsung: route dilindungi auth + adm
 ## Related #002 update - Predictable seeded admin credentials introduced
 
 The #002 update remains indirectly related to the identity/access cluster. #002 covers predictable seeded admin credentials and privileged role/capability seeding, while #016 covers unauthenticated admin capability toggle endpoints.
+
+## Related #027 - Admin invoice creation bypasses transaction-entry gate
+
+#027 is related through identity/access capability enforcement. #016 covers unauthenticated capability toggle endpoints, while #027 covers a supplier-invoice mutation route that bypassed the transaction-entry capability gate after authentication.
