@@ -266,3 +266,24 @@ Laporan #007 valid sebagai High severity stored XSS.
 Bug sebelumnya menaruh stored cashier-controlled data ke raw JSON inside script tag. Karena HTML parser tetap membaca literal </script>, payload dapat keluar dari application/json script block dan menjadi executable script ketika admin membuka edit workspace.
 
 Patch minimal sudah tepat untuk sink langsung: JSON_HEX_* flags menetralkan script-breaking sequences tanpa mengubah struktur JSON. Namun test belum terbukti pass karena dependency environment belum tersedia, jadi status tetap patched with verification gap.
+
+## Related Workspace Authorization Finding From Error Log 009
+
+### Related Error Log
+
+- 009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
+
+### Update
+
+Update 2.
+
+### Reason
+
+A later audit report found a separate High severity issue in the note workspace surface.
+
+This is not the same root cause as #007.
+
+- #007 is about stored XSS in the admin workspace rendering path.
+- #009 is about cashier closed-note mutation through workspace update authorization regression.
+
+Both are workspace-surface security findings, but one is browser injection and the other is server-side authorization.

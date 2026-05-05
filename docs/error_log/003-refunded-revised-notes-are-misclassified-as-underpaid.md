@@ -433,3 +433,24 @@ This is not the same root cause as #003.
 - #005 is about downward note revisions silently truncating captured payment replay and hiding overpaid excess from allocation-based refund/reporting paths.
 
 Future changes to NoteReplacementPaymentAllocationReconciler must account for both cases.
+
+## Related Settlement Basis Finding From Error Log 008
+
+### Related Error Log
+
+- 008-legacy-paid-notes-can-be-paid-again.md
+
+### Update
+
+Update 5.
+
+### Reason
+
+A later audit report found a separate issue caused by inconsistent settlement basis.
+
+This is not the same root cause as #003.
+
+- #003 is about component refund/history semantics during revised-note settlement.
+- #008 is about component-only billing projection ignoring legacy payment_allocations during selected-row payment validation.
+
+Both should be considered when changing settlement readers/projections, because component-only calculations are unsafe when the note can still have legacy payment state.

@@ -292,3 +292,24 @@ This is not the same root cause as #004.
 - #006 is about underpriced store-stock line creation caused by client-controlled price_basis bypassing minimum price checks.
 
 Both affect store-stock/inventory integrity during note revision and should be considered together in future revision-flow audits.
+
+## Related Closed-Note Authorization Finding From Error Log 009
+
+### Related Error Log
+
+- 009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
+
+### Update
+
+Update 4.
+
+### Reason
+
+A later audit report found a separate High severity authorization issue in the note workspace revision route.
+
+This is not the same root cause as #004.
+
+- #004 is about stale refunded work_items causing duplicate inventory reversal.
+- #009 is about cashier PATCH workspace update being allowed for closed notes because the route used view-only access instead of mutation guard.
+
+Both findings affect note revision and can impact work items, payment allocations, and inventory state.

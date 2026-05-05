@@ -266,3 +266,24 @@ This is not the same root cause as #006.
 - #007 is about stored XSS caused by raw JSON embedding of cashier-controlled note fields into the admin edit workspace.
 
 Both findings involve note workspace/revision input crossing trust boundaries, so future workspace changes must verify both server-side financial invariants and safe client-side rendering.
+
+## Related Closed-Note Authorization Finding From Error Log 009
+
+### Related Error Log
+
+- 009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
+
+### Update
+
+Update 3.
+
+### Reason
+
+A later audit report found a separate issue in the cashier note workspace update route.
+
+This is not the same root cause as #006.
+
+- #006 is about price floor bypass through client-controlled price_basis.
+- #009 is about cashier authorization bypass for closed-note workspace PATCH.
+
+Both involve note workspace update, so future changes must verify server-side invariants and route-level mutation guards.

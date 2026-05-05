@@ -265,3 +265,66 @@ This is not the same root cause as #005.
 - #006 is about client-controlled price_basis bypassing MinSellingPricePolicy during store-stock line materialization.
 
 Future changes to note revision must verify both payment replay integrity and price floor enforcement.
+
+## Related Payment Allocation Finding From Error Log 008
+
+### Related Error Log
+
+- 008-legacy-paid-notes-can-be-paid-again.md
+
+### Update
+
+Update 3.
+
+### Reason
+
+A later audit report found a separate High severity payment allocation issue.
+
+This is not the same root cause as #005.
+
+- #005 is about note revision replay silently truncating captured payments and hiding overpaid excess.
+- #008 is about selected-row payment validation ignoring legacy payment_allocations and allowing duplicate payment for legacy-paid notes.
+
+Both findings show that payment validation must use the correct settlement basis and must not silently ignore existing payment state.
+
+## Related Closed-Note Authorization Finding From Error Log 009
+
+### Related Error Log
+
+- 009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
+
+### Update
+
+Update 4.
+
+### Reason
+
+A later audit report found a separate High severity authorization issue in the note revision flow.
+
+This is not the same root cause as #005.
+
+- #005 is about payment replay silently dropping overpaid allocation during downward revision.
+- #009 is about cashier access control allowing closed-note workspace PATCH mutation.
+
+Both findings show that note revision must be guarded both financially and authorization-wise.
+
+## Related Concurrency Finding From Error Log 010
+
+### Related Error Log
+
+- 010-revision-reallocation-can-lose-concurrent-payments.md
+
+### Update
+
+Update 5.
+
+### Reason
+
+A later audit report found a separate High severity issue in the note revision payment allocation area.
+
+This is not the same root cause as #005.
+
+- #005 is about downward revision replay truncating payment amounts and hiding overpaid excess.
+- #010 is about concurrent payment allocation being lost during revision capture/delete/rebuild due to missing serialization.
+
+Both findings affect payment allocation rebuild during note revision and should be considered together before changing NoteReplacementPaymentAllocationReconciler or active replacement flow.
