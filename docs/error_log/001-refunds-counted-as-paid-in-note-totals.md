@@ -161,3 +161,26 @@ Create a characterization test for:
 - expected note is not treated as fully paid after active refund
 
 This test should lock the settlement behavior so the same bug does not return later wearing a different hat, as bugs annoyingly enjoy doing.
+
+## Related Follow-up Discovered Later
+
+### Related Error Log
+
+- 003-refunded-revised-notes-are-misclassified-as-underpaid.md
+
+### Update
+
+Update 2.
+
+### Reason
+
+A later audit report found a directly related but non-identical edge case in the same settlement area.
+
+The patch for #001 removed refund_component_allocations from note-level allocated total to prevent active refunds from being counted as paid. Report #003 shows that this behavior can undercount revised notes where NoteReplacementPaymentAllocationReconciler has already rebuilt payment_component_allocations net-of-refund while historical refund_component_allocations remain.
+
+This means #001 and #003 must be considered together before future settlement changes. A valid fix must preserve correct behavior for both:
+
+1. active refund normal notes
+2. revised notes with historical refunds already consumed during replacement/reconciliation
+
+Do not solve one by blindly reverting into the other.
