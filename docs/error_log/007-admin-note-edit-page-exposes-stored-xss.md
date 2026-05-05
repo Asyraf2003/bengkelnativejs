@@ -472,3 +472,7 @@ The root problem remains unsafe JSON embedding in an HTML script context. The co
 ## Related #024 - Reflected XSS in expense create JSON config
 
 #024 is related through the same unsafe JSON-in-script encoding pattern. #007 covers stored XSS in workspace JSON config, while #024 covers reflected XSS in the expense create page JSON config from query-string `category_id`.
+
+## Related #025 - Reflected javascript URL in product return link
+
+#025 is related to the broader XSS/output-context cluster. #007 covers stored XSS through workspace JSON config, while #025 covers reflected click-triggered XSS through an untrusted `href` URL.

@@ -77,3 +77,7 @@ Related to #007.
 #024 covers unsafe expense-create JSON config causing reflected XSS from query-string input.
 
 Both share the same script-context JSON encoding hazard, but they affect different pages, different data sources, and different exploit classes.
+
+## Related #025 - Reflected javascript URL in product return link
+
+#025 is related through reflected admin XSS. #024 covers unsafe JSON output inside a script block on the expense create page, while #025 covers unsafe URL scheme rendering inside an `href` on the product create page.
