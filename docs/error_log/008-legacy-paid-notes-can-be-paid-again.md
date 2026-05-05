@@ -505,3 +505,7 @@ If a future migration backfills component allocations from legacy rows without m
 Any migration must define a clear cutover or idempotent compatibility strategy.
 
 No progress increase because this is the same root cause cluster as #008.
+
+## Related #026 - Concurrent note payments can over-allocate balances
+
+#026 is related through the payment allocation invariant. #008 covers overpayment caused by mixed legacy/component allocation sources. #026 covers overpayment caused by concurrent payment requests reading the same stale allocation total before writing.

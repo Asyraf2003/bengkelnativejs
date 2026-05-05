@@ -301,3 +301,7 @@ This is not the same root cause as #010.
 - #011 is about missing payment-derived editability guard, fixed by EditableWorkspaceNoteGuard::assertEditable().
 
 Final CreateNoteRevisionHandler must preserve both fixes. It should not regress from getByIdForUpdate() back to getById() when adding assertEditable().
+
+## Related #026 - Concurrent note payments can over-allocate balances
+
+#026 is related through payment concurrency safety. #010 covers revision/payment concurrency where revision reallocation can lose concurrent payment allocations. #026 covers payment/payment concurrency where two parallel payment requests can over-allocate the same note unless allocation validation and writes are serialized per note.
