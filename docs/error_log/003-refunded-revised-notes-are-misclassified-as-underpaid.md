@@ -2,9 +2,11 @@
 
 ## Status
 
-Open.
+Patched, with verification gap.
 
-No patch was supplied with this report.
+Patch supplied later under report title: Refunded revisions undercount paid totals.
+
+The focused feature test was added, but php artisan test could not run in the patch environment because vendor/autoload.php was missing.
 
 ## Severity
 
@@ -230,3 +232,162 @@ Laporan #003 valid sebagai High severity settlement/accounting logic issue.
 Temuan ini menunjukkan bahwa patch area #001 belum cukup untuk seluruh lifecycle refund dan revised note. Active refund dan historical refund setelah revision tidak boleh diperlakukan dengan kalkulasi generic yang sama.
 
 Akar masalah yang perlu diselesaikan adalah settlement semantics, bukan hanya agregasi query. Sistem perlu membedakan gross allocation, active refund, historical consumed refund, dan carried-forward settlement agar paid status, outstanding, mutation guard, dan inventory flow tetap konsisten.
+
+## Patch Update
+
+### Update 2
+
+Patch supplied under report title:
+
+Refunded revisions undercount paid totals
+
+### Relationship Classification
+
+Identical issue / same root cause as this file.
+
+This update is not a new error log because it covers the same failure mode:
+
+- revised note has historical refund_component_allocations
+- NoteReplacementPaymentAllocationReconciler rebuilds payment_component_allocations on a net-of-refund basis
+- note-level paid/outstanding/status logic subtracts refund_component_allocations again
+- revised note becomes incorrectly underpaid/open
+
+### Reason For Update
+
+The original #003 entry had no patch. This update records the later patch and test addition.
+
+### Patch Summary
+
+Changed file:
+
+app/Adapters/Out/Payment/DatabasePaymentAllocationReaderAdapter.php
+
+Change:
+
+- getTotalAllocatedAmountByNoteId() now queries refund_component_allocations for the note
+- component allocation total is grossed back by adding component refund total
+- return becomes componentTotal + componentRefundTotal when either component payment rows or component refund rows exist
+- legacy fallback to payment_allocations remains unchanged when no component/refund rows exist
+
+Added test file/update:
+
+tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php
+
+Added focused feature test:
+
+test_note_total_includes_component_refunds_for_revised_note_component_flow
+
+The test reproduces the revised-note shape:
+
+- note total: 200.000
+- customer payment: 300.000
+- rebuilt payment_component_allocations: 200.000
+- historical refund_component_allocations: 100.000
+- expected note-level allocated total: 300.000
+
+This allows downstream allocated-minus-refunded logic to compute:
+
+- allocated: 300.000
+- refunded: 100.000
+- net paid: 200.000
+
+That matches the revised note total and prevents the note from being misclassified as underpaid/open.
+
+### Testing Reported
+
+Command attempted:
+
+php artisan test tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php
+
+Result:
+
+Failed in the patch environment because dependencies were not installed.
+
+Failure reason:
+
+missing vendor/autoload.php
+
+### Verification Status
+
+Patch is recorded, but full test verification is not proven from this environment.
+
+This is important: the presence of a test file is not proof that the test passed. Humanity keeps confusing intention with evidence, and software punishes that hobby.
+
+### Regression Risk Against #001
+
+This patch intentionally re-adds refund_component_allocations to the note-level allocated total.
+
+That is the opposite movement from the patch recorded in:
+
+001-refunds-counted-as-paid-in-note-totals.md
+
+Therefore, this patch must be verified against both scenarios:
+
+1. Active refund normal note
+
+Expected behavior:
+
+- total: 50.000
+- payment: 50.000
+- active refund: 10.000
+- net paid: 40.000
+- outstanding: 10.000
+- note must not remain fully paid because of active refund cancellation
+
+2. Revised note with historical refund
+
+Expected behavior:
+
+- original payment: 300.000
+- historical refund: 100.000
+- revised note total: 200.000
+- rebuilt payment_component_allocations: 200.000
+- refund_component_allocations: 100.000
+- gross allocated basis: 300.000
+- net paid after subtract refund: 200.000
+- note should be paid/closed
+
+A valid final fix must pass both. If only scenario #003 passes, #001 may be reopened.
+
+### Files Changed By Patch
+
+app/Adapters/Out/Payment/DatabasePaymentAllocationReaderAdapter.php
+tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php
+
+Reported diff size:
+
++47
+-2
+
+Reported commit:
+
+7b030a0
+
+Reported patch commit message/context:
+
+Refunded revisions undercount paid totals
+
+### Remaining Follow-up
+
+Required proof before considering this fully verified:
+
+1. Install/restore Composer dependencies if needed.
+2. Run the focused feature test successfully.
+3. Run or add regression test for #001 active refund normal note.
+4. Run broader payment/note tests if available.
+5. Confirm no settlement consumer now misclassifies active refunds as fully paid.
+
+Minimum commands expected later:
+
+composer install
+php artisan test tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php
+
+If a #001 regression test exists, run it too. If it does not exist, add it before trusting this settlement patch.
+
+### Kesimpulan Update
+
+This update patches the #003 double-subtraction issue for revised notes by restoring a gross allocation basis at the note-level reader.
+
+However, because #001 was caused by refund_component_allocations being added too broadly for active refunds, this patch must be treated as settlement-risky until both active-refund and revised-historical-refund scenarios are locked by tests.
+
+The technical direction may still need explicit settlement semantics later so active refunds and historical consumed refunds are not forced through the same generic aggregate.

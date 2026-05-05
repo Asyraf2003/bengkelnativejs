@@ -184,3 +184,26 @@ This means #001 and #003 must be considered together before future settlement ch
 2. revised notes with historical refunds already consumed during replacement/reconciliation
 
 Do not solve one by blindly reverting into the other.
+
+## Related Patch Update From Error Log 003
+
+### Related Error Log
+
+- 003-refunded-revised-notes-are-misclassified-as-underpaid.md
+
+### Update
+
+Update 3.
+
+### Reason
+
+A later patch for #003 re-added refund_component_allocations into DatabasePaymentAllocationReaderAdapter::getTotalAllocatedAmountByNoteId() to restore gross allocation basis for revised notes with historical refunds.
+
+This is directly relevant to #001 because #001 was originally caused by active refunds being added into allocated totals and then subtracted again, making active refunds ineffective.
+
+Future verification must prove both:
+
+1. active refunds on normal notes reduce net paid/outstanding correctly
+2. historical refunds on revised notes are not double-subtracted
+
+If both are not tested, the fix may only move the settlement bug between #001 and #003.
