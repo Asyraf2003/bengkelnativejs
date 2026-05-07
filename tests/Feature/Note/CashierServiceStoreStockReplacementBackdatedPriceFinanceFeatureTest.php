@@ -15,7 +15,7 @@ final class CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest 
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_service_store_stock_replacement_keeps_snapshot_price_reconciles_stock_and_caps_old_payment(): void
+    public function test_service_store_stock_replacement_rejects_downward_overpaid_replay_instead_of_capping_old_payment(): void
     {
         $user = $this->loginAsAuthorizedAdmin();
         $oldDate = date('Y-m-d', strtotime('-4 days'));
@@ -77,97 +77,77 @@ final class CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest 
             ],
         );
 
-        $response->assertRedirect(route('admin.notes.show', ['noteId' => 'note-service-stock-1']));
-        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('admin.notes.workspace.edit', ['noteId' => 'note-service-stock-1']));
+        $response->assertSessionHasErrors();
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-service-stock-1',
-            'customer_name' => 'Budi Revised Service Stock',
-            'transaction_date' => $today,
-            'total_rupiah' => 250000,
-            'latest_revision_number' => 2,
+            'customer_name' => 'Budi Service Stock Lama',
+            'transaction_date' => $oldDate,
+            'total_rupiah' => 350000,
         ]);
 
-        $this->assertDatabaseHas('note_revisions', [
+        $this->assertDatabaseMissing('note_revisions', [
             'note_root_id' => 'note-service-stock-1',
             'revision_number' => 2,
-            'grand_total_rupiah' => 250000,
         ]);
 
-        $this->assertDatabaseMissing('work_items', [
+        $this->assertDatabaseHas('work_items', [
             'id' => 'wi-service-stock-old-1',
+            'note_id' => 'note-service-stock-1',
+            'transaction_type' => WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART,
+            'subtotal_rupiah' => 350000,
         ]);
-
-        $newWorkItem = DB::table('work_items')
-            ->where('note_id', 'note-service-stock-1')
-            ->where('transaction_type', WorkItem::TYPE_SERVICE_WITH_STORE_STOCK_PART)
-            ->first();
-
-        $this->assertNotNull($newWorkItem);
-        $this->assertSame(250000, (int) $newWorkItem->subtotal_rupiah);
 
         $this->assertDatabaseHas('work_item_service_details', [
-            'work_item_id' => (string) $newWorkItem->id,
-            'service_name' => 'Servis Rem Revised',
+            'work_item_id' => 'wi-service-stock-old-1',
+            'service_name' => 'Servis Rem Lama',
             'service_price_rupiah' => 50000,
             'part_source' => 'none',
         ]);
 
-        $newStoreLine = DB::table('work_item_store_stock_lines')
-            ->where('work_item_id', (string) $newWorkItem->id)
-            ->where('product_id', 'product-1')
-            ->first();
-
-        $this->assertNotNull($newStoreLine);
-        $this->assertSame(2, (int) $newStoreLine->qty);
-        $this->assertSame(200000, (int) $newStoreLine->line_total_rupiah);
+        $this->assertDatabaseHas('work_item_store_stock_lines', [
+            'id' => 'ssl-service-stock-old-1',
+            'work_item_id' => 'wi-service-stock-old-1',
+            'product_id' => 'product-1',
+            'qty' => 3,
+            'line_total_rupiah' => 300000,
+        ]);
 
         $this->assertDatabaseHas('inventory_movements', [
+            'id' => 'move-service-stock-old-1',
             'product_id' => 'product-1',
+            'movement_type' => 'stock_out',
+            'source_type' => 'work_item_store_stock_line',
+            'source_id' => 'ssl-service-stock-old-1',
+            'tanggal_mutasi' => $oldDate,
+            'qty_delta' => -3,
+        ]);
+
+        $this->assertDatabaseMissing('inventory_movements', [
             'movement_type' => 'stock_in',
             'source_type' => 'transaction_workspace_updated',
             'source_id' => 'ssl-service-stock-old-1',
             'tanggal_mutasi' => $today,
-            'qty_delta' => 3,
-        ]);
-
-        $this->assertDatabaseHas('inventory_movements', [
-            'product_id' => 'product-1',
-            'movement_type' => 'stock_out',
-            'source_type' => 'work_item_store_stock_line',
-            'source_id' => (string) $newStoreLine->id,
-            'tanggal_mutasi' => $today,
-            'qty_delta' => -2,
         ]);
 
         $this->assertDatabaseHas('product_inventory', [
             'product_id' => 'product-1',
-            'qty_on_hand' => 8,
+            'qty_on_hand' => 7,
         ]);
 
         $this->assertSame(
-            250000,
+            350000,
             (int) DB::table('payment_component_allocations')
                 ->where('note_id', 'note-service-stock-1')
+                ->where('customer_payment_id', 'payment-service-stock-1')
                 ->sum('allocated_amount_rupiah')
         );
 
-        $this->assertDatabaseHas('payment_component_allocations', [
+        $this->assertDatabaseMissing('payment_component_allocations', [
             'note_id' => 'note-service-stock-1',
-            'work_item_id' => (string) $newWorkItem->id,
-            'component_type' => 'service_store_stock_part',
-            'component_ref_id' => (string) $newStoreLine->id,
-            'component_amount_rupiah_snapshot' => 200000,
-            'allocated_amount_rupiah' => 200000,
-        ]);
-
-        $this->assertDatabaseHas('payment_component_allocations', [
-            'note_id' => 'note-service-stock-1',
-            'work_item_id' => (string) $newWorkItem->id,
-            'component_type' => 'service_fee',
-            'component_ref_id' => (string) $newWorkItem->id,
-            'component_amount_rupiah_snapshot' => 50000,
-            'allocated_amount_rupiah' => 50000,
+            'customer_payment_id' => 'payment-service-stock-1',
+            'allocated_amount_rupiah' => 250000,
         ]);
 
         $this->assertDatabaseHas('customer_payments', [
