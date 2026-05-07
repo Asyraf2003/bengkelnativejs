@@ -33,9 +33,19 @@ final class ReverseIssuedInventoryOperation
      */
     public function execute(string $sourceType, string $sourceId, DateTimeImmutable $date, string $reverseSourceType): array
     {
+        $normalizedSourceType = trim($sourceType);
+        $normalizedSourceId = trim($sourceId);
+        $normalizedReverseSourceType = trim($reverseSourceType);
+
+        foreach ($this->movements->getBySource($normalizedReverseSourceType, $normalizedSourceId) as $existingReverse) {
+            if ($existingReverse->qtyDelta() > 0) {
+                return [];
+            }
+        }
+
         $reversed = [];
 
-        foreach ($this->movements->getBySource(trim($sourceType), trim($sourceId)) as $movement) {
+        foreach ($this->movements->getBySource($normalizedSourceType, $normalizedSourceId) as $movement) {
             if ($movement->qtyDelta() >= 0) {
                 continue;
             }
@@ -60,8 +70,8 @@ final class ReverseIssuedInventoryOperation
                 $this->uuid->generate(),
                 $movement->productId(),
                 'stock_in',
-                trim($reverseSourceType),
-                trim($sourceId),
+                $normalizedReverseSourceType,
+                $normalizedSourceId,
                 $date,
                 $qty,
                 $movement->unitCostRupiah()
