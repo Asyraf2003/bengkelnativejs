@@ -130,4 +130,43 @@ final class NotePaidStatusPolicyTest extends TestCase
 
         $this->assertFalse($policy->isPaid($note));
     }
+
+    public function test_it_treats_carry_forward_current_settlement_as_paid_without_subtracting_historical_refund_again(): void
+    {
+        $policy = new NotePaidStatusPolicy(
+            new class () implements PaymentAllocationReaderPort {
+                public function getTotalAllocatedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::fromInt(200000);
+                }
+
+                public function getTotalAllocatedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
+                {
+                    return Money::zero();
+                }
+            },
+            new class () implements CustomerRefundReaderPort {
+                public function getTotalRefundedAmountByNoteId(string $noteId): Money
+                {
+                    return Money::fromInt(100000);
+                }
+
+                public function getTotalRefundedAmountByCustomerPaymentIdAndNoteId(string $customerPaymentId, string $noteId): Money
+                {
+                    return Money::zero();
+                }
+            },
+        );
+
+        $note = Note::rehydrate(
+            'note-1',
+            'Budi Santoso',
+            null,
+            new DateTimeImmutable('2026-03-16'),
+            Money::fromInt(200000),
+            [],
+        );
+
+        $this->assertTrue($policy->isPaid($note));
+    }
 }
