@@ -2,9 +2,7 @@
 
 ## Status
 
-Patched, with verification gap.
-
-Patch disediakan dan syntax check pass, tetapi tidak ada focused feature/regression test yang dilaporkan pass.
+Fixed and verified.
 
 ## Severity
 
@@ -53,9 +51,23 @@ Initial audit log entry untuk laporan #005.
 Alasan update:
 
 - Laporan menunjukkan note revision dapat silently drop overpaid allocation.
-- Patch sudah diterapkan pada NoteReplacementPaymentAllocationReconciler::rebuild().
-- Patch menghapus truncating replay behavior dan mengembalikan fail-fast behavior lewat allocator.
+- Patch awal diklaim sudah diterapkan pada NoteReplacementPaymentAllocationReconciler::rebuild().
 - Verification masih gap karena hanya php -l yang dilaporkan pass.
+- Sesi lanjutan menemukan status dokumen tidak cocok dengan source lokal.
+
+### Update 2
+
+Final verification untuk laporan #005.
+
+Alasan update:
+
+- Source lokal masih memiliki truncating replay behavior.
+- NoteReplacementPaymentAllocationReconciler::rebuild() masih memakai replayAmount = min($amount, $remainingComponentAmount).
+- Focused characterization test dibuat untuk downward note replacement dengan old payment lebih besar dari revised total.
+- Red test membuktikan current behavior masih silent cap.
+- Patch minimal diterapkan ulang agar allocator menerima full captured amount.
+- Existing regression tests yang sebelumnya mengunci behavior caps_old_payment diperbarui agar mengharapkan reject + rollback.
+- Focused, related, dan blast-radius tests sudah pass.
 
 ## Ringkasan Indonesia
 
@@ -147,18 +159,20 @@ app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php
 
 Perubahan:
 
+- hapus remainingComponentAmount total tracking dari rebuild()
 - hapus remainingComponentAmount guard dari loop skip condition
 - hapus replayAmount = min($amount, $remainingComponentAmount)
-- allocator sekarang menerima full captured amount
+- allocator sekarang menerima full captured amount melalui Money::fromInt($amount)
 - hapus remainingComponentAmount decrement setelah allocation
 - jika note baru tidak bisa menyerap payment lama, allocator akan throw DomainException
-- enclosing transaction seharusnya rollback, mencegah inconsistent financial state
+- enclosing transaction rollback mencegah inconsistent financial state
 
 Efek patch:
 
 - downward revision yang tidak bisa menyerap payment lama tidak lagi silently commit
 - fail-fast behavior kembali aktif
 - overpaid allocation tidak hilang diam-diam dari payment_component_allocations
+- current safe behavior adalah reject + rollback sampai explicit overpaid/customer credit/refund due model tersedia
 
 ## Scope In
 
@@ -166,76 +180,105 @@ Efek patch:
 - Payment allocation replay during note revision
 - Fail-fast behavior for under-allocatable revised notes
 - Prevention of silent overpaid excess loss
+- Regression tests for product-only and service-store-stock downward overpaid replacement
 
 ## Scope Out
 
 - Explicit overpaid/customer credit/refund due feature
 - Refund option UI redesign
 - Reporting query changes
-- Full note revision E2E test
 - Settlement model redesign
 - Historical refund double-subtraction from #003
 - Inventory reversal issue from #004
+- Seeder/security work
+
+## Files Changed
+
+- app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php
+- tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php
+- tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php
+- tests/Feature/Note/CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest.php
+- docs/error_log/005-note-revision-silently-drops-overpaid-allocations.md
 
 ## Proof Dari Patch Session
 
-User reported:
+Initial red proof:
 
-- vulnerability still existed in HEAD
-- minimal remediation applied in NoteReplacementPaymentAllocationReconciler::rebuild()
-- patch scoped to single file/method
-- commit created with message:
-  Fix payment replay to reject under-allocatable note revisions
+- Command: php artisan test --filter=NoteReplacementOverpaidAllocationReplayFeatureTest
+- Result: 1 failed, 1 assertion
+- Failure: Downward replacement must reject overpaid replay instead of silently capping old payment.
+- Failure line: tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php:82
+- Meaning: current source still silently capped old payment instead of rejecting downward overpaid replay.
 
-Testing reported:
+Focused green proof:
 
-- php -l app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php
+- Command: php artisan test --filter=NoteReplacementOverpaidAllocationReplayFeatureTest
+- Result: 1 passed, 8 assertions
+- Source marker proof:
+  - allocator->allocate is called in rebuild()
+  - Money::fromInt($amount) is passed to allocator
+  - no remainingComponentAmount marker
+  - no replayAmount marker
 
-Changed file:
+Conflicting product-only regression proof:
 
-app/Application/Note/Services/NoteReplacementPaymentAllocationReconciler.php
+- Command: php artisan test --filter=CashierProductReplacementBackdatedPriceFinanceFeatureTest
+- Initial result after source patch: 1 failed, 1 passed
+- Failure reason: old test expected redirect to note show, but current correct behavior redirected to workspace edit with error Payment tidak bisa dialokasikan penuh ke komponen note.
+- Final result after test expectation update: 2 passed, 26 assertions
 
-Reported diff size:
+Limited related suite proof:
 
-+2
--6
+- Command:
+  - php artisan test tests/Feature/Note/CashierClosedNoteWorkspaceReplacementSubmitFeatureTest.php tests/Feature/Note/CashierClosedReplacementOutstandingPaymentFeatureTest.php tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php tests/Feature/Note/NoteReplacementOverpaidAllocationReplayFeatureTest.php tests/Feature/Note/RevisionAfterRefundPreservesHistoricalWorkItemsFeatureTest.php tests/Unit/Application/Payment/Services/AllocatePaymentAcrossComponentsTest.php
+- Result: 7 passed, 66 assertions
+
+Conflicting service-store-stock regression proof:
+
+- Initial blast-radius result: 1 failed, 158 passed, 923 assertions
+- Failure: CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest expected redirect to note show, but current correct behavior redirected to workspace edit with error Payment tidak bisa dialokasikan penuh ke komponen note.
+- Command after expectation update:
+  - php artisan test tests/Feature/Note/CashierServiceStoreStockReplacementBackdatedPriceFinanceFeatureTest.php
+- Result: 1 passed, 18 assertions
+
+Blast-radius proof:
+
+- Command: php artisan test tests/Feature/Note tests/Feature/Payment
+- Result: 159 passed, 935 assertions
+- Duration: 14.60s
 
 ## Verification Gap
 
-Only PHP syntax validation was reported.
+No verification gap remains for the minimum safe behavior of #005.
 
-No passing feature/regression test was reported for:
+Verified behavior:
 
-- 100.000 payment revised down to 60.000
-- expected DomainException / rollback
-- no partial allocation persisted
-- customer_payments and payment_component_allocations consistency
-- refund option still accurate after failed revision
-- reporting not undercounting committed payment data
+- downward replacement with old allocated payment greater than revised payable components is rejected
+- transaction rolls back
+- original note data remains
+- original work item data remains
+- original payment_component_allocations remain
+- no partial capped allocation is persisted
+- existing product-only replacement regression updated
+- existing service-store-stock replacement regression updated
+- Feature Note + Payment blast-radius passes
 
-Karena itu, patch ini harus diperlakukan sebagai source-fixed tetapi belum terverifikasi penuh secara behavior.
+Remaining future product gap:
+
+- explicit overpaid/customer credit/refund due model is still out of scope
+- until that model exists, reject + rollback is the safe behavior
 
 ## Recommended Follow-up
 
-Minimum regression test:
+Future settlement feature, outside this patch:
 
-Scenario:
+- design explicit overpaid/customer credit/refund due state
+- decide UI entry point for downward revision where old paid amount exceeds revised total
+- preserve immutable payment/refund/inventory history
+- make current projection separate from historical ledger
+- add tests for explicit refund/customer credit flow before allowing downward overpaid revision to commit
 
-- original note total: 100.000
-- customer payment: 100.000
-- payment_component_allocations: 100.000
-- revised note total: 60.000
-- run revision application
-- expect DomainException
-- expect transaction rollback
-- expect original allocation remains intact
-- expect no state where customer_payments = 100.000 and payment_component_allocations = 60.000
-
-Recommended command later:
-
-php artisan test --filter=NoteReplacementPaymentAllocationReconciler
-
-Jika test belum ada, tambahkan test sebelum class ini dianggap aman.
+Do not reintroduce silent cap behavior.
 
 ## Kesimpulan
 
@@ -243,7 +286,7 @@ Laporan #005 valid sebagai High severity financial-integrity issue.
 
 Bug sebelumnya memotong replay payment secara diam-diam saat downward note revision. Ini membuat sebagian real customer payment hilang dari allocation-based refund/reporting path.
 
-Patch minimal sudah mengarah benar: jangan truncate payment replay; replay full amount dan biarkan allocator menolak revised note yang tidak bisa menyerap payment lama. Namun patch masih membutuhkan behavior test karena php -l hanya membuktikan file valid secara sintaks, bukan benar secara akuntansi.
+Patch final sudah terverifikasi: jangan truncate payment replay; replay full amount dan biarkan allocator menolak revised note yang tidak bisa menyerap payment lama. Current safe behavior adalah reject + rollback.
 
 ## Related Revision Price Invariant Finding From Error Log 006
 
@@ -258,115 +301,3 @@ Update 2.
 ### Reason
 
 Laporan audit lanjutan menemukan issue terpisah dengan severity High pada note workspace revision flow yang sama.
-
-Ini bukan root cause yang sama dengan #005.
-
-- #005 is about payment allocation replay silently dropping overpaid excess during downward revision.
-- #006 is about client-controlled price_basis bypassing MinSellingPricePolicy during store-stock line materialization.
-
-Perubahan berikutnya pada note revision harus memverifikasi payment replay integrity dan price floor enforcement sekaligus.
-
-## Related Payment Allocation Finding From Error Log 008
-
-### Related Error Log
-
-- 008-legacy-paid-notes-can-be-paid-again.md
-
-### Update
-
-Update 3.
-
-### Reason
-
-Laporan audit lanjutan menemukan issue payment allocation terpisah dengan severity High.
-
-Ini bukan root cause yang sama dengan #005.
-
-- #005 is about note revision replay silently truncating captured payments and hiding overpaid excess.
-- #008 is about selected-row payment validation ignoring legacy payment_allocations and allowing duplicate payment for legacy-paid notes.
-
-Kedua temuan menunjukkan bahwa payment validation harus memakai settlement basis yang benar dan tidak boleh diam-diam mengabaikan existing payment state.
-
-## Related Closed-Note Authorization Finding From Error Log 009
-
-### Related Error Log
-
-- 009-cashiers-can-rewrite-closed-paid-notes-via-workspace-update.md
-
-### Update
-
-Update 4.
-
-### Reason
-
-Laporan audit lanjutan menemukan issue authorization terpisah dengan severity High pada note revision flow.
-
-Ini bukan root cause yang sama dengan #005.
-
-- #005 is about payment replay silently dropping overpaid allocation during downward revision.
-- #009 is about cashier access control allowing closed-note workspace PATCH mutation.
-
-Kedua temuan menunjukkan bahwa note revision harus dijaga baik secara financial maupun authorization.
-
-## Related Concurrency Finding From Error Log 010
-
-### Related Error Log
-
-- 010-revision-reallocation-can-lose-concurrent-payments.md
-
-### Update
-
-Update 5.
-
-### Reason
-
-Laporan audit lanjutan menemukan issue terpisah dengan severity High pada area note revision payment allocation.
-
-Ini bukan root cause yang sama dengan #005.
-
-- #005 is about downward revision replay truncating payment amounts and hiding overpaid excess.
-- #010 is about concurrent payment allocation being lost during revision capture/delete/rebuild due to missing serialization.
-
-Kedua temuan memengaruhi payment allocation rebuild selama note revision dan harus dipertimbangkan bersama sebelum mengubah NoteReplacementPaymentAllocationReconciler atau active replacement flow.
-
-## Related Settled-Note Revision Guard Finding From Error Log 011
-
-### Related Error Log
-
-- 011-cashier-revision-path-mutates-settled-note-state.md
-
-### Update
-
-Update 6.
-
-### Reason
-
-Laporan audit lanjutan menemukan issue terpisah dengan severity High pada jalur financial mutation note revision.
-
-Ini bukan root cause yang sama dengan #005.
-
-- #005 is about payment allocation replay silently dropping overpaid excess during downward revision.
-- #011 is about missing payment-derived editability guard before revision mutates settled note state.
-
-Kedua temuan menunjukkan bahwa note revision harus dilindungi oleh payment replay semantics yang benar dan editability policy yang ketat.
-
-## Related Workspace Inline Payment Finding From Error Log 017
-
-### Related Error Log
-
-- 017-workspace-edit-payments-ignore-existing-note-payments.md
-
-### Update
-
-Update 7.
-
-### Reason
-
-Laporan audit lanjutan menemukan issue payment allocation terpisah pada workspace edit inline payment.
-
-Ini bukan root cause yang sama dengan #005.
-
-- #005 is about note revision replay silently dropping overpaid allocation during downward revision.
-- #017 is about workspace edit inline payment ignoring existing allocations and over-recording payment against the full note total.
-
-Both findings affect financial integrity during note edit/revision flows.
