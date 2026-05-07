@@ -82,4 +82,72 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
             'allocated_amount_rupiah' => 50000,
         ]);
     }
+
+    public function test_rejects_selected_row_payment_when_note_already_paid_via_legacy_allocation(): void
+    {
+        $this->loginAsKasir();
+
+        $user = User::query()->create([
+            'name' => 'Kasir Legacy Paid',
+            'email' => 'cashier-legacy-paid@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        $today = date('Y-m-d');
+
+        DB::table('notes')->insert([
+            'id' => 'note-legacy-paid-1',
+            'customer_name' => 'Budi Legacy',
+            'transaction_date' => $today,
+            'note_state' => 'open',
+            'total_rupiah' => 50000,
+        ]);
+
+        DB::table('work_items')->insert([
+            'id' => 'wi-legacy-paid-1',
+            'note_id' => 'note-legacy-paid-1',
+            'line_no' => 1,
+            'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+            'status' => WorkItem::STATUS_OPEN,
+            'subtotal_rupiah' => 50000,
+        ]);
+
+        DB::table('work_item_service_details')->insert([
+            'work_item_id' => 'wi-legacy-paid-1',
+            'service_name' => 'Servis Legacy Paid',
+            'service_price_rupiah' => 50000,
+            'part_source' => ServiceDetail::PART_SOURCE_NONE,
+        ]);
+
+        DB::table('customer_payments')->insert([
+            'id' => 'legacy-payment-1',
+            'amount_rupiah' => 50000,
+            'paid_at' => $today,
+        ]);
+
+        DB::table('payment_allocations')->insert([
+            'id' => 'legacy-allocation-1',
+            'customer_payment_id' => 'legacy-payment-1',
+            'note_id' => 'note-legacy-paid-1',
+            'amount_rupiah' => 50000,
+        ]);
+
+        $response = $this->actingAs($user)->post('/cashier/notes/note-legacy-paid-1/payments', [
+            'selected_row_ids' => ['wi-legacy-paid-1::service_fee::wi-legacy-paid-1'],
+            'payment_method' => 'cash',
+            'paid_at' => $today,
+            'amount_received' => 50000,
+        ]);
+
+        $response->assertSessionHasErrors('payment');
+
+        $this->assertSame(1, DB::table('customer_payments')->count());
+        $this->assertSame(0, DB::table('payment_component_allocations')->count());
+    }
+
 }
