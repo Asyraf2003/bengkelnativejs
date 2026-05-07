@@ -63,7 +63,7 @@ final class CreateNoteRevisionHandler
         array $payload,
         ?string $actorId,
     ): CreateNoteRevisionResult {
-        $root = $this->notes->getById(trim($noteRootId));
+        $root = $this->notes->getByIdForUpdate(trim($noteRootId));
 
         if ($root === null) {
             return CreateNoteRevisionResult::failure('Root note tidak ditemukan.');
