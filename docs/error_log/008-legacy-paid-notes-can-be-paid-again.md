@@ -300,9 +300,6 @@ Recommended additional tests:
    - migration-edge settlement behavior follows intended migration rules
    - no duplicate/excess payment is accepted
 
-4. Mixed legacy + component note:
-   - define expected migration behavior before patching further
-
 ## Kesimpulan
 
 Laporan #008 valid sebagai High severity financial-integrity issue.
