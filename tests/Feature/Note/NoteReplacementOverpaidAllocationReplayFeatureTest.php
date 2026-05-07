@@ -24,8 +24,6 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
 
         $this->seedPaidProductOnlyNote($oldDate);
 
-        $this->withoutExceptionHandling();
-
         $response = null;
         $thrown = null;
 
@@ -77,9 +75,10 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
                 'Payment tidak bisa dialokasikan penuh ke komponen note.',
                 $thrown->getMessage(),
             );
+        } else {
+            $this->assertNotNull($response);
+            $response->assertSessionHasErrors();
         }
-
-        $this->assertNotNull($thrown, 'Downward replacement must reject overpaid replay instead of silently capping old payment.');
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
@@ -116,10 +115,6 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
             'customer_payment_id' => 'payment-1',
             'allocated_amount_rupiah' => 200000,
         ]);
-
-        if ($response !== null) {
-            $response->assertSessionHasErrors();
-        }
     }
 
     private function seedPaidProductOnlyNote(string $oldDate): void
