@@ -72,7 +72,12 @@ final class CreateNoteRevisionHandler
         $current = $this->current->resolveOrFail($root->id());
         $number = $this->current->nextRevisionNumber($root->id());
         $reason = (string) ($payload['reason'] ?? '');
-        $replacement = $this->payloadNotes->build($root->id(), $payload, $current);
+        $replacement = $this->payloadNotes->build(
+            $root->id(),
+            $payload,
+            $current,
+            $root->workItems(),
+        );
 
         $this->applier->apply($root, $replacement, $payload['items'] ?? []);
 

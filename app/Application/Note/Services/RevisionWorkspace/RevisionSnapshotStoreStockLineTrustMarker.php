@@ -5,20 +5,19 @@ declare(strict_types=1);
 namespace App\Application\Note\Services\RevisionWorkspace;
 
 use App\Core\Note\Revision\NoteRevision;
+use App\Core\Note\WorkItem\WorkItem;
 
 final class RevisionSnapshotStoreStockLineTrustMarker
 {
     /**
      * @param list<array<string, mixed>> $items
+     * @param list<WorkItem> $currentWorkItems
      * @return list<array<string, mixed>>
      */
-    public function mark(array $items, ?NoteRevision $currentRevision): array
+    public function mark(array $items, ?NoteRevision $currentRevision, array $currentWorkItems = []): array
     {
-        if ($currentRevision === null) {
-            return $this->clearTrust($items);
-        }
-
         $available = $this->snapshotCounts($currentRevision);
+        $available = $this->addWorkItemCounts($available, $currentWorkItems);
 
         foreach ($items as $itemIndex => $item) {
             if (! is_array($item)) {
@@ -57,33 +56,14 @@ final class RevisionSnapshotStoreStockLineTrustMarker
     }
 
     /**
-     * @param list<array<string, mixed>> $items
-     * @return list<array<string, mixed>>
-     */
-    private function clearTrust(array $items): array
-    {
-        foreach ($items as $itemIndex => $item) {
-            if (! is_array($item)) {
-                continue;
-            }
-
-            $lines = $item['product_lines'] ?? null;
-
-            if (is_array($lines) && isset($lines[0]) && is_array($lines[0])) {
-                $line = $lines[0];
-                $line['_server_trusted_revision_snapshot'] = false;
-                $items[$itemIndex]['product_lines'][0] = $line;
-            }
-        }
-
-        return $items;
-    }
-
-    /**
      * @return array<string, int>
      */
-    private function snapshotCounts(NoteRevision $revision): array
+    private function snapshotCounts(?NoteRevision $revision): array
     {
+        if ($revision === null) {
+            return [];
+        }
+
         $counts = [];
 
         foreach ($revision->lines() as $line) {
@@ -103,6 +83,28 @@ final class RevisionSnapshotStoreStockLineTrustMarker
                     (string) ($storeLine['product_id'] ?? ''),
                     (int) ($storeLine['qty'] ?? 0),
                     (int) ($storeLine['line_total_rupiah'] ?? 0)
+                );
+
+                $counts[$key] = ($counts[$key] ?? 0) + 1;
+            }
+        }
+
+        return $counts;
+    }
+
+    /**
+     * @param array<string, int> $counts
+     * @param list<WorkItem> $workItems
+     * @return array<string, int>
+     */
+    private function addWorkItemCounts(array $counts, array $workItems): array
+    {
+        foreach ($workItems as $workItem) {
+            foreach ($workItem->storeStockLines() as $line) {
+                $key = $this->key(
+                    $line->productId(),
+                    $line->qty(),
+                    $line->lineTotalRupiah()->amount()
                 );
 
                 $counts[$key] = ($counts[$key] ?? 0) + 1;

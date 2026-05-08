@@ -30,12 +30,17 @@ final class CreateNoteRevisionPayloadNoteBuilder
      *   inline_payment?: array<string, mixed>
      * } $payload
      */
-    public function build(string $noteRootId, array $payload, ?NoteRevision $currentRevision = null): Note
-    {
+    public function build(
+        string $noteRootId,
+        array $payload,
+        ?NoteRevision $currentRevision = null,
+        array $currentWorkItems = [],
+    ): Note {
         $noteData = (array) ($payload['note'] ?? []);
         $items = $this->snapshotTrust->mark(
             array_values((array) ($payload['items'] ?? [])),
             $currentRevision,
+            $currentWorkItems,
         );
         $workItems = $this->buildWorkItems($noteRootId, $items);
 
