@@ -28,7 +28,8 @@ final class EnsureCashierNoteAccess
         try {
             if ($request->routeIs('cashier.notes.show')
                 || $request->routeIs('cashier.notes.workspace.edit')
-                || $request->routeIs('cashier.notes.payments.store')) {
+                || $request->routeIs('cashier.notes.payments.store')
+                || $request->routeIs('cashier.notes.refunds.store')) {
                 $canAccess = $this->accessData->ensureCanView($noteId);
             } else {
                 $canAccess = $this->accessData->ensureCanMutateOpenNote($noteId);

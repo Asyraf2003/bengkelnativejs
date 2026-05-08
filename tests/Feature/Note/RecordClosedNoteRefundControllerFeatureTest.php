@@ -61,6 +61,35 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         ]);
     }
 
+
+    public function test_cashier_cannot_record_refund_for_historical_note_outside_cashier_access_window(): void
+    {
+        $user = $this->seedKasir();
+        $this->seedClosedPaidServiceOnlyNote(date('Y-m-d', strtotime('-3 days')));
+
+        $this->actingAs($user)
+            ->from(route('cashier.notes.index'))
+            ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
+                'selected_row_ids' => ['wi-1'],
+                'refunded_at' => date('Y-m-d'),
+                'reason' => 'Unauthorized historical refund',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseCount('customer_refunds', 0);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-1',
+            'status' => WorkItem::STATUS_OPEN,
+        ]);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-1',
+            'total_rupiah' => 50000,
+        ]);
+    }
+
+
     public function test_cashier_can_record_refund_for_open_note(): void
     {
         $user = $this->seedKasir();
@@ -189,9 +218,9 @@ final class RecordClosedNoteRefundControllerFeatureTest extends TestCase
         return $user;
     }
 
-    private function seedClosedPaidServiceOnlyNote(): void
+    private function seedClosedPaidServiceOnlyNote(?string $transactionDate = null): void
     {
-        $today = date('Y-m-d');
+        $today = $transactionDate ?? date('Y-m-d');
 
         $this->seedNoteBase('note-1', 'Budi', $today, 50000, 'closed');
         $this->seedWorkItemBase('wi-1', 'note-1', 1, WorkItem::TYPE_SERVICE_ONLY, WorkItem::STATUS_OPEN, 50000);

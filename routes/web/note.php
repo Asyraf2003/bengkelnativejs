@@ -67,9 +67,8 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::post('/workspace/draft', SaveTransactionWorkspaceDraftController::class)->name('workspace.draft.save');
         Route::get('/workspace/create', CreateTransactionWorkspacePageController::class)->name('workspace.create');
 
-        Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');
-
         Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {
+            Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');
             Route::get('/{noteId}/workspace/edit', EditTransactionWorkspacePageController::class)->name('workspace.edit');
             Route::get(
                 '/prototype/{noteId}',
