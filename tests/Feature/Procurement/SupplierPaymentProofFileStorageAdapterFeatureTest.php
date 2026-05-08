@@ -38,6 +38,6 @@ final class SupplierPaymentProofFileStorageAdapterFeatureTest extends TestCase
         self::assertCount(1, $storedFiles);
         self::assertSame('application/pdf', $storedFiles[0]['mime_type']);
         self::assertStringStartsWith('supplier-payment-proofs/payment-1/', $storedFiles[0]['storage_path']);
-        Storage::disk('local')->assertExists($storedFiles[0]['storage_path']);
+        self::assertTrue(Storage::disk('local')->exists((string) $storedFiles[0]['storage_path']));
     }
 }
