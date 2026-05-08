@@ -2,9 +2,11 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed with proof.
 
-Patch disediakan dan syntax/status/commit dilaporkan, tetapi tidak ada focused behavior test yang dilaporkan pass.
+Final technical fix is implemented and verified with targeted unit/feature coverage plus Note/Payment blast-radius coverage.
+
+Docs closure and commit/push proof for this updated error log remain pending until owner commits/pushes this documentation update.
 
 ## Severity
 
@@ -50,6 +52,20 @@ Alasan update:
 - Patch sudah diterapkan pada WorkItemFactory::makeSto().
 - Patch menghapus bypass condition berbasis price_basis.
 - Verification masih gap karena hanya php -l, git status, dan commit yang dilaporkan.
+
+### Update 4
+
+Final server-side price basis authority fix verified.
+
+Alasan update:
+
+- Proof lama hanya mencakup syntax/status/commit dan sudah stale.
+- Targeted unit boundary membuktikan forged underpriced `revision_snapshot` line sekarang ditolak.
+- Targeted feature coverage membuktikan underpriced current/revision input ditolak dan mutation rollback menjaga revision, work item, inventory movement, dan stock.
+- Historical revision snapshot behavior tetap dijaga saat server bisa membuktikan line berasal dari trusted current revision/work item snapshot.
+- Runtime bug tambahan ditemukan: builder path sudah memberi trusted marker, tetapi apply/persist path membangun ulang work items dari original payload sehingga marker hilang.
+- Final fix menambahkan server-side trusted revision snapshot marker di builder/handler/apply persistence path, bukan mempercayai `price_basis` dari client.
+- Note/Payment blast-radius dilaporkan pass: 163 tests, 969 assertions.
 
 ## Ringkasan Indonesia
 
@@ -110,141 +126,185 @@ Workflow risiko:
 
 ## Root Cause
 
-Root cause:
+Root cause utama:
 
 Client-controlled marker dipakai sebagai dasar otorisasi/invariant bypass.
 
-Field price_basis seharusnya tidak dipercaya untuk menentukan apakah price floor check boleh dilewati.
+Field `price_basis` dari HTTP revision workspace input sempat dapat mencapai materialisasi domain dan mempengaruhi apakah minimum selling price policy dijalankan.
 
-Jika sistem perlu menjaga historical revision price, status snapshot harus diturunkan dari server-side trusted data, misalnya:
+Root cause final setelah debugging:
 
-- existing immutable work item line
-- stored snapshot dari revision sebelumnya
-- verified unchanged line id
-- explicit correction/audit flow
+1. `price_basis=revision_snapshot` dari client tidak boleh dipercaya.
+2. Patch kasar yang selalu memakai current catalog floor price tidak cukup karena merusak behavior legitimate historical revision snapshot.
+3. Server perlu membedakan forged client marker dari historical snapshot yang benar-benar berasal dari server-owned current revision/work item.
+4. Builder path sempat menandai trusted snapshot dengan benar, tetapi apply/persist path membangun ulang work items dari original payload sehingga trust marker hilang sebelum persistence.
+
+Yang benar:
+
+- Client boleh mengirim data form, tetapi tidak boleh menjadi authority untuk bypass financial invariant.
+- Historical under-current-catalog price hanya boleh dipertahankan jika server membuktikan line cocok dengan current revision/work item snapshot yang dipercaya.
+- Trust marker harus tetap hidup sampai persistence path, termasuk saat replacement revision diterapkan.
 
 Yang tidak boleh:
 
 - hidden form field dari client langsung menentukan bypass financial policy
+- `price_basis=revision_snapshot` dari request diperlakukan sebagai bukti bahwa harga historis valid
+- trusted marker hilang saat work items dibangun ulang sebelum persistence
 
 ## Patch Summary
 
-Patch minimal diterapkan pada:
+Final patch scope:
 
-app/Application/Note/Services/WorkItemFactory.php
+Production files changed:
 
-Perubahan:
+- `app/Application/Note/Services/WorkItemFactory.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceStoreStockLineMapper.php`
+- `app/Application/Note/Services/RevisionWorkspace/RevisionSnapshotStoreStockLineTrustMarker.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
+- `app/Application/Note/Services/ApplyNoteRevisionAsActiveReplacement.php`
 
-- hapus conditional skip:
-  if (($p['price_basis'] ?? 'current_catalog') !== 'revision_snapshot')
-- MinSellingPricePolicy::assertAllowed() sekarang selalu dipanggil untuk store-stock lines
-- berlaku untuk current_catalog dan revision_snapshot
-- existing flow tetap membuat StoreStockLine setelah policy lolos
+Test files changed:
 
-Efek patch:
+- `tests/Unit/Application/Note/Services/WorkItemFactoryTest.php`
+- `tests/Unit/Application/Note/Services/RevisionWorkspace/RevisionSnapshotStoreStockLineTrustMarkerTest.php`
+- `tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php`
+- `tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php`
 
-- client tidak lagi bisa bypass minimum price check memakai price_basis=revision_snapshot
-- store-stock line revision tetap harus memenuhi floor price
-- financial invariant ditegakkan di titik materialisasi work item
+Final fix:
+
+- `WorkItemFactory` no longer trusts raw client `price_basis` as authority to bypass price floor checks.
+- forged underpriced `revision_snapshot` store-stock line is rejected.
+- underpriced `current_catalog` store-stock line is rejected.
+- historical under-current-catalog `revision_snapshot` is allowed only when server-side trusted revision snapshot marker proves it comes from current revision/work item data.
+- revision workspace mapping/builder path derives trust from server-owned data instead of client input.
+- `ApplyNoteRevisionAsActiveReplacement` marks trusted items again before persistence because revision apply path rebuilds work items from original payload.
+- rejected mutation rolls back without creating extra revision, work item, store-stock line, inventory movement, or stock mutation.
+
+Important runtime fix:
+
+The builder path alone was not sufficient. Runtime persistence rebuilt work items again inside `ApplyNoteRevisionAsActiveReplacement`, so the trusted marker had to be restored there before final materialization.
 
 ## Scope In
 
-- WorkItemFactory::makeSto()
-- Store-stock line materialization
-- Minimum selling price invariant
-- Revision flow price floor enforcement
+- `WorkItemFactory::makeSto()`
+- store-stock line materialization
+- minimum selling price invariant
+- revision flow price floor enforcement
+- server-authoritative revision snapshot trust marker
+- revision workspace store-stock line mapping
+- revision payload note builder trust derivation
+- revision handler/apply path preservation of trusted historical snapshot behavior
+- rollback behavior for rejected underpriced mutation
 
 ## Scope Out
 
-- Server-derived historical price snapshot model
 - UI hidden field cleanup
-- Request validation cleanup untuk price_basis
-- Mapper/normalizer redesign
-- Full browser/database E2E test
-- Explicit exception flow untuk historical under-floor prices
-- Inventory issue logic beyond price validation
+- request validation cleanup for accepting/rejecting the raw `price_basis` field
+- Blade/UI changes
+- full browser/manual QA
+- full global test suite
+- explicit product pricing migration/backfill
+- unrelated inventory issue logic outside rejected revision rollback proof
+- changing ADR/domain terms
+- allowing client-controlled financial bypass
 
 ## Proof Dari Patch Session
 
-User reported:
+Targeted proof reported from the final fix session:
 
-- vulnerability still existed in HEAD logic path
-- minimal remediation applied in WorkItemFactory::makeSto()
-- MinSellingPricePolicy::assertAllowed() now always enforced for store-stock lines
-- client-controlled bypass condition on price_basis removed
-- commit created with message:
-  Fix price-floor bypass in store stock revision lines
+Syntax PASS:
 
-Testing reported:
+- `php -l app/Application/Note/Services/ApplyNoteRevisionAsActiveReplacement.php`
+- `php -l app/Application/Note/Services/RevisionWorkspace/RevisionSnapshotStoreStockLineTrustMarker.php`
+- `php -l app/Application/Note/Services/WorkItemFactory.php`
+- `php -l app/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilder.php`
+- `php -l app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
 
-- php -l app/Application/Note/Services/WorkItemFactory.php
-- git status --short
-- git add app/Application/Note/Services/WorkItemFactory.php && git commit -m "Fix price-floor bypass in store stock revision lines"
+Framework/cache proof:
 
-Changed file:
+- `php artisan optimize:clear`: PASS
 
-app/Application/Note/Services/WorkItemFactory.php
+Targeted unit proof:
 
-Reported diff size:
+- `php artisan test tests/Unit/Application/Note/Services/WorkItemFactoryTest.php`
+  - PASS: 4 tests, 6 assertions
+- `php artisan test tests/Unit/Application/Note/Services/RevisionWorkspace/RevisionSnapshotStoreStockLineTrustMarkerTest.php`
+  - PASS: 2 tests, 2 assertions
+- `php artisan test tests/Unit/Application/Note/UseCases/CreateNoteRevisionPayloadNoteBuilderTest.php`
+  - PASS: 2 tests, 4 assertions
 
-+1
--3
+Targeted feature proof:
+
+- `php artisan test tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php --filter=reuses_only_net_payment_after_refund`
+  - PASS: 1 test, 9 assertions
+- `php artisan test tests/Feature/Note/CashierProductReplacementBackdatedPriceFinanceFeatureTest.php --filter=price_floor_rejection`
+  - PASS: 1 test, 14 assertions
+
+Blast-radius proof:
+
+- `php artisan test tests/Feature/Note tests/Feature/Payment`
+  - PASS: 163 tests, 969 assertions
+
+Behavior proven:
+
+- underpriced `current_catalog` store-stock line is rejected.
+- underpriced forged `revision_snapshot` store-stock line is rejected.
+- server-trusted historical `revision_snapshot` store-stock line below current catalog still succeeds.
+- rejected mutation rolls back:
+  - no new revision
+  - no extra work item/store-stock line
+  - no extra inventory movement
+  - stock remains unchanged
+- existing historical snapshot flow still preserves net payment after refund.
+
+Temporary diagnostics that must not remain:
+
+- `TEMP_DEBUG_RUNTIME_ROOT_WORK_ITEMS`
+- `TEMP_DEBUG_BUILDER_TRUST_MARKER`
+- `TEMP_DEBUG_FACTORY_TRUST_MARKER`
+- `TEMP_DEBUG_HANDLER_ROOT_WORK_ITEMS`
+- `TEMP_DEBUG_STORE_STOCK_MAPPER_TRUST`
 
 ## Verification Gap
 
-Hanya validasi syntax dan alur commit yang dilaporkan.
+Verified locally for targeted #006 behavior and Note/Payment blast-radius.
 
-No passing behavior test was reported for:
+Remaining gaps before full project/global closure:
 
-- underpriced current_catalog line is rejected
-- underpriced revision_snapshot line is also rejected
-- valid priced revision line still succeeds
-- inventory is not issued when minimum price policy rejects the line
-- transaction rolls back on rejected revision
-
-Karena itu, patch ini harus diperlakukan sebagai source-fixed tetapi belum terverifikasi penuh secara behavior.
+- full global suite not reported for this item
+- browser/manual QA not reported
+- UI/request validation cleanup for raw `price_basis` remains out of scope
+- docs update commit/push proof must be added after owner commits/pushes this documentation update
+- final #001 global verification remains pending until selected residual logs are closed
 
 ## Recommended Follow-up
 
-Minimum regression test:
+Immediate follow-up:
 
-Scenario 1:
+1. Run hygiene/status checks.
+2. Commit and push this docs update manually by owner.
+3. Record the docs commit hash after commit/push proof exists.
 
-- product hargaJual: 100.000
-- qty: 1
-- unit_price_rupiah: 1
-- price_basis: current_catalog
-- expected: DomainException from MinSellingPricePolicy
+Recommended next residual target after #006 docs closure:
 
-Scenario 2:
+- `#009` via `docs/workflow/security-adr-0019-access-boundary.md`, unless owner chooses otherwise.
 
-- product hargaJual: 100.000
-- qty: 1
-- unit_price_rupiah: 1
-- price_basis: revision_snapshot
-- expected: DomainException from MinSellingPricePolicy
-
-Scenario 3:
-
-- product hargaJual: 100.000
-- qty: 1
-- unit_price_rupiah: 100.000
-- price_basis: revision_snapshot
-- expected: StoreStockLine created successfully
-
-Recommended command later:
-
-php artisan test --filter=WorkItemFactory
-
-Jika test belum ada, tambahkan coverage terfokus sebelum invariant ini dianggap locked.
+Do not proceed to #009 before #006 docs closure is committed/pushed if the workflow requires clean residual-log bookkeeping.
 
 ## Kesimpulan
 
 Laporan #006 valid sebagai High severity financial-integrity issue.
 
-Bug sebelumnya mempercayai field price_basis dari client untuk melewati minimum price policy. Itu trust-boundary bug yang cukup klasik: hidden field dianggap seperti dokumen kerajaan, padahal user bisa mengeditnya dari browser.
+Bug sebelumnya mempercayai `price_basis` dari client untuk melewati minimum price policy. Itu trust-boundary bug: hidden field dianggap seperti otoritas finansial, padahal browser user bisa mengubahnya semudah manusia mengubah pikiran saat lapar.
 
-Patch minimal sudah benar untuk root cause langsung: WorkItemFactory sekarang selalu menjalankan MinSellingPricePolicy untuk store-stock lines. Namun patch masih perlu behavior test karena php -l hanya membuktikan sintaks valid, bukan invariant bisnis benar-benar terkunci.
+Final fix tidak lagi mempercayai client `price_basis`.
+
+Historical revision snapshot behavior tetap dipertahankan, tetapi hanya saat server bisa membuktikan line berasal dari trusted current revision/work item snapshot. Runtime apply/persist path juga ikut menandai trusted items sebelum persistence agar marker tidak hilang saat work items dibangun ulang.
+
+Status teknis: fixed and locally verified with targeted unit/feature tests plus Note/Payment blast-radius.
+
+Status dokumentasi: updated in working tree by this patch, commit/push proof pending owner action.
 
 ## Related Workspace Security Finding From Error Log 007
 
