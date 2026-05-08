@@ -2,9 +2,9 @@
 
 ## Status
 
-Patched, with verification gap and merge-safety note.
+Fixed with proof.
 
-Patch supplied and PHP syntax checks passed, but no focused behavior test was reported as passing.
+Targeted behavior test and focused blast-radius tests passed. Full `make verify` green is not claimed because the audit-lines blocker is deferred.
 
 ## Severity
 
@@ -57,9 +57,66 @@ Initial audit log entry untuk laporan #011.
 Alasan update:
 
 - Laporan menunjukkan cashier revision path dapat memutasi settled note state jika stored note_state masih open.
-- Patch menambahkan EditableWorkspaceNoteGuard ke CreateNoteRevisionHandler.
+- Patch awal menambahkan EditableWorkspaceNoteGuard ke CreateNoteRevisionHandler.
 - Guard dipanggil sebelum root-note mutation path.
-- Verification masih gap karena hanya php -l yang dilaporkan pass.
+- Verification saat itu masih gap karena hanya php -l yang dilaporkan pass.
+
+### Update 6
+
+Status diperbarui dari patched-with-gap menjadi fixed-with-proof.
+
+Current verification sequence started from previously proven HEAD e0a2a135 and is now present in HEAD 383f544b, with 383f544b aligned to origin/main and origin/HEAD.
+
+Source before the #011 patch already preserved the #010 lock:
+
+- `NoteReaderPort::getByIdForUpdate()`
+
+But source did not yet have:
+
+- `EditableWorkspaceNoteGuard` import
+- `EditableWorkspaceNoteGuard` constructor dependency
+- `assertEditable()` call before revision mutation
+
+RED characterization sequence:
+
+1. Initial generic assertion was a false positive because the request failed for an unrelated reason.
+2. Exact session-error assertion exposed a fixture gap:
+   `Current revision untuk note root tidak ditemukan.`
+3. After seeding the current revision with `seedServiceOnlyCurrentRevision(...)`, RED became valid:
+   expected redirect to `/cashier/notes/note-1/workspace/edit`, but actual redirect was `/cashier/notes/note-1`, proving the cashier PATCH revision path still allowed open-but-settled note mutation.
+
+Minimal source patch:
+
+- added `EditableWorkspaceNoteGuard` import
+- added `EditableWorkspaceNoteGuard` constructor dependency
+- kept #010 `getByIdForUpdate(trim($noteRootId))`
+- called `$this->guard->assertEditable($root->id())` after the locked root read and before current revision resolution / mutation
+
+Targeted GREEN proof reported:
+
+- `php -l app/Application/Note/UseCases/CreateNoteRevisionHandler.php` PASS
+- `php -l tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php` PASS
+- `php artisan test --filter=CashierNoteRevisionSubmitFeatureTest` PASS
+- Result summary: 2 tests / 14 assertions
+
+Focused blast-radius proof reported:
+
+- `CashierNoteRevisionSubmitFeatureTest`
+- `EditableWorkspaceNoteGuardFeatureTest`
+- `CashierClosedNoteWorkspaceReplacementSubmitFeatureTest`
+- `CashierNoteRevisionSmokeTest`
+- `CashierNoteRevisionCleanupFeatureTest`
+- `UpdateTransactionWorkspaceFeatureTest`
+
+Result summary: 13 tests / 55 assertions.
+
+Merge-safety proof:
+
+- #010 row-lock read is preserved through `getByIdForUpdate(trim($noteRootId))`
+- #011 editability guard is present through `$this->guard->assertEditable($root->id())`
+- mutation remains blocked before current revision resolution and active replacement apply
+
+Remaining verification gaps are tracked below and do not block this #011 closure.
 
 ## Ringkasan Indonesia
 
@@ -148,34 +205,37 @@ app/Application/Note/UseCases/CreateNoteRevisionHandler.php
 
 Perubahan:
 
-- import App\Application\Note\Services\EditableWorkspaceNoteGuard
-- constructor menerima dependency EditableWorkspaceNoteGuard
-- createRevisionAndApply() memanggil:
-  $this->guard->assertEditable($noteRootId);
-- call dilakukan sebelum root note dibaca dan sebelum mutation path dijalankan
+- import `App\Application\Note\Services\EditableWorkspaceNoteGuard`
+- constructor menerima dependency `EditableWorkspaceNoteGuard`
+- `createRevisionAndApply()` tetap membaca root note memakai:
+  `$this->notes->getByIdForUpdate(trim($noteRootId))`
+- setelah root note ditemukan, handler memanggil:
+  `$this->guard->assertEditable($root->id())`
+- call dilakukan setelah locked root read dan sebelum current revision resolution / mutation path
 
 Efek patch:
 
 - cashier revision behavior disejajarkan dengan guarded workspace update flow
-- settled/payment-derived close note harus ditolak sebelum mutation
+- settled/payment-derived close note ditolak sebelum mutation
 - root-note mutation tidak berjalan jika note tidak editable
+- #010 same-note serialization lock tetap dipertahankan
 
 ## Merge-Safety Note Dengan Error Log 010
 
 Error log #010 juga mengubah CreateNoteRevisionHandler untuk memakai locked note read:
 
-getByIdForUpdate()
+`getByIdForUpdate()`
 
 Final expected safe behavior untuk CreateNoteRevisionHandler adalah:
 
 1. transaction dimulai
-2. editability guard dipanggil sebelum mutation
-3. root note dibaca dengan getByIdForUpdate() untuk serialization
-4. revision dan active replacement dilakukan setelah guard + lock aman
+2. root note dibaca dengan `getByIdForUpdate()` untuk serialization
+3. `EditableWorkspaceNoteGuard::assertEditable()` dipanggil memakai locked root note id
+4. current revision resolution, revision creation, dan active replacement hanya berjalan setelah lock + guard aman
 
-Jika patch #011 diterapkan di branch yang belum mengandung patch #010, atau merge conflict diselesaikan asal-asalan, ada risiko getByIdForUpdate() dari #010 hilang.
+Jika patch #011 diterapkan di branch yang belum mengandung patch #010, atau merge conflict diselesaikan asal-asalan, ada risiko `getByIdForUpdate()` dari #010 hilang.
 
-Final code tidak boleh kembali ke plain getById() jika #010 sudah menjadi keputusan final.
+Final code tidak boleh kembali ke plain `getById()` jika #010 sudah menjadi keputusan final.
 
 ## Scope In
 
@@ -197,90 +257,92 @@ Final code tidak boleh kembali ke plain getById() jika #010 sudah menjadi keputu
 
 ## Proof Dari Patch Session
 
-User reported:
+Repository state after source patch verification:
 
-- vulnerability still existed in HEAD
-- minimal fix applied in CreateNoteRevisionHandler
-- EditableWorkspaceNoteGuard injected
-- assertEditable($noteRootId) called before root-note mutation path
-- behavior aligned with existing guarded workspace update flow
-- committed with message:
-  Guard cashier note revisions against settled notes
-- commit:
-  e418e3c
+- current branch: `main`
+- current HEAD: `383f544b`
+- remote alignment: `383f544b = HEAD = origin/main = origin/HEAD`
+- commit 1751 changed production source:
+  `app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
+- working tree status output was blank before docs update, indicating clean state
 
-Testing reported:
+Production source anchors proven:
 
-- php -l app/Application/Note/UseCases/CreateNoteRevisionHandler.php
-- php -l app/Application/Note/Services/EditableWorkspaceNoteGuard.php
+- `use App\Application\Note\Services\EditableWorkspaceNoteGuard;`
+- `private readonly EditableWorkspaceNoteGuard $guard,`
+- `$root = $this->notes->getByIdForUpdate(trim($noteRootId));`
+- `$this->guard->assertEditable($root->id());`
 
-Changed file:
+Relevant test anchors proven in current checkout:
+
+- `test_workspace_update_route_rejects_open_note_that_is_already_settled`
+- `seedServiceOnlyCurrentRevision`
+- exact session error:
+  `Nota close tidak boleh diedit lewat workspace.`
+
+RED proof:
+
+- generic assertion attempt was not accepted as valid because failure was unrelated
+- exact message assertion first exposed fixture gap:
+  `Current revision untuk note root tidak ditemukan.`
+- after fixture fix, valid RED showed expected redirect to workspace edit, but actual redirect went to cashier note show, proving mutation succeeded before the guard patch
+
+Targeted GREEN proof:
+
+- source syntax PASS
+- test syntax PASS
+- `CashierNoteRevisionSubmitFeatureTest` PASS
+- 2 tests / 14 assertions
+
+Focused blast-radius proof:
+
+- `CashierNoteRevisionSubmitFeatureTest` PASS
+- `EditableWorkspaceNoteGuardFeatureTest` PASS
+- `CashierClosedNoteWorkspaceReplacementSubmitFeatureTest` PASS
+- `CashierNoteRevisionSmokeTest` PASS
+- `CashierNoteRevisionCleanupFeatureTest` PASS
+- `UpdateTransactionWorkspaceFeatureTest` PASS
+- 13 tests / 55 assertions
+
+Changed production file:
 
 app/Application/Note/UseCases/CreateNoteRevisionHandler.php
 
-Reported diff size:
+Relevant test file:
 
-+4
--0
+tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php
 
 ## Verification Gap
 
-Only PHP syntax validation was reported.
+Remaining gaps:
 
-Missing proof:
+- full global suite was not reported
+- browser/manual QA was not reported
+- full `make verify` green is not claimed because audit-lines is deferred
+- admin correction/reopen flow was not verified by this #011 slice
+- #018 refunded-note guard remains a separate residual item
+- #020 admin capability remains a separate residual item
+- #005 payment replay behavior was not changed by this #011 slice
 
-- cashier PATCH revision is rejected for payment-derived close/settled note with note_state=open
-- no root note header mutation occurs
-- no work item replacement occurs
-- no note total update occurs
-- no inventory reverse/reissue occurs
-- no projection sync mutation occurs
-- open unpaid note revision still works
-- final CreateNoteRevisionHandler still uses getByIdForUpdate() if #010 patch is already in branch
+The prior behavior-test gap for cashier PATCH revision against open-but-settled note is closed by the targeted and focused proof above.
 
 ## Recommended Follow-up
 
-Minimum regression test:
+Recommended follow-up after this docs closure:
 
-Scenario 1:
-
-- note_state = open
-- note total = 50.000
-- payment allocation = 50.000
-- operational/payment-derived status = close/settled
-- cashier sends PATCH workspace revision
-- expect failure/redirect error or 403 depending controller behavior
-- expect no root note mutation
-- expect no new revision applied
-- expect work_items unchanged
-- expect payment allocations unchanged
-
-Scenario 2:
-
-- note_state = open
-- no payment allocation or still unpaid
-- cashier sends valid PATCH workspace revision
-- expect success if route policy allows it
-
-Recommended commands later:
-
-php artisan test --filter=CreateNoteRevisionHandler
-php artisan test --filter=Cashier
-
-Recommended merge check:
-
-grep -R "getByIdForUpdate" -n app/Application/Note/UseCases/CreateNoteRevisionHandler.php
-grep -R "assertEditable" -n app/Application/Note/UseCases/CreateNoteRevisionHandler.php
-
-Keduanya harus ada di final branch jika #010 dan #011 sama-sama diterima.
+- commit this #011 docs update after review
+- keep #010 `getByIdForUpdate()` and #011 `assertEditable($root->id())` together during future merge conflict resolution
+- do not reopen #011 unless new regression proof shows cashier revision can mutate an open-but-settled note again
+- continue residual error_log closure separately for #018, #020, #028, #029, and other non-fixed entries
+- do not use this #011 closure to claim full `make verify` green while audit-lines remains deferred
 
 ## Kesimpulan
 
-Laporan #011 valid sebagai High severity authorization/business-logic issue.
+Fixed with proof.
 
-Bug sebelumnya membuat cashier revision path hanya bergantung pada stored note_state lewat middleware, sementara payment-derived close/settled status tidak dicek di handler. Akibatnya note yang secara settlement tidak boleh diedit dapat dimutasi jika note_state masih open.
+#011 root cause was CreateNoteRevisionHandler bypassing `EditableWorkspaceNoteGuard` on cashier revision mutation path. The final source keeps the #010 row-lock read with `getByIdForUpdate()` and adds #011 editability enforcement through `assertEditable($root->id())` before current revision resolution and mutation.
 
-Patch minimal sudah benar untuk root cause langsung: panggil EditableWorkspaceNoteGuard::assertEditable() sebelum root-note mutation. Namun patch ini harus dijaga agar tidak menghapus row-lock fix dari #010, dan masih butuh behavior test karena php -l hanya membuktikan sintaks, bukan policy benar-benar bekerja.
+Targeted behavior proof and focused blast-radius proof passed. Full global verification and browser/manual QA remain unreported, and full `make verify` green is not claimed because audit-lines is deferred.
 
 ## Related Note-State Mutation Finding From Error Log 013
 
