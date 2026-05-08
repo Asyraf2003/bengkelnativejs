@@ -2,9 +2,11 @@
 
 ## Status
 
-Patched, with verification gap.
+Fixed with proof.
 
-Patch supplied and regression tests added, but tests could not run in the patch environment because vendor/autoload.php / dependencies were missing.
+Refunded notes are now treated as terminal for cashier mutation routes and add-work-item policy.
+
+Local verification proved the previous RED failures, the minimal GREEN patch, targeted regression pass, and focused blast-radius pass.
 
 ## Severity
 
@@ -57,6 +59,134 @@ Alasan update:
 - Patch memperlakukan refunded notes sebagai non-mutable pada cashier mutation guard.
 - Patch memperkuat addability policy agar refunded notes tidak bisa ditambah work item.
 - Verification masih gap karena tests gagal dijalankan akibat missing dependencies.
+
+### Update 2
+
+Status changed from `Patched, with verification gap` to `Fixed with proof`.
+
+Current verification started from clean remote baseline:
+
+- `dc98f7f2` = previous proven clean remote before #018 work.
+- #009 and #011 were already closed and pushed before #018 verification.
+- Current source/test closure was pushed by owner at `1a3ceb68`.
+
+Source/docs mismatch found during verification:
+
+- This document claimed the patch existed.
+- Current source inspection proved the guard was missing from the active source before this fix.
+- `CashierNoteAccessGuard::assertCanMutateOpenNote()` only rejected `$note->isClosed()`.
+- `NoteAddabilityPolicy::assertAllowed()` only checked `paidStatus->isPaid($note)`.
+- Fully refunded notes can look unpaid after net refund settlement, so refunded terminal state must be checked directly.
+
+RED characterization proof:
+
+Command:
+
+~~~bash
+php artisan test \
+  tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php \
+  tests/Feature/Note/AddWorkItemToPaidNoteFeatureTest.php || true
+
+Result:
+
+FAIL
+2 failed
+6 passed
+18 assertions
+
+RED failures:
+
+test_cashier_cannot_post_rows_to_refunded_note
+expected HTTP 403
+actual HTTP 302
+meaning cashier POST rows against refunded note bypassed the mutation guard and reached controller flow
+test_add_work_item_handler_rejects_new_item_when_note_is_refunded
+expected $result->isFailure() true
+actual handler result was success
+meaning direct AddWorkItemHandler still allowed adding item to refunded note
+
+Minimal source patch:
+
+app/Application/Note/Policies/CashierNoteAccessGuard.php
+assertCanMutateOpenNote() now rejects $note->isClosed() || $note->isRefunded()
+app/Application/Note/Policies/NoteAddabilityPolicy.php
+assertAllowed() now rejects $note->isRefunded() before paid-status math
+app/Application/Note/Services/AddWorkItemErrorClassifier.php
+maps note yang sudah refund to NOTE_NEW_ITEMS_NOT_ALLOWED_AFTER_REFUNDED
+
+Regression tests added/updated:
+
+tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php
+added test_cashier_cannot_post_rows_to_refunded_note
+tests/Feature/Note/AddWorkItemToPaidNoteFeatureTest.php
+added test_add_work_item_handler_rejects_new_item_when_note_is_refunded
+updated seedNote() helper to accept string $noteState = 'open' and insert note_state
+
+Syntax proof:
+
+php -l app/Application/Note/Policies/CashierNoteAccessGuard.php
+php -l app/Application/Note/Policies/NoteAddabilityPolicy.php
+php -l app/Application/Note/Services/AddWorkItemErrorClassifier.php
+php -l tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php
+php -l tests/Feature/Note/AddWorkItemToPaidNoteFeatureTest.php
+
+Result:
+
+PASS
+no syntax errors detected in all 5 touched files
+
+Targeted GREEN proof:
+
+Command:
+
+php artisan test \
+  tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php \
+  tests/Feature/Note/AddWorkItemToPaidNoteFeatureTest.php
+
+Result:
+
+PASS
+8 tests passed
+23 assertions
+
+Focused blast-radius proof:
+
+Command:
+
+php artisan test \
+  tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php \
+  tests/Feature/Note/AddWorkItemToPaidNoteFeatureTest.php \
+  tests/Feature/Note/CashierRefundedNoteDetailViewFeatureTest.php \
+  tests/Feature/Note/EditableWorkspaceNoteGuardFeatureTest.php \
+  tests/Feature/Note/CashierClosedNoteWorkspaceReplacementSubmitFeatureTest.php \
+  tests/Feature/Note/CashierNoteRevisionSubmitFeatureTest.php \
+  tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php \
+  tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php
+
+Result:
+
+PASS
+22 tests passed
+88 assertions
+
+Focused coverage included:
+
+refunded route/addability fix for #018
+refunded note detail behavior
+editability guard adjacency from #011
+closed-note workspace mutation guard adjacency from #009
+cashier note revision mutation guard adjacency from #011
+refund lifecycle adjacency without expanding scope into #021/#022
+
+Remaining verification gaps:
+
+full global suite not reported
+browser/manual QA not reported
+full make verify not claimed because audit-lines is deferred by owner decision
+#015 UI edit button visibility remains separate
+#021 open-note refund remains separate
+#022 refund route access guard remains separate
+admin correction/reopen flow is not verified by this slice
 
 ## Ringkasan Indonesia
 
@@ -277,7 +407,7 @@ Laporan #018 valid sebagai High severity refunded-note terminal-state authorizat
 
 Bug sebelumnya memperkenalkan refunded state tetapi tidak memperbarui guard yang hanya mengenal closed sebagai terminal. Setelah full refund, note dapat lolos cashier mutation guard dan addability policy karena net settlement menjadi nol.
 
-Patch minimal sudah tepat: refunded sekarang ditolak oleh cashier mutation guard dan addability policy. Namun test belum terbukti pass karena dependency environment belum tersedia, jadi status tetap patched with verification gap.
+Patch minimal sudah terbukti secara lokal: refunded sekarang ditolak oleh cashier mutation guard dan addability policy. Targeted regression dan focused blast-radius tests sudah pass, jadi status laporan ini menjadi fixed with proof.
 
 ## Related #019 - Cashiers can list historical closed notes by date
 
