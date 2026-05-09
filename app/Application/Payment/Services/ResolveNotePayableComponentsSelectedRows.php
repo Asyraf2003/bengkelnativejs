@@ -6,6 +6,7 @@ namespace App\Application\Payment\Services;
 
 use App\Application\Payment\DTO\PayableNoteComponent;
 use App\Core\Note\Note\Note;
+use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Shared\Exceptions\DomainException;
 
 final class ResolveNotePayableComponentsSelectedRows
@@ -31,6 +32,10 @@ final class ResolveNotePayableComponentsSelectedRows
         $nextOrder = 1;
 
         foreach ($note->workItems() as $item) {
+            if ($item->status() === WorkItem::STATUS_CANCELED) {
+                continue;
+            }
+
             $resolved = PayableComponentsFromWorkItem::resolve($item, $nextOrder);
 
             foreach ($resolved as $component) {

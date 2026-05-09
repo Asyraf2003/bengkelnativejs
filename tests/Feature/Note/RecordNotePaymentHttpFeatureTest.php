@@ -368,4 +368,130 @@ final class RecordNotePaymentHttpFeatureTest extends TestCase
     }
 
 
+    public function test_rejects_selected_canceled_row_payment_and_keeps_payment_tables_unchanged(): void
+    {
+        $this->loginAsKasir();
+
+        $user = User::query()->create([
+            'name' => 'Kasir Canceled Selected Row',
+            'email' => 'cashier-canceled-selected-row@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'kasir',
+        ]);
+
+        $today = date('Y-m-d');
+
+        DB::table('notes')->insert([
+            'id' => 'note-canceled-selected-1',
+            'current_revision_id' => 'note-canceled-selected-1-r001',
+            'latest_revision_number' => 1,
+            'customer_name' => 'Budi Canceled Selected',
+            'transaction_date' => $today,
+            'note_state' => 'open',
+            'total_rupiah' => 100000,
+        ]);
+
+        DB::table('work_items')->insert([
+            [
+                'id' => 'wi-active-selected-1',
+                'note_id' => 'note-canceled-selected-1',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'subtotal_rupiah' => 50000,
+            ],
+            [
+                'id' => 'wi-canceled-selected-1',
+                'note_id' => 'note-canceled-selected-1',
+                'line_no' => 2,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_CANCELED,
+                'subtotal_rupiah' => 50000,
+            ],
+        ]);
+
+        DB::table('work_item_service_details')->insert([
+            [
+                'work_item_id' => 'wi-active-selected-1',
+                'service_name' => 'Servis Aktif',
+                'service_price_rupiah' => 50000,
+                'part_source' => ServiceDetail::PART_SOURCE_NONE,
+            ],
+            [
+                'work_item_id' => 'wi-canceled-selected-1',
+                'service_name' => 'Servis Batal',
+                'service_price_rupiah' => 50000,
+                'part_source' => ServiceDetail::PART_SOURCE_NONE,
+            ],
+        ]);
+
+        DB::table('note_revisions')->insert([
+            'id' => 'note-canceled-selected-1-r001',
+            'note_root_id' => 'note-canceled-selected-1',
+            'revision_number' => 1,
+            'parent_revision_id' => null,
+            'created_by_actor_id' => null,
+            'reason' => 'selected canceled row payment regression',
+            'customer_name' => 'Budi Canceled Selected',
+            'customer_phone' => null,
+            'transaction_date' => $today,
+            'grand_total_rupiah' => 100000,
+            'line_count' => 2,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        DB::table('note_revision_lines')->insert([
+            [
+                'id' => 'note-canceled-selected-1-r001-l001',
+                'note_revision_id' => 'note-canceled-selected-1-r001',
+                'work_item_root_id' => 'wi-active-selected-1',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'service_label' => 'Servis Aktif',
+                'service_price_rupiah' => 50000,
+                'subtotal_rupiah' => 50000,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => 'note-canceled-selected-1-r001-l002',
+                'note_revision_id' => 'note-canceled-selected-1-r001',
+                'work_item_root_id' => 'wi-canceled-selected-1',
+                'line_no' => 2,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_CANCELED,
+                'service_label' => 'Servis Batal',
+                'service_price_rupiah' => 50000,
+                'subtotal_rupiah' => 50000,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        $response = $this->actingAs($user)
+            ->from(route('cashier.notes.show', ['noteId' => 'note-canceled-selected-1']))
+            ->post(route('cashier.notes.payments.store', ['noteId' => 'note-canceled-selected-1']), [
+                'selected_row_ids' => ['wi-canceled-selected-1::service_fee::wi-canceled-selected-1'],
+                'payment_scope' => 'partial',
+                'payment_method' => 'cash',
+                'paid_at' => $today,
+                'amount_paid' => '50000',
+                'amount_received' => '50000',
+            ]);
+
+        $response->assertRedirect(route('cashier.notes.show', ['noteId' => 'note-canceled-selected-1']));
+        $response->assertSessionHasErrors(['payment']);
+
+        $this->assertSame(0, DB::table('customer_payments')->count());
+        $this->assertSame(0, DB::table('payment_allocations')->count());
+        $this->assertSame(0, DB::table('payment_component_allocations')->count());
+    }
+
+
 }

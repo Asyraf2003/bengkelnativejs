@@ -36,6 +36,11 @@ final class WorkItemStatusTransitionService
 
     private function apply(WorkItem $workItem, string $target): WorkItem
     {
+        if ($workItem->status() === WorkItem::STATUS_CANCELED
+            && $target !== WorkItem::STATUS_CANCELED) {
+            throw new DomainException('Work item CANCELED tidak dapat diubah ke status lain.');
+        }
+
         match ($target) {
             WorkItem::STATUS_DONE => $workItem->markDone(),
             WorkItem::STATUS_CANCELED => $workItem->cancel(),

@@ -13,6 +13,7 @@ use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\StoreStockLine;
 use App\Core\Note\WorkItem\WorkItem;
 use App\Core\Payment\PaymentComponentAllocation\PaymentComponentType;
+use App\Core\Shared\Exceptions\DomainException;
 use App\Core\Shared\ValueObjects\Money;
 use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
@@ -56,6 +57,45 @@ final class ResolveNotePayableComponentsTest extends TestCase
         $this->assertSame(PaymentComponentType::SERVICE_FEE, $components[2]->componentType());
         $this->assertSame(PaymentComponentType::SERVICE_EXTERNAL_PURCHASE_PART, $components[3]->componentType());
         $this->assertSame(PaymentComponentType::SERVICE_FEE, $components[4]->componentType());
+    }
+
+    public function test_full_note_payable_components_skip_canceled_rows(): void
+    {
+        $note = $this->noteWithActiveAndCanceledRows();
+
+        $components = $this->makeService()->fromNote($note);
+
+        $this->assertCount(1, $components);
+        $this->assertSame('wi-active', $components[0]->workItemId());
+    }
+
+    public function test_selected_canceled_row_is_rejected_as_invalid_for_payment_selection(): void
+    {
+        $note = $this->noteWithActiveAndCanceledRows();
+
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Billing row pembayaran yang dipilih tidak valid untuk nota ini.');
+
+        $this->makeService()->fromSelectedRows($note, ['wi-canceled']);
+    }
+
+    private function noteWithActiveAndCanceledRows(): Note
+    {
+        return Note::rehydrate(
+            'note-canceled-row',
+            'Budi',
+            null,
+            new DateTimeImmutable('2026-04-02'),
+            Money::fromInt(5000),
+            [
+                WorkItem::createStoreStockSaleOnly('wi-active', 'note-canceled-row', 1, [
+                    StoreStockLine::create('sto-active', 'product-active', 1, Money::fromInt(5000)),
+                ]),
+                WorkItem::createStoreStockSaleOnly('wi-canceled', 'note-canceled-row', 2, [
+                    StoreStockLine::create('sto-canceled', 'product-canceled', 1, Money::fromInt(7000)),
+                ], WorkItem::STATUS_CANCELED),
+            ],
+        );
     }
 
     private function makeService(): ResolveNotePayableComponents

@@ -60,6 +60,59 @@ final class CashierDetailRenderedBillingRowsPaymentFeatureTest extends TestCase
         ]);
     }
 
+
+    public function test_canceled_rows_are_not_rendered_as_payable_billing_rows(): void
+    {
+        $user = $this->seedKasir();
+        $today = date('Y-m-d');
+
+        $this->seedNoteBase('note-canceled-render-1', 'Budi Render Canceled', $today, 100000, 'open');
+
+        $this->seedWorkItemBase(
+            'wi-render-active-1',
+            'note-canceled-render-1',
+            1,
+            WorkItem::TYPE_SERVICE_ONLY,
+            WorkItem::STATUS_OPEN,
+            50000
+        );
+        $this->seedServiceDetailBase(
+            'wi-render-active-1',
+            'Servis Render Aktif',
+            50000,
+            ServiceDetail::PART_SOURCE_NONE
+        );
+
+        $this->seedWorkItemBase(
+            'wi-render-canceled-1',
+            'note-canceled-render-1',
+            2,
+            WorkItem::TYPE_SERVICE_ONLY,
+            WorkItem::STATUS_CANCELED,
+            50000
+        );
+        $this->seedServiceDetailBase(
+            'wi-render-canceled-1',
+            'Servis Render Batal',
+            50000,
+            ServiceDetail::PART_SOURCE_NONE
+        );
+
+        $html = $this->actingAs($user)
+            ->get(route('cashier.notes.show', ['noteId' => 'note-canceled-render-1']))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertStringContainsString(
+            'data-billing-row-id="wi-render-active-1::service_fee::wi-render-active-1"',
+            $html
+        );
+        $this->assertStringNotContainsString(
+            'data-billing-row-id="wi-render-canceled-1::service_fee::wi-render-canceled-1"',
+            $html
+        );
+    }
+
     private function seedKasir(): User
     {
         $this->loginAsKasir();
