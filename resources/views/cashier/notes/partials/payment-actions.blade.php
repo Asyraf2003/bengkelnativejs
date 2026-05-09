@@ -5,12 +5,14 @@
   </div>
   <div class="card-body">
     <div class="d-grid gap-2">
-      <a
-        href="{{ route('cashier.notes.workspace.edit', ['noteId' => $note['id'] ?? ($note['note_header']['id'] ?? null)]) }}"
-        class="btn btn-outline-secondary"
-      >
-        Edit Nota
-      </a>
+      @if ($note['can_edit_workspace'] ?? false)
+        <a
+          href="{{ route('cashier.notes.workspace.edit', ['noteId' => $note['id'] ?? ($note['note_header']['id'] ?? null)]) }}"
+          class="btn btn-outline-secondary"
+        >
+          Edit Nota
+        </a>
+      @endif
 
       @if ($note['can_show_refund_form'] ?? false)
         <button

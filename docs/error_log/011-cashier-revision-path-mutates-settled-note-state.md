@@ -429,3 +429,65 @@ Ini bukan root cause yang sama dengan #011.
 - #018 is about refunded notes mutating because route/addability guards did not treat refunded as terminal.
 
 Both findings require note editability policy to account for both settlement-derived and explicit lifecycle terminal states.
+
+## Update - route-scoped admin revision editability compatibility
+
+Status: Follow-up verified.
+
+During final verification after #029, the full test suite exposed a compatibility regression where the cashier workspace editability guard was applied too broadly to the shared note revision workflow.
+
+The failing path was the audited admin revision/correction route, not the cashier mutation route.
+
+Failure symptom:
+
+    Nota close tidak boleh diedit lewat workspace.
+
+Scope clarification:
+
+- #011 protects cashier revision/workspace mutation paths from mutating settled note state.
+- #011 does not make closed/paid/refunded notes an absolute mutation lock for audited admin correction/revision flows.
+- Admin correction/revision must remain supported through the official revision workflow.
+- Cashier/default mutation paths must still enforce workspace editability.
+- The #010 same-note serialization lock must remain preserved.
+
+Patch decision:
+
+- `StoreNoteRevisionController` determines whether workspace editability enforcement is required from the route.
+- `admin.notes.workspace.update` passes `enforceWorkspaceEditability = false`.
+- Cashier/default paths keep `enforceWorkspaceEditability = true`.
+- `CreateNoteRevisionHandler` forwards the flag to the workflow.
+- `CreateNoteRevisionWorkflow` only calls `EditableWorkspaceNoteGuard::assertEditable()` when enforcement is enabled.
+- `CreateNoteRevisionWorkflow` still reads the root note through `getByIdForUpdate(trim($noteRootId))`.
+
+Production files changed:
+
+- `app/Adapters/In/Http/Controllers/Note/StoreNoteRevisionController.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionHandler.php`
+- `app/Application/Note/UseCases/CreateNoteRevisionWorkflow.php`
+
+Verification proof:
+
+Focused route-scoped guard verification:
+
+    Tests: 13 passed (98 assertions)
+
+Covered areas:
+
+- admin closed-note workspace replacement
+- admin product replacement finance cases
+- revision after refund preserves historical anchors
+- cashier revision submit regression #011
+- cashier closed-note workspace replacement submit
+- editable workspace guard tests
+
+Full verification:
+
+    PHPStan: [OK] No errors
+    audit-lines: SUCCESS
+    audit-blade: SUCCESS
+    contract audit passed
+    Tests: 901 passed (4797 assertions)
+
+Conclusion:
+
+The follow-up keeps cashier settled-note protections intact while restoring the audited admin revision/correction capability. The patch is route-scoped and preserves the #010 `getByIdForUpdate` lock.

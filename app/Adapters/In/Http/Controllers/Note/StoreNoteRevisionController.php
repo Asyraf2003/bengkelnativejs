@@ -21,10 +21,13 @@ final class StoreNoteRevisionController extends Controller
         $user = $request->user();
         $actorId = $user !== null ? (string) $user->getAuthIdentifier() : null;
 
+        $enforceWorkspaceEditability = ! $request->routeIs('admin.notes.workspace.update');
+
         $result = $handler->handle(
             $noteId,
             $request->validated(),
             $actorId,
+            $enforceWorkspaceEditability,
         );
 
         if ($result->isFailure()) {

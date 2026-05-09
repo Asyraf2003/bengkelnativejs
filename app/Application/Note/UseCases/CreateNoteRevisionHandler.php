@@ -21,6 +21,7 @@ final class CreateNoteRevisionHandler
         string $noteRootId,
         array $payload,
         ?string $actorId = null,
+        bool $enforceWorkspaceEditability = true,
     ): CreateNoteRevisionResult {
         $started = false;
 
@@ -28,7 +29,12 @@ final class CreateNoteRevisionHandler
             $this->transactions->begin();
             $started = true;
 
-            $result = $this->workflow->execute($noteRootId, $payload, $actorId);
+            $result = $this->workflow->execute(
+                $noteRootId,
+                $payload,
+                $actorId,
+                $enforceWorkspaceEditability,
+            );
 
             $this->transactions->commit();
 

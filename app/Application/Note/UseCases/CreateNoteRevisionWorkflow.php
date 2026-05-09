@@ -30,6 +30,7 @@ final class CreateNoteRevisionWorkflow
         string $noteRootId,
         array $payload,
         ?string $actorId,
+        bool $enforceWorkspaceEditability = true,
     ): CreateNoteRevisionResult {
         $root = $this->notes->getByIdForUpdate(trim($noteRootId));
 
@@ -37,7 +38,9 @@ final class CreateNoteRevisionWorkflow
             return CreateNoteRevisionResult::failure('Root note tidak ditemukan.');
         }
 
-        $this->guard->assertEditable($root->id());
+        if ($enforceWorkspaceEditability) {
+            $this->guard->assertEditable($root->id());
+        }
 
         $current = $this->current->resolveOrFail($root->id());
         $number = $this->current->nextRevisionNumber($root->id());

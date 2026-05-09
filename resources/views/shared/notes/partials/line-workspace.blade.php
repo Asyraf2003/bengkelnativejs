@@ -6,12 +6,14 @@
       </div>
 
       <div class="d-flex flex-wrap gap-2">
-        <a
-          href="{{ route($detailConfig['workspace_edit_route'], ['noteId' => $note['id']]) }}"
-          class="btn btn-primary"
-        >
-          Edit
-        </a>
+        @if ($note['can_edit_workspace'] ?? false)
+          <a
+            href="{{ route($detailConfig['workspace_edit_route'], ['noteId' => $note['id']]) }}"
+            class="btn btn-primary"
+          >
+            Edit
+          </a>
+        @endif
 
         @if ($note['can_show_refund_form'] ?? false)
           <button
