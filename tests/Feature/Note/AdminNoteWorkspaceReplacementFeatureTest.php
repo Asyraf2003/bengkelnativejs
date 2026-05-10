@@ -180,7 +180,7 @@ final class AdminNoteWorkspaceReplacementFeatureTest extends TestCase
             WorkItem::STATUS_OPEN,
             150000
         );
-        $this->seedServiceDetailBase('wi-admin-product-xss-1', 'Servis Product XSS', 50000, 'store_stock');
+        $this->seedServiceDetailBase('wi-admin-product-xss-1', 'Servis Product XSS', 50000, ServiceDetail::PART_SOURCE_NONE);
         $this->seedStoreStockLineBase('ssl-admin-product-xss-1', 'wi-admin-product-xss-1', 'product-xss-1', 1, 100000);
         $this->seedCustomerPaymentBase('pay-admin-product-xss-1', 150000, $oldDate);
         $this->seedServiceWithStoreStockCurrentRevision(
