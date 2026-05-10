@@ -2,7 +2,7 @@
 
 ## Status
 
-Patched.
+Fixed and locally verified.
 
 ## Severity
 
@@ -53,25 +53,46 @@ Admin read routes remain outside the transaction-entry gate.
 
 ## Verification
 
-Reported proof:
+Local verification from #020 remediation:
 
-- `php -l routes/web/note.php`
-- `git status --short`
-- `git commit -m "Protect admin note mutations with transaction entry gate"`
+- `git status --short --branch --untracked-files=all`
+  - branch clean and aligned with `origin/main`.
+- `git rev-list --left-right --count origin/main...HEAD`
+  - `0 0`.
+- `sed -n '36,62p' routes/web/note.php`
+  - confirmed these four scoped admin note mutation routes are inside `EnsureTransactionEntryAllowed`:
+    - `admin.notes.refunds.store`
+    - `admin.notes.payments.store`
+    - `admin.notes.rows.store`
+    - `admin.notes.workspace.update`
+  - confirmed admin read routes remain outside the transaction-entry gate.
+  - confirmed `admin.notes.reopen` remains outside this #020 scoped patch and is an adjacent discovered mutation route, not silently included in #020.
+- `php artisan test tests/Feature/Note/AdminNoteTransactionCapabilityFeatureTest.php`
+  - PASS: 2 tests, 10 assertions.
+  - Covers admin read access without transaction-entry capability.
+  - Covers forbidden response for the four scoped admin note mutation routes when admin transaction-entry capability is inactive.
+- Focused admin read route proof:
+  - `php artisan test tests/Feature/Note/AdminNoteHistoryPageFeatureTest.php tests/Feature/Note/AdminNoteHistoryTableDataFeatureTest.php tests/Feature/Note/AdminNoteDetailPageFeatureTest.php`
+  - PASS: 5 tests, 39 assertions.
+
+Focused failure classification:
+
+- `tests/Feature/Note/AdminNoteWorkspaceReplacementFeatureTest.php` failed before mutation submit because the closed note show page did not render the workspace edit link.
+- The failure is classified as a stale or separate UI/policy expectation, not a #020 route gate regression.
+- Source evidence:
+  - `NoteDetailNotePayloadBuilder` sets `can_edit_workspace` from `$isOpen`.
+  - `resources/views/shared/notes/partials/line-workspace.blade.php` only renders the Edit link when `can_edit_workspace` is true.
+  - The failing test seeds a `closed` note.
+- Therefore the failed assertion is outside #020's transaction-entry middleware boundary and is not used as #020 closure proof.
 
 ## Verification Gap
 
-No framework feature test result was included.
+Not globally verified:
 
-Recommended future proof:
-
-- `php artisan route:list --path=admin/notes`
-- feature test proving an admin with inactive transaction-entry capability receives forbidden/redirect behavior on:
-  - payment route
-  - refund route
-  - add rows route
-  - workspace update route
-- feature test proving admin read routes still work without transaction-entry capability.
+- Full `make verify` was not rerun for #020 closure.
+- Browser/manual QA was not run.
+- `admin.notes.reopen` remains an adjacent discovered mutation route outside this #020 patch scope and must be handled by a separate issue/scope decision if required.
+- `AdminNoteWorkspaceReplacementFeatureTest` closed-note edit-link expectation remains unresolved as a separate UI/policy/test concern.
 
 ## Relations
 
@@ -124,6 +145,16 @@ Reported verification:
 - `git commit -m "Protect admin note mutation routes with transaction-entry middleware"`
 
 No progress increase because this is the same root cause and same target file as #020.
+
+## Update - 2026-05-10 local verification
+
+The previous `Patched` status is promoted to `Fixed and locally verified` based on local targeted and focused feature-test proof.
+
+The implemented boundary remains intentionally narrow:
+
+- Gate the four scoped admin note mutation routes with `EnsureTransactionEntryAllowed`.
+- Keep admin read routes outside the transaction-entry gate.
+- Do not silently include `admin.notes.reopen` in #020 because it is an adjacent discovered mutation route and was not part of the original #020 affected-route matrix.
 
 ## Related #027 - Admin invoice creation bypasses transaction-entry gate
 
