@@ -58,6 +58,24 @@ final class CreateExpensePageFeatureTest extends TestCase
         $response->assertSee('tf');
     }
 
+    public function test_expense_create_config_json_escapes_script_breaking_category_query(): void
+    {
+        $payload = '</script><script>alert(24)</script>';
+
+        $response = $this->actingAs($this->user('admin'))
+            ->get(route('admin.expenses.create', ['category_id' => $payload]));
+
+        $response->assertOk();
+
+        $html = $response->getContent();
+
+        $this->assertIsString($html);
+        $this->assertStringNotContainsString($payload, $html);
+        $this->assertStringNotContainsString('</script><script>', $html);
+        $this->assertStringContainsString('\u003C', $html);
+        $this->assertStringContainsString('alert(24)', $html);
+    }
+
     private function user(string $role): User
     {
         $user = User::query()->create([
