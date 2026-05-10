@@ -17,12 +17,12 @@ final class CashierRefundRejectsOpenLineFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_refund_allows_operationally_open_line_selection_under_a1_contract(): void
+    public function test_refund_rejects_operationally_open_partially_paid_line_selection(): void
     {
         $user = $this->seedKasir();
         $this->seedOpenPartialPaidNote();
 
-        $response = $this->from(route('cashier.notes.show', ['noteId' => 'note-1']))
+        $this->from(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->actingAs($user)
             ->post(route('cashier.notes.refunds.store', ['noteId' => 'note-1']), [
                 'selected_row_ids' => ['wi-1'],
@@ -30,12 +30,22 @@ final class CashierRefundRejectsOpenLineFeatureTest extends TestCase
                 'reason' => 'Refund line open operasional',
             ]);
 
-        $response->assertRedirect(route('cashier.notes.index'));
-        $response->assertSessionHas('success');
+        $this->assertDatabaseCount('refund_component_allocations', 0);
 
-        $this->assertDatabaseHas('refund_component_allocations', [
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-1',
+            'status' => WorkItem::STATUS_OPEN,
+        ]);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => 'note-1',
+            'note_state' => 'open',
+            'total_rupiah' => 20000,
+        ]);
+
+        $this->assertDatabaseMissing('note_mutation_events', [
             'note_id' => 'note-1',
-            'work_item_id' => 'wi-1',
+            'mutation_type' => 'note_rows_canceled_via_refund',
         ]);
     }
 
@@ -66,7 +76,6 @@ final class CashierRefundRejectsOpenLineFeatureTest extends TestCase
         $this->seedServiceDetailBase('wi-1', 'Servis Open', 20000, ServiceDetail::PART_SOURCE_NONE);
 
         $this->seedCustomerPaymentBase('payment-1', 10000, $today);
-        $this->seedPaymentAllocationBase('allocation-1', 'payment-1', 'note-1', 10000);
 
         DB::table('payment_component_allocations')->insert([
             'id' => 'pca-1',
