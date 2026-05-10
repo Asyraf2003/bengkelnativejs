@@ -4,6 +4,11 @@
 
 Fixed and locally verified for cashier refund route note-access enforcement.
 
+Current Slice 5 re-verification confirms the #022 route/middleware behavior directly:
+cashier refund POST is inside `EnsureCashierNoteAccess`, uses `ensureCanView`, and rejects historical notes.
+
+Focused broad route/guard suite is not fully green in the current session because of adjacent refunded/edit UI guard failures outside #022 scope.
+
 ## Severity
 
 High.
@@ -210,15 +215,95 @@ Focused coverage included:
 - full refund lifecycle for store-stock inventory notes
 - full refund lifecycle for external-purchase notes
 
+## Current Slice 5 Reverification
+
+### Scope
+
+This reverification checks only #022:
+
+- cashier refund route placement
+- cashier note-access middleware branch for refund route
+- historical note refund POST rejection
+
+It does not patch #015/#018 refunded workspace edit behavior.
+
+### Source anchors
+
+`routes/web/note.php`:
+
+- `Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {`
+- `Route::post('/{noteId}/refunds', RecordClosedNoteRefundController::class)->name('refunds.store');`
+
+`app/Adapters/In/Http/Middleware/Note/EnsureCashierNoteAccess.php`:
+
+- `cashier.notes.refunds.store` is included in the view-access branch
+- refund route calls `$this->accessData->ensureCanView($noteId)`
+- refund route does not fall through to `ensureCanMutateOpenNote($noteId)`
+
+### Targeted proof
+
+Command:
+
+`php artisan test tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php --filter=historical`
+
+Result:
+
+`PASS`
+
+`1 passed / 4 assertions`
+
+### Controller proof
+
+Command:
+
+`php artisan test tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php`
+
+Result:
+
+`PASS`
+
+`5 passed / 34 assertions`
+
+### Broad focused suite result
+
+Command:
+
+`php artisan test tests/Feature/Note/RecordClosedNoteRefundControllerFeatureTest.php tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php tests/Feature/Note/CashierRefundedNoteDetailViewFeatureTest.php tests/Feature/Note/CashierRefundRejectsOpenLineFeatureTest.php tests/Feature/Note/CashierRefundSelectionFirstFeatureTest.php tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php tests/Feature/Note/ClosedNoteFullRefundLifecycleFeatureTest.php tests/Feature/Note/ClosedNoteFullRefundProductOnlyInventoryLifecycleFeatureTest.php tests/Feature/Note/ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest.php tests/Feature/Note/ClosedNoteFullRefundExternalPurchaseLifecycleFeatureTest.php`
+
+Result:
+
+`FAIL`
+
+`2 failed / 21 passed / 120 assertions`
+
+Failures:
+
+1. `CashierClosedNoteRefundViewFeatureTest::closed_note_detail_shows_refund_launcher...`
+   - expected page to contain `Edit`
+   - actual page did not contain `Edit`
+   - classification: adjacent UI/edit visibility expectation, not #022 refund route POST access
+
+2. `CashierProtectedNoteRoutesAccessGuardFeatureTest::cashier_cannot_open_workspace_edit_for_refunded_note...`
+   - expected 403
+   - actual 200
+   - classification: refunded workspace edit guard issue, belongs to #015/#018 cluster, not #022 refund route POST access
+
+### Reverification conclusion
+
+#022 route-specific behavior is locally verified.
+
+The broad focused suite is blocked by adjacent Slice 5 refunded/edit guard failures. Do not use the old broad focused PASS claim as current truth.
+
+
 ## Verification gaps
 
-Full global suite was not reported.
+Current remaining gaps:
 
-Browser/manual QA was not reported.
-
-Full `make verify` is not claimed because `audit-lines` is deferred by owner decision.
-
-True concurrent/security scan testing was not part of this patch.
+- full global suite was not run
+- browser/manual QA was not run
+- full `make verify` is not claimed
+- broad route/guard focused suite is not green in the current session because of adjacent #015/#018 refunded/edit failures
+- #022 itself has targeted local proof, but broad focused proof must not be claimed as current green proof
 
 ## Scope boundaries
 
