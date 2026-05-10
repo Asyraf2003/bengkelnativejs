@@ -144,6 +144,50 @@ final class ProductCreatePageFeatureTest extends TestCase
         $response->assertSee('Kembali ke Nota Pemasok');
     }
 
+    public function test_admin_product_create_page_rejects_other_unsafe_return_urls(): void
+    {
+        $user = $this->createUserWithRole('admin-product-return-url-unsafe-list@example.test', 'admin');
+
+        foreach ([
+            'data:text/html,<script>alert(25)</script>',
+            'https://evil.example/steal',
+            '//evil.example/steal',
+        ] as $payload) {
+            $response = $this
+                ->actingAs($user)
+                ->get(route('admin.products.create', [
+                    'return_to' => $payload,
+                    'return_label' => 'Kembali',
+                ]));
+
+            $response->assertOk();
+
+            $html = $response->getContent();
+
+            $this->assertIsString($html);
+            $this->assertStringNotContainsString('href="' . $payload . '"', $html);
+            $this->assertStringContainsString('href="' . route('admin.products.index') . '"', $html);
+        }
+    }
+
+    public function test_admin_product_create_page_allows_relative_procurement_return_url(): void
+    {
+        $user = $this->createUserWithRole('admin-product-return-url-relative@example.test', 'admin');
+        $returnTo = route('admin.procurement.supplier-invoices.create', [], false);
+
+        $response = $this
+            ->actingAs($user)
+            ->get(route('admin.products.create', [
+                'return_to' => $returnTo,
+                'return_label' => 'Kembali ke Nota Pemasok',
+            ]));
+
+        $response->assertOk();
+        $response->assertSee('Mode kembali ke nota aktif');
+        $response->assertSee('href="' . $returnTo . '"', false);
+        $response->assertSee('Kembali ke Nota Pemasok');
+    }
+
     private function createUserWithRole(string $email, string $role): User
     {
         $user = User::query()->create([
