@@ -18,7 +18,7 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_it_records_refund_for_selected_row_even_when_note_still_has_open_line(): void
+    public function test_it_rejects_refund_for_selected_close_row_when_note_still_has_open_line(): void
     {
         $user = $this->seedKasir();
         $today = date('Y-m-d');
@@ -30,29 +30,30 @@ final class RecordSelectedRowsClosedNoteRefundHttpFeatureTest extends TestCase
             'reason' => 'Refund line terpilih',
         ]);
 
-        $response->assertRedirect(route('cashier.notes.index'))
-            ->assertSessionHas('success');
+        $response->assertSessionHasErrors(['refund']);
 
-        $this->assertDatabaseHas('refund_component_allocations', [
-            'customer_payment_id' => 'payment-1',
-            'note_id' => 'note-1',
-            'work_item_id' => 'wi-1',
-            'refunded_amount_rupiah' => 50000,
-        ]);
-
-        $this->assertDatabaseMissing('refund_component_allocations', [
-            'note_id' => 'note-1',
-            'work_item_id' => 'wi-2',
-        ]);
+        $this->assertDatabaseCount('customer_refunds', 0);
+        $this->assertDatabaseCount('refund_component_allocations', 0);
 
         $this->assertDatabaseHas('work_items', [
             'id' => 'wi-1',
-            'status' => WorkItem::STATUS_CANCELED,
+            'status' => WorkItem::STATUS_OPEN,
+        ]);
+
+        $this->assertDatabaseHas('work_items', [
+            'id' => 'wi-2',
+            'status' => WorkItem::STATUS_OPEN,
         ]);
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
-            'total_rupiah' => 50000,
+            'note_state' => Note::STATE_OPEN,
+            'total_rupiah' => 100000,
+        ]);
+
+        $this->assertDatabaseMissing('note_mutation_events', [
+            'note_id' => 'note-1',
+            'mutation_type' => 'note_rows_canceled_via_refund',
         ]);
     }
 
