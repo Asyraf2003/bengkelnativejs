@@ -43,7 +43,7 @@ final class NoteDetailNotePayloadBuilder
             'refund_required_rupiah' => $refundRequired,
             'can_add_rows' => $isOpen,
             'can_show_edit_actions' => $isOpen,
-            'can_edit_workspace' => $isOpen,
+            'can_edit_workspace' => ! $isRefunded && ($isOpen || $isClosed),
             'can_show_workspace_panel' => $isOpen || $isClosed,
             'can_show_payment_form' => $canShowPayment,
             'can_show_partial_payment_action' => $canShowPayment && $netPaid <= 0,
