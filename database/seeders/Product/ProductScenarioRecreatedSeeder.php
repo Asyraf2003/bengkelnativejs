@@ -7,6 +7,7 @@ namespace Database\Seeders\Product;
 use App\Application\ProductCatalog\UseCases\CreateProductHandler;
 use App\Application\ProductCatalog\UseCases\SoftDeleteProductHandler;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 final class ProductScenarioRecreatedSeeder extends Seeder
@@ -18,10 +19,16 @@ final class ProductScenarioRecreatedSeeder extends Seeder
         $items = ProductSeedCatalog::all()['recreated_after_delete'];
 
         foreach ($items as $index => $item) {
+            $originalCode = trim($item['original']['code']);
+
+            if ($this->productCodeAlreadySeeded($originalCode)) {
+                continue;
+            }
+
             $thresholds = ProductSeedThresholds::forIndex($index + 1);
 
             $original = $createHandler->handle(
-                kodeBarang: $item['original']['code'],
+                kodeBarang: $originalCode,
                 namaBarang: $item['original']['name'],
                 merek: $item['original']['brand'],
                 ukuran: $item['original']['size'],
@@ -77,5 +84,12 @@ final class ProductScenarioRecreatedSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    private function productCodeAlreadySeeded(string $kodeBarang): bool
+    {
+        return DB::table('products')
+            ->where('kode_barang', $kodeBarang)
+            ->exists();
     }
 }
