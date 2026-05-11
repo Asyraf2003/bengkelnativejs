@@ -13,8 +13,8 @@ This document does not claim the current Makefile already satisfies this DoD.
 ## Source Of Truth
 
 - database/seeders/README.md
-- docs/blueprint/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
 - docs/workflow/seeder-legacy-to-clean-workflow.md
 - docs/adr/0023-seeder-credential-and-environment-safety.md
 - docs/blueprint/security/2026-05-06-seeder-credential-and-environment-safety-blueprint.md
@@ -357,8 +357,8 @@ Required:
 Seeder migration is not done until these docs are updated:
 
 - database/seeders/README.md
-- docs/blueprint/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
 - docs/workflow/seeder-legacy-to-clean-workflow.md
 - docs/dod/seeder-legacy-to-clean-dod.md
 - scenario matrix docs

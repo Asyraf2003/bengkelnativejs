@@ -16,7 +16,7 @@ This document does not mark any seeder as clean, fixed, safe, idempotent, or pro
 
 ## Source Of Truth
 
-- docs/blueprint/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
 - docs/adr/0023-seeder-credential-and-environment-safety.md
 - docs/blueprint/security/2026-05-06-seeder-credential-and-environment-safety-blueprint.md
 - docs/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
@@ -346,7 +346,7 @@ Scope:
 - `database/seeders/UserSeeder.php`
 - `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
 - `docs/error_log/002-seeder-introduces-predictable-admin-credentials.md`
-- `docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
 
 Status:
 
@@ -408,3 +408,102 @@ Choose one active slice only:
 2. continue source inspection for `ProductSeeder`, `SupplierSeeder`, and product scenario seeders for idempotency and clean scenario mapping.
 
 Do not start both in the same step.
+
+## Source Inspection Update 3 - ProductScenarioRecreatedSeeder Idempotency Closure
+
+Date: 2026-05-11.
+
+Scope:
+
+- `database/seeders/Product/ProductScenarioRecreatedSeeder.php`
+- `tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php`
+- `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
+- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/04_lifecycle/handoff/seeder/2026-05-11-product-recreated-seeder-idempotency-handoff.md`
+
+Status:
+
+`ProductScenarioRecreatedSeeder` is fixed and verified for rerun warning and
+state stability.
+
+This does not convert all product seeders into a final clean seeder contract.
+`ProductScenarioActiveBasicSeeder` remains rerun noisy and must be handled in a
+separate active slice.
+
+Runtime behavior now proven:
+
+- first run creates original recreated product rows,
+  soft-deletes them, then creates active replacements;
+- second run sees the existing `PRD-RCR-*` code and skips cleanly;
+- rerun no longer emits four duplicate warning logs;
+- recreated scenario state remains stable.
+
+Production source anchors:
+
+- imports `Illuminate\Support\Facades\DB`;
+- reads `$originalCode = trim($item['original']['code']);`;
+- skips when `$this->productCodeAlreadySeeded($originalCode)` is true;
+- original create uses `kodeBarang: $originalCode`;
+- has private helper `productCodeAlreadySeeded(string $kodeBarang): bool`.
+
+Test anchors:
+
+- `ProductSeederIdempotencyFeatureTest` uses `Psr\Log\AbstractLogger`;
+- the test tracks `$warningCount`;
+- the test uses `Log::swap($logger)`;
+- the test asserts `self::assertSame(0, $logger->warningCount)`;
+- the test asserts recreated scenario state:
+  - 8 total `PRD-RCR-*` rows;
+  - 4 active rows;
+  - 4 deleted historical rows;
+  - each code has 1 active row and 1 deleted row;
+  - thresholds are not null.
+
+RED proof:
+
+- targeted product seeder test failed before the patch;
+- failure: `Log::warning` expected 0 calls but was called 4 times;
+- result: 1 failed, 63 assertions.
+
+GREEN proof:
+
+- targeted product seeder test passed: 1 passed, 63 assertions;
+- targeted seeder tests passed after lint cleanup: 5 passed, 75 assertions;
+- full `make verify` passed:
+  - PHPStan OK, no errors;
+  - audit line limit SUCCESS;
+  - audit Blade PHP/directive SUCCESS;
+  - contract audit passed;
+  - Pest 936 passed, 5024 assertions.
+
+Commit/push proof:
+
+- latest verified baseline after docs restructure path fix:
+  - branch `main`;
+  - HEAD `8fcd32d8`;
+  - remote aligned with `origin/main`;
+  - commit label `commit 1850`.
+
+Classification impact:
+
+- `database/seeders/Product/ProductScenarioRecreatedSeeder.php`
+  remains `LEGACY_COMPATIBILITY`;
+- target remains `CLEAN_SCENARIO_SEED`;
+- risk remains `MEDIUM` at migration level because the full product seeder
+  contract is not clean yet;
+- the recreated scenario rerun warning/state-stability bug is fixed.
+
+Explicit scope limit:
+
+- does not fix `ProductScenarioActiveBasicSeeder`;
+- does not claim full `ProductSeeder` idempotency;
+- does not claim full clean seeder migration;
+- does not replace legacy seeder entrypoints;
+- does not rename seeders;
+- does not rename Makefile targets.
+
+Next candidate after docs closure:
+
+Inspect and characterize `ProductScenarioActiveBasicSeeder` rerun noisy behavior
+with a RED test before any runtime patch.
+

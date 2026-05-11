@@ -19,8 +19,8 @@ Future work must migrate it toward a clean, deterministic, auditable seeder syst
 Before editing any seeder file, read:
 
 1. database/seeders/README.md
-2. docs/blueprint/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-3. docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md
+2. docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+3. docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
 4. docs/adr/0023-seeder-credential-and-environment-safety.md
 5. docs/blueprint/security/2026-05-06-seeder-credential-and-environment-safety-blueprint.md
 6. docs/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md

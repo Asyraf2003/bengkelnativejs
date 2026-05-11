@@ -235,7 +235,7 @@ Allowed future file-level marker format:
      * @deprecated Legacy compatibility seeder.
      *
      * Do not extend this path for new clean scenarios.
-     * See docs/blueprint/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md.
+     * See docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md.
      */
 
 File-level marker must not be added to generated/support helpers blindly if the helper remains part of clean flow.
@@ -268,7 +268,7 @@ Create a manifest that maps each seeder to:
 
 Recommended path:
 
-- docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
 
 ### Step 3: Clean Contract Lock
 

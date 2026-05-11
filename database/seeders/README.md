@@ -21,8 +21,8 @@ Legacy compatibility means:
 
 Read these documents before changing seeders:
 
-- docs/blueprint/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
+- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
 - docs/adr/0023-seeder-credential-and-environment-safety.md
 - docs/blueprint/security/2026-05-06-seeder-credential-and-environment-safety-blueprint.md
 - docs/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md

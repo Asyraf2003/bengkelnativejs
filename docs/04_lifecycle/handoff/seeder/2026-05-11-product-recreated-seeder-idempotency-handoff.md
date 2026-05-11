@@ -224,105 +224,105 @@ Source diff summary:
 - Added DB import.
 - Added existing-code skip guard.
 - Added helper method `productCodeAlreadySeeded()`.
-
 ## Current Important Gap
 
-The latest status output showed only:
+No current implementation gap remains for the
+`ProductScenarioRecreatedSeeder` runtime slice at HEAD `8fcd32d8`.
 
-- `M database/seeders/Product/ProductScenarioRecreatedSeeder.php`
+Remaining migration gaps:
 
-The new test file was printed by `sed`, but status did not show it as untracked or added:
+- `ProductScenarioActiveBasicSeeder` remains rerun noisy.
+- Full `ProductSeeder` idempotency is not claimed.
+- Full clean seeder migration is not claimed.
+- Legacy entrypoints remain in place.
+- Historical handoffs may still mention old paths from before the docs
+  restructure.
 
-- `tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php`
+## Closure Proof
 
-This must be verified before commit.
+Runtime source proof:
 
-Possible explanations:
+- `database/seeders/Product/ProductScenarioRecreatedSeeder.php` imports
+  `Illuminate\Support\Facades\DB`.
+- The seeder reads `$originalCode = trim($item['original']['code']);`.
+- The seeder skips when `productCodeAlreadySeeded($originalCode)` is true.
+- Original create uses `kodeBarang: $originalCode`.
+- The seeder has private helper
+  `productCodeAlreadySeeded(string $kodeBarang): bool`.
 
-- the test file is already tracked,
-- output was incomplete,
-- file is ignored,
-- or the file was not included in status/diff for another reason.
+RED proof:
 
-Do not commit until tracking is verified.
+- Targeted product seeder test failed before the patch.
+- Failure: `Log::warning` expected exactly 0 calls, but was called 4 times.
+- Result: 1 failed, 63 assertions.
+
+GREEN proof:
+
+- Targeted product seeder test passed: 1 passed, 63 assertions.
+- Targeted seeder tests passed after lint cleanup: 5 passed, 75 assertions.
+- Full `make verify` passed:
+  - PHPStan OK, no errors;
+  - audit line limit SUCCESS;
+  - audit Blade PHP/directive SUCCESS;
+  - contract audit passed;
+  - Pest 936 passed, 5024 assertions.
+
+Commit/push proof:
+
+- Latest verified baseline after docs restructure path fix:
+  - branch `main`;
+  - HEAD `8fcd32d8`;
+  - remote aligned with `origin/main`;
+  - commit label `commit 1850`.
 
 ## Required Next Active Step
 
-Verify test file tracking and run focused product blast-radius tests.
+Inspect and characterize `ProductScenarioActiveBasicSeeder` rerun noisy behavior.
 
-Recommended command:
+Do not patch runtime until a RED characterization test proves the current noisy
+rerun behavior.
 
-~~~bash
-printf '\n== TRACKING CHECK ==\n'
-git status --short --untracked-files=all
-git ls-files tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php
-git check-ignore -v tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php || true
-git diff --stat
-git diff -- database/seeders/Product/ProductScenarioRecreatedSeeder.php
-git diff -- tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php
+## Expected Next Proof
 
-printf '\n== PRODUCT SEEDER TARGETED RERUN ==\n'
-php artisan test tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php
+Expected RED proof:
 
-printf '\n== FOCUSED PRODUCT BLAST RADIUS ==\n'
-php artisan test \
-  tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php \
-  tests/Feature/ProductCatalog/CreateProductFeatureTest.php \
-  tests/Feature/ProductCatalog/UpdateProductFeatureTest.php \
-  tests/Feature/ProductCatalog/CreateProductThresholdFeatureTest.php \
-  tests/Feature/ProductCatalog/UpdateProductThresholdFeatureTest.php \
-  tests/Feature/ProductCatalog/RestoreProductFeatureTest.php \
-  tests/Feature/Database/V2ProductSearchNormalizationMigrationTest.php
+- product seeder rerun emits warning for active-basic scenario, or
+- product seeder rerun produces another measurable non-idempotent behavior.
 
-printf '\n== FINAL STATUS AFTER FOCUSED TESTS ==\n'
-git status --short --untracked-files=all
-Expected Next Proof
+Expected GREEN proof after a future patch:
 
-Expected targeted proof:
+- targeted active-basic seeder test passes;
+- focused product seeder blast-radius tests pass;
+- no warning logs are emitted for the fixed scenario;
+- product state remains stable.
 
-ProductSeederIdempotencyFeatureTest passes.
-
-Expected focused blast-radius proof:
-
-Product seeder idempotency test passes.
-Product create/update tests pass.
-Product threshold tests pass.
-Product restore test passes.
-Product search normalization migration test passes.
-
-Expected status:
-
-database/seeders/Product/ProductScenarioRecreatedSeeder.php modified.
-tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php tracked or clearly untracked.
-No unexpected files.
-Do Not Claim Yet
+## Do Not Claim Yet
 
 Do not claim:
 
-full ProductSeeder idempotency.
-ProductScenarioActiveBasicSeeder fixed.
-full clean seeder migration.
-full make verify green.
-docs closure done.
-source committed/pushed.
-Recommended Closure Path
+- `ProductScenarioActiveBasicSeeder` fixed;
+- full `ProductSeeder` idempotency;
+- full clean seeder migration;
+- legacy seeder replacement complete;
+- staging/production seeder safety complete.
 
-After tracking is verified and focused tests pass:
+## Recommended Closure Path
 
-Update docs/blueprint/seeder/2026-05-11-legacy-seeder-manifest.md with the ProductScenarioRecreatedSeeder source inspection and proof.
-Optionally create/update a focused seeder handoff if the session continues.
-User manually commits/pushes source, test, and docs.
-Verify post-commit HEAD and anchors.
-Progress Snapshot
+This handoff is now closed for `ProductScenarioRecreatedSeeder`.
 
-Final Goal Progress: 16% for clean seeder migration.
+Next session should start from `ProductScenarioActiveBasicSeeder` only, unless
+the owner chooses a higher-priority seeder risk.
+
+## Progress Snapshot
+
+Final Goal Progress: 17% for clean seeder migration.
 
 Governance Docs Foundation Progress: 100%.
 
-Product Source Inspection Progress: 78%.
+Product Source Inspection Progress: 80%.
 
-Product Runtime Implementation Progress: 60%.
+Product Recreated Seeder Runtime Progress: 100%.
 
-Product Docs Closure Progress: 0%.
+Product Docs Closure Progress: 100% after this docs-only closure is verified.
 
-Session Context Health: 80%, handoff required before continuing broad work.
+Session Context Health: 35%, safe.
