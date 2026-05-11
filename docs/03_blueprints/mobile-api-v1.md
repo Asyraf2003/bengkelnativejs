@@ -1,8 +1,8 @@
 # HyperPOS Mobile API v1 Blueprint
 
-Status: Draft 1 - owner decisions locked; Mobile API auth foundation implemented and locally verified
+Status: Draft 2 - owner decisions locked; Mobile API auth foundation and cashier product search implemented and locally verified
 Scope: Companion mobile app for cashier product lookup and admin supplier invoice/payment proof workflow
-Date: 2026-05-11
+Date: 2026-05-12
 
 ## 1. Final Goal
 
@@ -211,6 +211,10 @@ Response draft:
       {
         "id": "string",
         "label": "string",
+        "kode_barang": "string|null",
+        "nama_barang": "string",
+        "merek": "string|null",
+        "ukuran": "string|null",
         "available_stock": 0,
         "default_unit_price_rupiah": 0,
         "minimum_unit_price_rupiah": 0
@@ -229,6 +233,33 @@ Performance target draft:
 - max 20 rows per request by default
 - minimum query length 2 characters
 - no heavy relation payload
+
+Implemented behavior:
+
+- `GET /api/v1/products/search`
+- Bearer token is required.
+- Access is cashier-only for v1.
+- Admin mobile product search is rejected with `CASHIER_ONLY`.
+- Query shorter than 2 characters returns empty rows.
+- Product search returns split fields:
+  - `kode_barang`
+  - `nama_barang`
+  - `merek`
+  - `ukuran`
+- Product search includes:
+  - `available_stock`
+  - `default_unit_price_rupiah`
+  - `minimum_unit_price_rupiah`
+- Zero-stock products are shown with `available_stock = 0`.
+- Response meta includes `query` and `limit`.
+
+Implementation note:
+
+- Product search reuses existing `CashierNoteProductLookupData`.
+- It does not expose or reuse the web `ProductLookupController` directly.
+- It intentionally does not copy the web behavior that skips zero-stock products.
+- Current result limit is applied in the application layer with `array_slice` at 20 rows.
+- Future improvement: query-level limit in `ProductReaderPort` or a dedicated mobile product reader for large catalogs.
 
 ### 5.3 Admin Supplier Invoice Search
 
@@ -681,25 +712,27 @@ Decision: A
 Reason: simplest controlled internal production path for early rollout.
 ## 14. Current Gaps
 
-- Product search API is not implemented yet.
 - Supplier invoice search/detail API is not implemented yet.
 - Supplier payment proof upload/view API is not implemented yet.
 - Due invoice list API is not implemented yet.
 - Kotlin Android project is not created yet.
 - Android encrypted token storage is not implemented yet.
-- Full global Laravel test suite has not been run for the Mobile API auth foundation.
-- Browser/manual QA has not been run for the Mobile API auth foundation.
+- Full global Laravel test suite has not been run for the Mobile API auth and product search foundation.
+- Browser/manual QA has not been run for the Mobile API auth and product search foundation.
+- API sanity curl against a running local server has not been run for the Mobile API auth and product search foundation.
+- Product search currently uses application-layer `array_slice` limit; query-level limit may be needed for large catalogs.
 - Notification remains phase 2.
 
 ## 15. Next Step
 
 Next active implementation step:
 
-1. Implement cashier product search API under `/api/v1/products/search`.
-2. Reuse existing product lookup/application behavior where safe.
-3. Keep cashier-only access for v1 per Q2.
-4. Preserve Laravel as source of truth for product, stock, and price.
-5. After product search API is locally verified, start Kotlin skeleton in `/home/asyraf/Code/laravel/bengkel2/kotlin`.
+1. Implement admin supplier invoice search/detail API under `/api/v1`.
+2. Keep admin-only access for supplier invoice mobile endpoints.
+3. Match search term behavior to Q5: invoice number + supplier name.
+4. Match payment status values to existing backend locked terms per Q6.
+5. Preserve Laravel as source of truth for supplier invoice, payment status, proof attachment, audit, and permission decisions.
+6. After the supplier invoice read API is locally verified, choose between payment proof upload/view API or Kotlin skeleton in `/home/asyraf/Code/laravel/bengkel2/kotlin`.
 
 ## 16. Implementation Proof Log
 
@@ -742,5 +775,48 @@ Not verified in this proof:
 - Product search API.
 - Supplier invoice API.
 - Payment proof upload API.
+- Kotlin Android client.
+- Browser/manual QA.
+
+### 2026-05-12 - Mobile API Cashier Product Search
+
+Status: Implemented and locally verified.
+
+Commit and route proof:
+
+- Handoff records latest product search verification at `6940ae63`, commit `1858`.
+- Current repo verification showed `924394a4 (HEAD -> main, origin/main, origin/HEAD) commit 1859`.
+- Current route list still includes `GET|HEAD api/v1/products/search`.
+
+Implemented route proof:
+
+- `GET|HEAD api/v1/products/search`
+
+Verification proof:
+
+- Targeted Mobile API auth + product tests: `11 passed (36 assertions)`.
+- Focused web product/inventory/database blast-radius tests: `6 passed (30 assertions)`.
+- `git diff --check` produced no output in the prior product search verification.
+- Source anchors showed `/products/search` route registration.
+- Source anchors showed `CASHIER_ONLY` for non-kasir role.
+- Source anchors showed split fields and `available_stock` in the product search handler.
+- Test anchors showed zero-stock product coverage with `available_stock = 0`.
+
+Verified scope:
+
+- Bearer token required.
+- Cashier can search products.
+- Admin mobile product search is rejected in v1.
+- Short query returns empty rows.
+- Product payload includes `id`, `label`, `kode_barang`, `nama_barang`, `merek`, `ukuran`, `available_stock`, `default_unit_price_rupiah`, and `minimum_unit_price_rupiah`.
+- Zero-stock product is included with `available_stock = 0`.
+- Response meta includes `query` and `limit`.
+
+Not verified in this proof:
+
+- Full global test suite.
+- API sanity curl against a running local server.
+- Supplier invoice API.
+- Payment proof upload/view API.
 - Kotlin Android client.
 - Browser/manual QA.
