@@ -485,3 +485,40 @@ Backend mobile_api_tokens migration is fixed. Host valid login returns http_code
 One active step only:
 
 Inspect Kotlin login source first. Do not patch before reading MainActivity, LoginUseCase, OkHttpAuthApiClient, AuthApiPort, LoginRequest, LoginResult, MobileApiConfig, and token store wiring. Determine whether the blocker is click wiring, request creation, response parsing, status rendering, base URL, ADB input, or swallowed error. Then propose the smallest patch with exact file paths and proof commands.
+
+## Android token read-back proof
+
+Status: Fixed and locally verified for Android Keystore save/read runtime proof.
+
+Proof date: 2026-05-12.
+
+Kotlin files changed for proof:
+
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/build.gradle.kts`
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/androidTest/java/id/hyperpos/mobile/adapters/storage/AndroidKeystoreSessionTokenStoreInstrumentedTest.kt`
+
+Instrumentation proof:
+
+- Device listed by adb: `52344d4a7d7c device`
+- Test device: `23053RN02A - 15`
+- Test class: `id.hyperpos.mobile.adapters.storage.AndroidKeystoreSessionTokenStoreInstrumentedTest`
+- Test count: 2 tests
+- Result: `BUILD SUCCESSFUL`
+- Gradle task: `:app:connectedDebugAndroidTest`
+
+Verified behavior:
+
+- `readReturnsNullWhenNoTokenIsStored`
+- `saveThenReadReturnsStoredToken`
+
+Security note:
+
+- No raw backend API token was printed.
+- The test used a fake token only for Android Keystore read-back proof.
+
+Current session decision:
+
+- Android token read-back from `AndroidKeystoreSessionTokenStore` is proven.
+- `/api/v1/me` using stored token is still not proven.
+- Product search Android flow is still not started.
+
