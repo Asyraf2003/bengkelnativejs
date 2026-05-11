@@ -9,11 +9,18 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 final class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing'])) {
+            throw new RuntimeException(
+                'Predictable seeded users are only allowed in local/testing environments.'
+            );
+        }
+
         $admin = User::query()->updateOrCreate(
             ['email' => 'admin@gmail.com'],
             [
