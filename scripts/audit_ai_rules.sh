@@ -2,7 +2,7 @@
 set -eu
 
 echo '== AI_RULES structure =='
-find AI_RULES -maxdepth 3 -type f | sort
+find docs/01_standards -maxdepth 3 -type f | sort
 
 echo
 echo '== required files check =='
