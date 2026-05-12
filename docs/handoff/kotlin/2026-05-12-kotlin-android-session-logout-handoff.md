@@ -321,3 +321,65 @@ mobile_api_tokens has revoked_at.
 Recommended first active step:
 
 Read backend logout source detail and Kotlin auth files. Do not patch yet. Then decide the minimal Kotlin logout/session invalid blueprint.
+
+## Update: Android session logout/invalid handling closed
+
+Status: Closed and locally verified.
+
+Kotlin repo: /home/asyraf/Code/laravel/bengkel2/kotlin
+Kotlin GitHub repo: Asyraf2003/kotlin-hyperpos
+Latest proven Kotlin pushed commit: dac538e commit 9
+
+Scope closed:
+- Added Kotlin logout boundary through AuthApiPort.logout(token).
+- Added LogoutResult.
+- Added LogoutUseCase.
+- Implemented OkHttpAuthApiClient.logout(token) using POST /api/v1/auth/logout.
+- Added explicit ProductSearchResult.Unauthenticated.
+- Product Search now maps HTTP 401 to unauthenticated session state.
+- SearchProductsUseCase returns unauthenticated result when local token is missing.
+- MainActivity clears local token and resets authenticated UI on invalid Product Search session.
+- Added logout button to the main UI.
+- Logout UI clears local session, hides Product Search, and shows Logout berhasil.
+- Added targeted logout API/usecase instrumentation.
+- Added targeted logout UI instrumentation.
+- Added targeted invalid-session UI instrumentation.
+- Updated Product Search API instrumentation to handle the new sealed result branch.
+
+Verification proof:
+- ./gradlew :app:assembleDebug
+  Result: BUILD SUCCESSFUL in 2s
+- ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=id.hyperpos.mobile.adapters.http.OkHttpAuthApiClientCurrentSessionInstrumentedTest
+  Result: BUILD SUCCESSFUL in 21s, 2 tests
+- ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=id.hyperpos.mobile.adapters.http.OkHttpProductSearchApiClientInstrumentedTest
+  Result: BUILD SUCCESSFUL in 19s, 1 test
+- ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=id.hyperpos.mobile.features.login.MainActivityProductSearchInstrumentedTest
+  Result: BUILD SUCCESSFUL in 37s, 3 tests
+
+Behavior proven:
+- Login still works with stored token.
+- /api/v1/me still works using stored token.
+- Product Search API still works using stored token.
+- Product Search UI still works after logout/session patch.
+- Logout revokes backend token.
+- Logout clears local encrypted token.
+- Revoked token is rejected by /api/v1/me with Autentikasi diperlukan.
+- Logout button appears after login.
+- Logout button hides after logout.
+- Product Search container hides after logout.
+- Product Search with revoked token clears local token, hides authenticated UI, and shows Autentikasi diperlukan.
+
+Security notes:
+- No raw API token was printed in proof.
+- Token was only asserted for existence/non-blank in tests.
+- Local token clear was verified through SessionTokenStore.read() == null.
+
+Known gaps:
+- No full Android test suite run beyond focused instrumentation listed above.
+- No manual browser/device QA beyond instrumentation.
+- No Gradle deprecation cleanup; current warning is non-blocking for this scope.
+- No Android admin supplier invoice flow started yet.
+
+Next safe process:
+Start Android admin supplier invoice flow only after verifying both repos are clean and reading the supplier invoice mobile API contract from Laravel source/tests.
+
