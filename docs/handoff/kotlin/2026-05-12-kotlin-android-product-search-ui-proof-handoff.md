@@ -340,6 +340,48 @@ User handles commit and push manually.
 - Full Android regression suite beyond targeted instrumentation and manual UI proof not run.
 - Full Laravel global suite not rerun for this Android UI-only work.
 
+## Update - Product Search UI regression hardening
+
+Status: Locally verified after minimum UI proof.
+
+Scope:
+- Kotlin Android Product Search UI regression instrumentation test added.
+- Test dependency added for AndroidX test core and Espresso.
+- No Laravel production source changed.
+- No Android admin supplier invoice flow started.
+
+Kotlin files changed:
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/build.gradle.kts`
+- `/home/asyraf/Code/laravel/bengkel2/kotlin/app/src/androidTest/java/id/hyperpos/mobile/features/login/MainActivityProductSearchInstrumentedTest.kt`
+
+Verification proof:
+- `adb reverse tcp:8000 tcp:8000`
+- `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=id.hyperpos.mobile.adapters.http.OkHttpProductSearchApiClientInstrumentedTest`
+- Result: `BUILD SUCCESSFUL in 23s`
+- `./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=id.hyperpos.mobile.features.login.MainActivityProductSearchInstrumentedTest`
+- Result: `BUILD SUCCESSFUL in 2m 26s`
+
+UI test XML proof:
+- `tests="1"`
+- `failures="0"`
+- `errors="0"`
+- `skipped="0"`
+- Testcase: `cashierCanLoginAndSearchProductsFromUi`
+
+Behavior note:
+- During `connectedDebugAndroidTest`, Android may open the app, run the instrumentation flow, force stop, and uninstall/cleanup the app/test APK. This is expected test runner behavior, not manual app deletion.
+
+Current closure gap:
+- Kotlin repo files are still local/untracked until owner commits them manually.
+- No full Android test suite run is claimed.
+- No browser/manual QA beyond previous Product Search UI proof is claimed.
+
+Safe next step:
+- Owner may manually commit Kotlin Product Search UI regression hardening.
+- After Kotlin state is committed or intentionally left as local prototype, choose either Product Search polish or session invalid/logout handling.
+- Do not start Android admin supplier invoice flow until Product Search hardening status is documented and repo state is intentionally handled.
+
+
 ## Safe next step
 
 Do not start admin supplier invoices yet.
