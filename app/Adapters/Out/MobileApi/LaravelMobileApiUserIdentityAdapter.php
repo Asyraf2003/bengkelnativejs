@@ -22,7 +22,7 @@ final class LaravelMobileApiUserIdentityAdapter implements MobileApiCredentialVe
             return null;
         }
 
-        if (!Hash::check($password, (string) $user->password)) {
+        if (!Hash::check($password, (string) $user->getAttribute('password'))) {
             return null;
         }
 
@@ -44,8 +44,8 @@ final class LaravelMobileApiUserIdentityAdapter implements MobileApiCredentialVe
     {
         return new MobileApiAuthenticatedUser(
             id: (string) $user->getAuthIdentifier(),
-            name: (string) $user->name,
-            email: (string) $user->email,
+            name: (string) $user->getAttribute('name'),
+            email: (string) $user->getAttribute('email'),
         );
     }
 }
