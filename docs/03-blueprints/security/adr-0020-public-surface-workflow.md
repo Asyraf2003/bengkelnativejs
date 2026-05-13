@@ -176,7 +176,7 @@ Recommended slice order:
 5. Slice 5 attachment MIME/content-disposition
 6. Slice 6 count/stat disclosure
 7. ADR-0020 blast-radius verification
-8. final docs/handoff update
+8. final handoff update in docs/04-lifecycle/handoff
 
 ## CLI Workflow
 

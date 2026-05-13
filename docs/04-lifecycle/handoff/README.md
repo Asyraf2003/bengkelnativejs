@@ -30,5 +30,5 @@ Semua handoff lama ada di `docs/99-archive/handoff/`:
 - `kotlin/` — Kotlin Android handoffs
 - `mobile-api/` — Mobile API handoffs
 - `seeder/` — Seeder handoffs
-- `error_log/` — Error log remediation handoffs
+- `error-log/` — Error log remediation handoffs
 - `codex-security/` — Security audit handoffs
