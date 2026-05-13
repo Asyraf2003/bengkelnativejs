@@ -310,7 +310,7 @@ Run only relevant suites for the selected slice and source changes.
     git status --short --untracked-files=all
     git diff --stat
     git diff -- docs/03_blueprints/finance/finance-residual.md
-    git diff -- app routes tests docs/04_lifecycle/error-log docs/02_architecture/adr docs/03_blueprints
+    git diff -- app routes tests docs/04_lifecycle/error_log docs/02_architecture/adr docs/03_blueprints
 
 ## Handoff Rule
 

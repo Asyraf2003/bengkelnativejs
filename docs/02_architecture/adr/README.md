@@ -43,7 +43,7 @@ Superseded.
 
 Canonical replacement:
 
-- docs/02_architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+- docs/02_architecture/adr/0015_note_operational_status_open_close_editable_partial_payment.md
 
 Reason:
 

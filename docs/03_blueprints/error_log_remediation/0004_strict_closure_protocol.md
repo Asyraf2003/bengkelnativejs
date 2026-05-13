@@ -165,7 +165,7 @@ If an ADR conflict exists, stop and record the conflict. Do not patch around it 
 
 Common note/refund/workspace ADRs:
 
-- docs/02_architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
+- docs/02_architecture/adr/0015_note_operational_status_open_close_editable_partial_payment.md
 - docs/02_architecture/adr/0016-post-close-note-correction-and-refund-flexibility.md
 - docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
 - docs/02_architecture/adr/0021-note-detail-hybrid-versioning-billing-refund.md
