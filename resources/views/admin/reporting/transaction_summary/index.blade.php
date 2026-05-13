@@ -64,6 +64,13 @@
 
     <div class="col-12 col-md-6 col-xl-2">
         <div class="card"><div class="card-body">
+            <div class="text-muted small">Refund Due</div>
+            <div class="fs-5 fw-bold text-warning">Rp {{ number_format($summary['refund_due_rupiah'] ?? 0, 0, ',', '.') }}</div>
+        </div></div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-2">
+        <div class="card"><div class="card-body">
             <div class="text-muted small">Sisa Tagihan</div>
             <div class="fs-5 fw-bold text-danger">Rp {{ number_format($summary['outstanding_rupiah'] ?? 0, 0, ',', '.') }}</div>
         </div></div>
@@ -173,6 +180,7 @@
                                 <th>Customer</th>
                                 <th class="text-end">Gross</th>
                                 <th class="text-end">Kas Bersih</th>
+                                <th class="text-end">Refund Due</th>
                                 <th class="text-end">Sisa Tagihan</th>
                             </tr>
                         </thead>
@@ -187,11 +195,12 @@
                                     <td>{{ $row['customer_name'] }}</td>
                                     <td class="text-end">Rp {{ number_format($row['gross_transaction_rupiah'], 0, ',', '.') }}</td>
                                     <td class="text-end">Rp {{ number_format($row['net_cash_collected_rupiah'], 0, ',', '.') }}</td>
+                                    <td class="text-end">Rp {{ number_format($row['refund_due_rupiah'] ?? 0, 0, ',', '.') }}</td>
                                     <td class="text-end">Rp {{ number_format($row['outstanding_rupiah'], 0, ',', '.') }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted">Belum ada transaksi pada periode ini.</td>
+                                    <td colspan="7" class="text-center text-muted">Belum ada transaksi pada periode ini.</td>
                                 </tr>
                             @endforelse
                         </tbody>

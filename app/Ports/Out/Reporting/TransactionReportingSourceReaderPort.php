@@ -13,7 +13,8 @@ interface TransactionReportingSourceReaderPort
      *   customer_name:string,
      *   gross_transaction_rupiah:int,
      *   allocated_payment_rupiah:int,
-     *   refunded_rupiah:int
+     *   refunded_rupiah:int,
+     *   refund_due_rupiah:int
      * }>
      */
     public function getTransactionSummaryPerNoteRows(
@@ -26,7 +27,8 @@ interface TransactionReportingSourceReaderPort
      *   total_notes:int,
      *   gross_transaction_rupiah:int,
      *   allocated_payment_rupiah:int,
-     *   refunded_rupiah:int
+     *   refunded_rupiah:int,
+     *   refund_due_rupiah:int
      * }
      */
     public function getTransactionSummaryPerNoteReconciliation(

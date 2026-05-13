@@ -13,6 +13,7 @@ final class TransactionSummaryPerNoteRow
         private readonly int $grossTransactionRupiah,
         private readonly int $allocatedPaymentRupiah,
         private readonly int $refundedRupiah,
+        private readonly int $refundDueRupiah,
         private readonly string $paymentStatusLabel,
     ) {
     }
@@ -47,6 +48,11 @@ final class TransactionSummaryPerNoteRow
         return $this->refundedRupiah;
     }
 
+    public function refundDueRupiah(): int
+    {
+        return $this->refundDueRupiah;
+    }
+
     public function netCashCollectedRupiah(): int
     {
         return $this->allocatedPaymentRupiah - $this->refundedRupiah;
@@ -70,6 +76,7 @@ final class TransactionSummaryPerNoteRow
      *   gross_transaction_rupiah:int,
      *   allocated_payment_rupiah:int,
      *   refunded_rupiah:int,
+     *   refund_due_rupiah:int,
      *   net_cash_collected_rupiah:int,
      *   outstanding_rupiah:int,
      *   payment_status_label:string
@@ -84,6 +91,7 @@ final class TransactionSummaryPerNoteRow
             'gross_transaction_rupiah' => $this->grossTransactionRupiah(),
             'allocated_payment_rupiah' => $this->allocatedPaymentRupiah(),
             'refunded_rupiah' => $this->refundedRupiah(),
+            'refund_due_rupiah' => $this->refundDueRupiah(),
             'net_cash_collected_rupiah' => $this->netCashCollectedRupiah(),
             'outstanding_rupiah' => $this->outstandingRupiah(),
             'payment_status_label' => $this->paymentStatusLabel(),

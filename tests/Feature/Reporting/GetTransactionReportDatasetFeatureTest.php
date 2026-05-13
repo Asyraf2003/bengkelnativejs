@@ -48,6 +48,9 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
         $this->seedCustomerRefund('refund-1', 'payment-1', 'note-1', 9000, '2030-01-08', 'Koreksi');
         $this->seedCustomerRefund('refund-2', 'payment-3', 'note-3', 3000, '2030-02-01', 'Outside');
 
+        $this->seedRefundDueDisposition('disp-1', 'note-1', 'rev-1', 'settlement-1', 7000);
+        $this->seedRefundDueDisposition('disp-3', 'note-3', 'rev-3', 'settlement-3', 3000);
+
         DB::table('refund_component_allocations')->insert([
             [
                 'id' => 'rca-1',
@@ -87,6 +90,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
             'gross_transaction_rupiah' => 150000,
             'allocated_payment_rupiah' => 149999,
             'refunded_rupiah' => 9000,
+            'refund_due_rupiah' => 7000,
             'net_cash_collected_rupiah' => 140999,
             'outstanding_rupiah' => 9001,
             'settled_rows' => 1,
@@ -100,6 +104,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
                 'gross_transaction_rupiah' => 100000,
                 'allocated_payment_rupiah' => 99999,
                 'refunded_rupiah' => 9000,
+                'refund_due_rupiah' => 7000,
                 'net_cash_collected_rupiah' => 90999,
                 'outstanding_rupiah' => 9001,
             ],
@@ -109,6 +114,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
                 'gross_transaction_rupiah' => 50000,
                 'allocated_payment_rupiah' => 50000,
                 'refunded_rupiah' => 0,
+                'refund_due_rupiah' => 0,
                 'net_cash_collected_rupiah' => 50000,
                 'outstanding_rupiah' => 0,
             ],
@@ -121,6 +127,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
                 'gross_transaction_rupiah' => 100000,
                 'allocated_payment_rupiah' => 99999,
                 'refunded_rupiah' => 9000,
+                'refund_due_rupiah' => 7000,
                 'net_cash_collected_rupiah' => 90999,
                 'outstanding_rupiah' => 9001,
             ],
@@ -130,6 +137,7 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
                 'gross_transaction_rupiah' => 50000,
                 'allocated_payment_rupiah' => 50000,
                 'refunded_rupiah' => 0,
+                'refund_due_rupiah' => 0,
                 'net_cash_collected_rupiah' => 50000,
                 'outstanding_rupiah' => 0,
             ],
@@ -148,6 +156,11 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
         $this->assertSame(
             $summary['refunded_rupiah'],
             array_sum(array_column($rows, 'refunded_rupiah'))
+        );
+
+        $this->assertSame(
+            $summary['refund_due_rupiah'],
+            array_sum(array_column($rows, 'refund_due_rupiah'))
         );
 
         $this->assertSame(
@@ -217,6 +230,76 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
             'amount_rupiah' => $amountRupiah,
             'refunded_at' => $refundedAt,
             'reason' => $reason,
+        ]);
+    }
+    private function seedRefundDueDisposition(
+        string $id,
+        string $noteId,
+        string $revisionId,
+        string $settlementId,
+        int $amountRupiah,
+    ): void {
+        DB::table('note_revisions')->insert([
+            'id' => $revisionId,
+            'note_root_id' => $noteId,
+            'revision_no' => 1,
+            'status' => 'active',
+            'customer_name' => 'Reporting Customer',
+            'customer_phone' => null,
+            'transaction_date' => '2030-01-07',
+            'grand_total_rupiah' => 100000,
+            'reason' => 'Report refund due fixture',
+            'created_by_user_id' => null,
+            'created_at' => '2030-01-07 09:00:00',
+            'activated_at' => '2030-01-07 09:00:00',
+            'replaced_at' => null,
+        ]);
+
+        DB::table('note_revision_settlements')->insert([
+            'id' => $settlementId,
+            'note_revision_id' => $revisionId,
+            'note_root_id' => $noteId,
+            'gross_total_rupiah' => 100000,
+            'carry_forward_paid_rupiah' => 107000,
+            'carry_forward_refunded_rupiah' => 0,
+            'net_paid_rupiah' => 107000,
+            'outstanding_rupiah' => 0,
+            'surplus_rupiah' => $amountRupiah,
+            'settlement_status' => 'overpaid_pending',
+            'created_at' => '2030-01-07 09:00:00',
+            'updated_at' => null,
+        ]);
+
+        DB::table('audit_events')->insert([
+            'id' => 'audit-' . $id,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_disposition',
+            'aggregate_id' => $id,
+            'event_name' => 'note_revision_surplus_refund_due_created',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => 'Report refund due fixture',
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => '2030-01-07 09:30:00',
+            'metadata_json' => null,
+        ]);
+
+        DB::table('note_revision_surplus_dispositions')->insert([
+            'id' => $id,
+            'note_revision_settlement_id' => $settlementId,
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'disposition_type' => 'refund_due',
+            'amount_rupiah' => $amountRupiah,
+            'before_pending_rupiah' => $amountRupiah,
+            'after_pending_rupiah' => 0,
+            'status' => 'active',
+            'occurred_at' => '2030-01-07 09:30:00',
+            'created_at' => '2030-01-07 09:30:00',
+            'updated_at' => null,
+            'audit_event_id' => 'audit-' . $id,
         ]);
     }
 }

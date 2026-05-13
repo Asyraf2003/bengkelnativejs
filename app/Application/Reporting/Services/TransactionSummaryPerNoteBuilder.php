@@ -20,7 +20,8 @@ final class TransactionSummaryPerNoteBuilder
      *   customer_name:string,
      *   gross_transaction_rupiah:int,
      *   allocated_payment_rupiah:int,
-     *   refunded_rupiah:int
+     *   refunded_rupiah:int,
+     *   refund_due_rupiah:int
      * }> $rows
      * @return list<TransactionSummaryPerNoteRow>
      */
@@ -34,6 +35,7 @@ final class TransactionSummaryPerNoteBuilder
                 $row['gross_transaction_rupiah'],
                 $row['allocated_payment_rupiah'],
                 $row['refunded_rupiah'],
+                $row['refund_due_rupiah'] ?? 0,
                 $this->statusLabels->resolve(
                     $row['gross_transaction_rupiah'],
                     $row['allocated_payment_rupiah'],
