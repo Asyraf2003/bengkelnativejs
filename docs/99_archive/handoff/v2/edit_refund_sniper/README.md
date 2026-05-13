@@ -16,12 +16,12 @@ Folder ini tidak mengganti ADR, blueprint, workflow, atau DoD.
 
 Baca file terbaru di folder ini setelah AI_RULES:
 
-- docs/99_archive/handoff/v2/edit_refund_sniper/0001_2026-05-13_verify_baseline_and_next_session_handoff.md
+- docs/99_archive/handoff/v2/edit_refund_sniper/0001_verify_baseline_and_next_session_handoff.md
 
 Jika ada handoff baru, tambahkan file bernomor berikutnya:
 
-- 0002_YYYY-MM-DD_scope_handoff.md
-- 0003_YYYY-MM-DD_scope_handoff.md
+- 0002_scope_handoff.md
+- 0003_scope_handoff.md
 
 Lalu update bagian Latest Handoff.
 
@@ -38,12 +38,22 @@ Untuk handoff, prompt sesi berikutnya, dan file Markdown yang dikirim via chat:
 
 Proof command:
 
-    grep -RIn '```' docs/99_archive/handoff/v2/edit_refund_sniper || true
-    grep -RIn '~~~' docs/99_archive/handoff/v2/edit_refund_sniper || true
+    Use a scanner that builds fence tokens from character codes instead of storing literal fence tokens in this file.
 
 Expected proof:
 
     no output
+
+## Filename Rule
+
+Handoff filenames must not include dates.
+
+Use sequence plus scope only:
+
+    0001_verify_baseline_and_next_session_handoff.md
+    0002_revision_settlement_source_audit_handoff.md
+
+Put date inside the file metadata, not in the filename.
 
 ## Source Priority
 
@@ -68,7 +78,7 @@ Sesi berikutnya wajib baca minimal:
 - docs/01_standards/0001_index.md
 - docs/01_standards/0002_decision_policy.md
 - docs/99_archive/handoff/v2/edit_refund_sniper/README.md
-- docs/99_archive/handoff/v2/edit_refund_sniper/0001_2026-05-13_verify_baseline_and_next_session_handoff.md
+- docs/99_archive/handoff/v2/edit_refund_sniper/0001_verify_baseline_and_next_session_handoff.md
 - docs/99_archive/handoff/v2/note_finance/0003_note_revision_refund_ledger_ai_reading_map.md
 - docs/03_blueprints/finance/0006_note_revision_refund_ledger.md
 - docs/03_blueprints/finance/0007_note_revision_refund_ledger_dod.md

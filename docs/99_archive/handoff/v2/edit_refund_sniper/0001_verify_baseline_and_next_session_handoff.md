@@ -1,5 +1,11 @@
 # Handoff 0001 - Edit Refund Sniper Baseline And Next Session
 
+## Metadata
+
+- Date: 2026-05-13
+- Sequence: 0001
+- Scope: verify baseline and next session handoff
+
 ## Status
 
 Prepared for next AI session.
@@ -87,8 +93,7 @@ Rule for future AI:
 
 Required proof:
 
-    grep -RIn '```' docs/99_archive/handoff/v2/edit_refund_sniper || true
-    grep -RIn '~~~' docs/99_archive/handoff/v2/edit_refund_sniper || true
+    Use a scanner that builds fence tokens from character codes instead of storing literal fence tokens in this file.
 
 Expected:
 
@@ -177,7 +182,7 @@ Read in this order:
 1. docs/01_standards/0001_index.md
 2. docs/01_standards/0002_decision_policy.md
 3. docs/99_archive/handoff/v2/edit_refund_sniper/README.md
-4. docs/99_archive/handoff/v2/edit_refund_sniper/0001_2026-05-13_verify_baseline_and_next_session_handoff.md
+4. docs/99_archive/handoff/v2/edit_refund_sniper/0001_verify_baseline_and_next_session_handoff.md
 5. docs/99_archive/handoff/v2/note_finance/0003_note_revision_refund_ledger_ai_reading_map.md
 6. docs/03_blueprints/finance/0006_note_revision_refund_ledger.md
 7. docs/03_blueprints/finance/0007_note_revision_refund_ledger_dod.md
@@ -447,7 +452,7 @@ Use this prompt in the next AI session:
     docs/01_standards/0001_index.md
     docs/01_standards/0002_decision_policy.md
     docs/99_archive/handoff/v2/edit_refund_sniper/README.md
-    docs/99_archive/handoff/v2/edit_refund_sniper/0001_2026-05-13_verify_baseline_and_next_session_handoff.md
+    docs/99_archive/handoff/v2/edit_refund_sniper/0001_verify_baseline_and_next_session_handoff.md
     docs/99_archive/handoff/v2/note_finance/0003_note_revision_refund_ledger_ai_reading_map.md
     docs/03_blueprints/finance/0006_note_revision_refund_ledger.md
     docs/03_blueprints/finance/0007_note_revision_refund_ledger_dod.md
