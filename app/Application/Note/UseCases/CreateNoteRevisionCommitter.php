@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Application\Note\UseCases;
 
+use App\Application\Note\DTO\NoteRevisionSettlement;
 use App\Core\Note\Revision\NoteRevision;
 use App\Ports\Out\AuditLogPort;
 use App\Ports\Out\Note\NoteRevisionWriterPort;
+use App\Ports\Out\Note\NoteRevisionSettlementWriterPort;
 
 final class CreateNoteRevisionCommitter
 {
     public function __construct(
         private readonly NoteRevisionWriterPort $revisionWriter,
+        private readonly NoteRevisionSettlementWriterPort $settlements,
         private readonly CreateNoteRevisionAuditPayloadBuilder $auditPayloads,
         private readonly AuditLogPort $audit,
     ) {
@@ -23,8 +26,14 @@ final class CreateNoteRevisionCommitter
         ?string $actorId,
         string $reason,
         NoteRevision $revision,
+        ?NoteRevisionSettlement $settlement = null,
     ): CreateNoteRevisionResult {
         $this->revisionWriter->create($revision);
+
+        if ($settlement !== null) {
+            $this->settlements->create($settlement);
+        }
+
         $this->revisionWriter->setCurrentRevision(
             $noteRootId,
             $revision->id(),

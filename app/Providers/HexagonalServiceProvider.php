@@ -127,6 +127,8 @@ use App\Application\Note\Policies\NoteAddabilityPolicy;
 use App\Application\Note\Policies\CashierNoteAccessGuard;
 use App\Application\Note\Policies\NotePaidStatusPolicy;
 use App\Application\Note\Services\AddWorkItemErrorClassifier;
+use App\Application\Note\Services\BuildNoteRevisionSettlement;
+use App\Application\Note\Services\BuildCreateNoteRevisionSettlement;
 use App\Application\Note\Services\AutoCloseNoteWhenFullyPaid;
 use App\Application\Note\Services\NoteCorrectionSnapshotBuilder;
 use App\Application\Note\Services\NoteHistoryProjectionService;
@@ -286,6 +288,8 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(NoteCorrectionSnapshotBuilder::class);
         $this->app->singleton(NoteHistoryProjectionService::class);
         $this->app->singleton(NoteRowSettlementSummaryBuilder::class);
+        $this->app->singleton(BuildNoteRevisionSettlement::class);
+        $this->app->singleton(BuildCreateNoteRevisionSettlement::class);
         $this->app->singleton(PersistNoteMutationTimeline::class);
         $this->app->singleton(FinalizePaidNoteCorrection::class);
         $this->app->singleton(AllocatePaymentErrorClassifier::class);

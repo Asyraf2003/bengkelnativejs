@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Note\UseCases;
 
 use App\Application\Note\Services\ApplyNoteRevisionAsActiveReplacement;
+use App\Application\Note\Services\BuildCreateNoteRevisionSettlement;
 use App\Application\Note\Services\EditableWorkspaceNoteGuard;
 use App\Application\Note\Services\NoteCurrentRevisionResolver;
 use App\Application\Note\Services\NoteRevisionBootstrapFactory;
@@ -20,6 +21,7 @@ final class CreateNoteRevisionWorkflow
         private readonly CreateNoteRevisionPayloadNoteBuilder $payloadNotes,
         private readonly CreateNoteRevisionCommitter $committer,
         private readonly ApplyNoteRevisionAsActiveReplacement $applier,
+        private readonly BuildCreateNoteRevisionSettlement $settlements,
         private readonly EditableWorkspaceNoteGuard $guard,
         private readonly ClockPort $clock,
     ) {
@@ -52,15 +54,25 @@ final class CreateNoteRevisionWorkflow
             $root->workItems(),
         );
 
+        $revisionId = sprintf('%s-r%03d', $root->id(), $number);
+        $createdAt = $this->clock->now();
+        $settlement = $this->settlements->build(
+            sprintf('%s-settlement', $revisionId),
+            $revisionId,
+            $root->id(),
+            $replacement->totalRupiah()->amount(),
+            $createdAt,
+        );
+
         $this->applier->apply($root, $replacement, $payload['items'] ?? []);
 
         $revision = $this->factory->createNextRevision(
-            sprintf('%s-r%03d', $root->id(), $number),
+            $revisionId,
             $current->id(),
             $number,
             $root,
             $actorId,
-            $this->clock->now(),
+            $createdAt,
             $reason,
         );
 
@@ -70,6 +82,7 @@ final class CreateNoteRevisionWorkflow
             $actorId,
             $reason,
             $revision,
+            $settlement,
         );
     }
 }

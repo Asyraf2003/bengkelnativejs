@@ -63,6 +63,19 @@ final class CashierNoteRevisionSubmitFeatureTest extends TestCase
             'revision_number' => 2,
             'customer_name' => 'Budi Revised',
         ]);
+
+        $this->assertDatabaseHas('note_revision_settlements', [
+            'id' => 'note-1-r002-settlement',
+            'note_revision_id' => 'note-1-r002',
+            'note_root_id' => 'note-1',
+            'gross_total_rupiah' => 75000,
+            'carry_forward_paid_rupiah' => 0,
+            'carry_forward_refunded_rupiah' => 0,
+            'net_paid_rupiah' => 0,
+            'outstanding_rupiah' => 75000,
+            'surplus_rupiah' => 0,
+            'settlement_status' => 'underpaid',
+        ]);
     }
 
     public function test_workspace_update_route_rejects_open_note_that_is_already_settled(): void
