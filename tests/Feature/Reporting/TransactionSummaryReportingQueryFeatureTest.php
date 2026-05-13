@@ -171,6 +171,58 @@ final class TransactionSummaryReportingQueryFeatureTest extends TestCase
     }
 
 
+    public function test_downward_revision_surplus_reporting_uses_capped_allocations_not_customer_payment_gross(): void
+    {
+        $this->seedNote('note-downward-surplus-report', 'Budi Surplus', '2026-04-30', 143000);
+        $this->seedWorkItem('wi-current-surplus-report', 'note-downward-surplus-report', 1, 143000);
+
+        $this->seedCustomerPayment('pay-downward-surplus-report', 265000, '2026-04-30');
+
+        DB::table('payment_allocations')->insert([
+            'id' => 'pa-downward-surplus-report',
+            'customer_payment_id' => 'pay-downward-surplus-report',
+            'note_id' => 'note-downward-surplus-report',
+            'amount_rupiah' => 143000,
+        ]);
+
+        DB::table('payment_component_allocations')->insert([
+            'id' => 'pca-downward-surplus-report',
+            'customer_payment_id' => 'pay-downward-surplus-report',
+            'note_id' => 'note-downward-surplus-report',
+            'work_item_id' => 'wi-current-surplus-report',
+            'component_type' => 'product_only_work_item',
+            'component_ref_id' => 'wi-current-surplus-report',
+            'component_amount_rupiah_snapshot' => 143000,
+            'allocated_amount_rupiah' => 143000,
+            'allocation_priority' => 1,
+        ]);
+
+        $query = app(TransactionSummaryReportingQuery::class);
+        $rawRows = $query->rows('2026-04-01', '2026-04-30');
+        $recon = $query->reconciliation('2026-04-01', '2026-04-30');
+
+        $this->assertCount(1, $rawRows);
+        $this->assertSame(143000, $rawRows[0]['gross_transaction_rupiah']);
+        $this->assertSame(143000, $rawRows[0]['allocated_payment_rupiah']);
+        $this->assertSame(0, $rawRows[0]['refunded_rupiah']);
+
+        $builder = app(\App\Application\Reporting\Services\TransactionSummaryPerNoteBuilder::class);
+        $rows = $builder->build($rawRows);
+        $row = $rows[0]->toArray();
+
+        $this->assertSame(143000, $row['gross_transaction_rupiah']);
+        $this->assertSame(143000, $row['allocated_payment_rupiah']);
+        $this->assertSame(143000, $row['net_cash_collected_rupiah']);
+        $this->assertSame(0, $row['outstanding_rupiah']);
+        $this->assertSame('Lunas', $row['payment_status_label']);
+
+        $this->assertSame(1, $recon['total_notes']);
+        $this->assertSame(143000, $recon['gross_transaction_rupiah']);
+        $this->assertSame(143000, $recon['allocated_payment_rupiah']);
+        $this->assertSame(0, $recon['refunded_rupiah']);
+    }
+
+
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void
     {
         DB::table('notes')->insert([
