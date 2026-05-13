@@ -335,8 +335,8 @@ final class GetTransactionReportDatasetFeatureTest extends TestCase
             'audit_event_id' => 'audit-' . $id,
         ]);
     }
-}
-\n    private function seedSurplusRefundPayment(
+
+    private function seedSurplusRefundPayment(
         string $id,
         string $dispositionId,
         string $noteId,

@@ -241,8 +241,8 @@ final class TransactionCashLedgerReportingQueryFeatureTest extends TestCase
             'reason' => $reason,
         ]);
     }
-}
-\n    private function seedRefundDueDisposition(
+
+    private function seedRefundDueDisposition(
         string $id,
         string $noteId,
         string $revisionId,
