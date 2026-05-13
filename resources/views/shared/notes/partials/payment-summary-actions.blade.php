@@ -100,6 +100,38 @@
       </div>
     @endif
 
+
+    @if (! empty($note['surplus_disposition_audit_timeline'] ?? []))
+      <div class="border rounded p-3 bg-body mb-3">
+        <div class="small text-muted mb-1">Timeline Audit Surplus</div>
+        <div class="fw-semibold text-body mb-2">Riwayat Refund Due</div>
+        <div class="d-grid gap-2">
+          @foreach (($note['surplus_disposition_audit_timeline'] ?? []) as $auditItem)
+            <div class="border rounded p-2 bg-body">
+              <div class="d-flex justify-content-between align-items-start gap-2">
+                <div>
+                  <div class="fw-semibold text-body">{{ $auditItem['label'] ?? 'Refund Due Ditandai' }}</div>
+                  <div class="small text-muted">
+                    Amount {{ number_format((int) ($auditItem['amount_rupiah'] ?? 0), 0, ',', '.') }} ·
+                    Sisa pending {{ number_format((int) ($auditItem['after_pending_rupiah'] ?? 0), 0, ',', '.') }}
+                  </div>
+                  @if (! empty($auditItem['reason']))
+                    <div class="small text-muted fst-italic mt-1">Reason: {{ $auditItem['reason'] }}</div>
+                  @endif
+                </div>
+                <div class="text-end small text-muted">
+                  <div>{{ \App\Support\ViewDateFormatter::display($auditItem['occurred_at'] ?? null, true) }}</div>
+                  @if (! empty($auditItem['actor_role']))
+                    <div class="badge bg-light-secondary text-secondary mt-1">{{ $auditItem['actor_role'] }}</div>
+                  @endif
+                </div>
+              </div>
+            </div>
+          @endforeach
+        </div>
+      </div>
+    @endif
+
     @if ($note['can_show_payment_form'] ?? false)
       <div class="d-grid gap-2">
         @if ($note['can_show_partial_payment_action'] ?? false)
