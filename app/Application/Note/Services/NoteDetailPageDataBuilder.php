@@ -72,6 +72,7 @@ final class NoteDetailPageDataBuilder
                 $billingRows,
                 $revisionView['revision_timeline'],
                 $surplusDisposition,
+                $surplusDispositionAuditTimeline,
                 $history,
                 $note->isOpen(),
                 $note->isClosed(),
