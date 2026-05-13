@@ -16,7 +16,7 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
     use RefreshDatabase;
     use SeedsMinimalNotePaymentFixture;
 
-    public function test_downward_replacement_rejects_overpaid_replay_and_rolls_back_original_allocation(): void
+    public function test_downward_replacement_caps_overpaid_replay_and_preserves_customer_payment(): void
     {
         $user = $this->loginAsAuthorizedAdmin();
         $oldDate = date('Y-m-d', strtotime('-4 days'));
@@ -24,76 +24,55 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
 
         $this->seedPaidProductOnlyNote($oldDate);
 
-        $response = null;
-        $thrown = null;
-
-        try {
-            $response = $this->actingAs($user)->patch(
-                route('admin.notes.workspace.update', ['noteId' => 'note-1']),
-                [
-                    'note' => [
-                        'customer_name' => 'Budi Rejected Downward Revision',
-                        'customer_phone' => '08123456789',
-                        'transaction_date' => $today,
-                    ],
-                    'items' => [
-                        [
-                            'entry_mode' => 'product',
-                            'description' => null,
-                            'part_source' => 'store_stock',
-                            'service' => [
-                                'name' => null,
-                                'price_rupiah' => null,
-                                'notes' => null,
-                            ],
-                            'product_lines' => [
-                                [
-                                    'product_id' => 'product-1',
-                                    'qty' => 2,
-                                    'unit_price_rupiah' => 100000,
-                                    'price_basis' => 'revision_snapshot',
-                                ],
-                            ],
-                            'external_purchase_lines' => [],
+        $response = $this->actingAs($user)->patch(
+            route('admin.notes.workspace.update', ['noteId' => 'note-1']),
+            [
+                'note' => [
+                    'customer_name' => 'Budi Capped Downward Revision',
+                    'customer_phone' => '08123456789',
+                    'transaction_date' => $today,
+                ],
+                'items' => [
+                    [
+                        'entry_mode' => 'product',
+                        'description' => null,
+                        'part_source' => 'store_stock',
+                        'service' => [
+                            'name' => null,
+                            'price_rupiah' => null,
+                            'notes' => null,
                         ],
-                    ],
-                    'inline_payment' => [
-                        'decision' => 'skip',
-                        'payment_method' => null,
-                        'paid_at' => null,
-                        'amount_paid_rupiah' => null,
-                        'amount_received_rupiah' => null,
+                        'product_lines' => [
+                            [
+                                'product_id' => 'product-1',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 100000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                        ],
+                        'external_purchase_lines' => [],
                     ],
                 ],
-            );
-        } catch (DomainException $exception) {
-            $thrown = $exception;
-        }
+                'inline_payment' => [
+                    'decision' => 'skip',
+                    'payment_method' => null,
+                    'paid_at' => null,
+                    'amount_paid_rupiah' => null,
+                    'amount_received_rupiah' => null,
+                ],
+            ],
+        );
 
-        if ($thrown !== null) {
-            $this->assertSame(
-                'Payment tidak bisa dialokasikan penuh ke komponen note.',
-                $thrown->getMessage(),
-            );
-        } else {
-            $this->assertNotNull($response);
-            $response->assertSessionHasErrors();
-        }
+        $response->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('notes', [
             'id' => 'note-1',
-            'customer_name' => 'Budi Product Lama',
-            'total_rupiah' => 300000,
-        ]);
-
-        $this->assertDatabaseHas('work_items', [
-            'id' => 'wi-old-1',
-            'note_id' => 'note-1',
-            'subtotal_rupiah' => 300000,
+            'customer_name' => 'Budi Capped Downward Revision',
+            'total_rupiah' => 200000,
         ]);
 
         $this->assertSame(
-            300000,
+            200000,
             (int) DB::table('payment_component_allocations')
                 ->where('note_id', 'note-1')
                 ->where('customer_payment_id', 'payment-1')
@@ -105,15 +84,10 @@ final class NoteReplacementOverpaidAllocationReplayFeatureTest extends TestCase
             'amount_rupiah' => 300000,
         ]);
 
-        $this->assertDatabaseMissing('note_revisions', [
-            'note_root_id' => 'note-1',
-            'revision_number' => 2,
-        ]);
-
         $this->assertDatabaseMissing('payment_component_allocations', [
             'note_id' => 'note-1',
             'customer_payment_id' => 'payment-1',
-            'allocated_amount_rupiah' => 200000,
+            'allocated_amount_rupiah' => 300000,
         ]);
     }
 

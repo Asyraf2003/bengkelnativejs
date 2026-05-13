@@ -55,20 +55,40 @@ final class NoteReplacementPaymentAllocationReconciler
     public function rebuild(Note $note, array $paymentAmounts): void
     {
         $components = $this->components->fromNote($note);
+        $remainingReplayableAmount = $this->totalComponentAmount($components);
 
         foreach ($paymentAmounts as $paymentId => $amount) {
-            if ($amount <= 0) {
+            if ($amount <= 0 || $remainingReplayableAmount <= 0) {
+                continue;
+            }
+
+            $replayAmount = min($amount, $remainingReplayableAmount);
+
+            if ($replayAmount <= 0) {
                 continue;
             }
 
             $allocations = $this->allocator->allocate(
                 $paymentId,
                 $note->id(),
-                Money::fromInt($amount),
+                Money::fromInt($replayAmount),
                 $components,
             );
 
             $this->writer->createMany($allocations);
+            $remainingReplayableAmount -= $replayAmount;
         }
+    }
+
+    /**
+     * @param list<\\App\\Application\\Payment\\DTO\\PayableNoteComponent> $components
+     */
+    private function totalComponentAmount(array $components): int
+    {
+        return array_reduce(
+            $components,
+            static fn (int $total, mixed $component): int => $total + $component->amountRupiah()->amount(),
+            0,
+        );
     }
 }
