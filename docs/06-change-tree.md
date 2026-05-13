@@ -1,43 +1,77 @@
-# 🗺️ Central Documentation Map (Standard Hybrid)
+# Central Documentation Map
 
-Daftar ini adalah peta navigasi untuk seluruh dokumentasi sistem. Struktur ini menggunakan pendekatan **Hybrid**: **Struktural (Nomor)** untuk aturan tetap, dan **Kronologis (Tanggal)** untuk catatan kejadian.
+Peta navigasi seluruh dokumentasi sistem Hyperpos.
 
-## 📂 Struktur Folder (L1)
+## Struktur Folder (L1)
 
-### ⚖️ [01-standards](./01-standards/)
-Berisi "Kitab Suci" proyek. Aturan yang bersifat statis dan wajib dipatuhi.
-*   **AI_RULES**: Protokol interaksi dengan asisten AI.
-*   **DOD**: *Definition of Done* untuk validasi kualitas fitur.
-*   **ai-usage-guide**: Panduan penggunaan tools AI dalam pengembangan.
+### [01-standards](./01-standards/)
 
-### 🏛️ [02-architecture](./02-architecture/)
-Keputusan fundamental sistem yang bersifat jangka panjang.
-*   **adr/**: *Architecture Decision Records*. Gunakan penomoran urut (`0001`, `0002`, dst). Jika ada perubahan kemauan user di tanggal berbeda, buat ADR baru yang me-refer nomor lama (Supercede).
+Aturan wajib untuk semua sesi kerja AI. Bersifat statis, tidak berubah kecuali ada keputusan eksplisit.
 
-### 📐 [03-blueprints](./03-blueprints/)
-Rancangan teknis dan peta jalan sistem sebelum diimplementasikan.
-*   Berisi skema database, kontrak API, dan alur bisnis per domain (Finance, Inventory, dsb).
-*   **workflow/**: Alur kerja teknis spesifik.
+- `core/` — prinsip dasar: scope, blueprint-first, step-by-step, proof
+- `workflow/` — response structure, active step policy, handoff policy, session capacity
+- `output/` — file delivery, markdown rule, blade rule, terminal delivery
+- `architecture/` — hexagonal baseline, public contracts, error handling, debug gating, audit-dod
+- `domain/` — final domain map, UI terms, payment lifecycle, reporting boundary
+- `stack/` — Laravel rules, Go rules, AWS baseline
 
-### 🔄 [04-lifecycle](./04-lifecycle/)
-Rekam jejak operasional dan perkembangan harian. Menggunakan format **Tanggal (YYYY-MM-DD)**.
-*   **handoff/**: Catatan transisi antar sesi kerja agar konteks tidak hilang.
-*   **error-log/**: Daftar bug, audit keamanan, dan catatan remedi (perbaikan).
+### [02-architecture](./02-architecture/)
 
-### 🔍 [05_audits](./05-audits/)
-Bukti nyata (Proof of Work) bahwa sistem berjalan sesuai data.
-*   Laporan audit keamanan, stress test, dan validasi fungsional.
+Permanent decision records.
 
-### 📦 [99-archive](./99-archive/)
-Gudang penyimpanan untuk file legacy atau proses yang sudah selesai/merged.
+- `adr/` — ADR files. Naming: `NNNN-kebab-title.md`. Sequential, tidak menggunakan tanggal.
+  Jika keputusan berubah: buat ADR baru yang supersede, tandai ADR lama sebagai superseded.
+
+### [03-blueprints](./03-blueprints/)
+
+Design blueprints, DoD, dan Workflow per topik. Flat dalam subfolder topik.
+
+- `security/` — ADR-0019 s/d ADR-0023: access boundary, public surface, payment concurrency, seeder safety
+- `finance/` — note finance stabilization, finance residual, note revision refund ledger
+- `reporting/` — report export, reporting execution workflow
+- `seeder/` — legacy-to-clean
+- `mobile/` — mobile API
+- `error-log-remediation/` — DoD, sequence, workflow, strict closure protocol
+- `feature-continuation/` — feature continuation blueprint
+
+Naming file: `topic-name.md` (blueprint), `topic-name-dod.md` (DoD), `topic-name-workflow.md` (Workflow).
+
+### [04-lifecycle](./04-lifecycle/)
+
+Runtime records — ongoing, bukan historical.
+
+- `error-log/` — bug dan security findings. Naming: `NNN-kebab-title.md`
+- `handoff/` — session recovery notes sesi aktif. Naming: `YYYY-MM-DD-topic-handoff.md`
+
+### [05-audits](./05-audits/)
+
+Formal audit records. Naming: `YYYY-MM-DD-topic.md`.
+
+### [99-archive](./99-archive/)
+
+Semua legacy, superseded, historical. Copy penuh, tidak dimodifikasi.
+
+- `standards/` — old standards (handoff-ai-rules-modular)
+- `blueprints/` — blueprint v1, workflow v1
+- `dod/` — dod v1
+- `handoff/` — semua handoff lama (step-based, ui, v2, kotlin, mobile-api, seeder, error_log, codex-security)
 
 ---
 
-## 🛠️ Aturan Penamaan File (Naming Convention)
+## Naming Convention
 
-1.  **Keputusan/Aturan**: Gunakan **Nomor 4 Digit** (Contoh: `0024-implementasi-rbac.md`).
-2.  **Kejadian/Log/Audit**: Gunakan **Tanggal ISO** (Contoh: `2026-05-11-audit-security.md`).
-3.  **Huruf Kecil**: Semua nama file menggunakan `snake-case` atau `kebab-case`.
+| Jenis | Format | Contoh |
+|---|---|---|
+| ADR | `NNNN-kebab-title.md` | `0019-note-access-boundary.md` |
+| Blueprint | `topic-name.md` | `finance-residual.md` |
+| DoD | `topic-name-dod.md` | `finance-residual-dod.md` |
+| Workflow | `topic-name-workflow.md` | `finance-residual-workflow.md` |
+| Error log | `NNN-kebab-title.md` | `009-cashiers-can-rewrite.md` |
+| Audit record | `YYYY-MM-DD-topic.md` | `2026-05-06-error-log-coverage.md` |
+| Handoff aktif | `YYYY-MM-DD-topic-handoff.md` | `2026-05-12-skeleton-handoff.md` |
+| Folder | `kebab-case` | `error-log/`, `01-standards/` |
 
-## 📜 Log Perubahan Struktur
-*   **2026-05-11**: Migrasi dari struktur Flat-Legacy ke Standard Global Hybrid L1 untuk meningkatkan scannability dan auditability.
+## Log Perubahan Struktur
+
+- **2026-05-13**: Reorganisasi penuh ke standard hexagonal docs. Kebab-case konsisten, topik-based blueprint subfolders, semua legacy ke 99-archive, path references difix, duplikat konten dihilangkan.
+- **2026-05-11**: Migrasi awal dari flat-legacy ke hybrid L1.

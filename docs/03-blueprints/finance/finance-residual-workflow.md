@@ -226,7 +226,7 @@ Run route discovery:
 Run document snapshot:
 
     sed -n '1,260p' docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-    sed -n '1,260p' docs/02-architecture/adr/2026-05-04-note-revision-carry-forward-settlement.md
+    sed -n '1,260p' docs/02-architecture/adr/0025-note-revision-carry-forward-settlement.md
     sed -n '1,260p' docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
     sed -n '1,260p' docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
 

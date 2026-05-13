@@ -17,7 +17,7 @@ This is not a prototype, demo, or reduced-scope system.
 ## Source Of Truth
 
 - docs/02-architecture/adr/0018-note-revision-settlement-external-product-lifecycle.md
-- docs/02-architecture/adr/2026-05-04-note-revision-carry-forward-settlement.md
+- docs/02-architecture/adr/0025-note-revision-carry-forward-settlement.md
 - docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
 - docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-current-projection-addendum.md
 - docs/99-archive/handoff/v2/note-finance/2026-04-30-adr-0016-completion-handoff.md

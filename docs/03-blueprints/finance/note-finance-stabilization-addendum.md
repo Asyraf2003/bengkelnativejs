@@ -6,7 +6,7 @@
 - Scope: Note Finance Stabilization
 - Status: ACTIVE ADDENDUM
 - Parent blueprint: docs/03-blueprints/v2/note-finance/2026-04-29-note-finance-stabilization-blueprint.md
-- Related ADR: docs/02-architecture/adr/2026-04-29-note-current-projection-and-current-only-refund.md
+- Related ADR: docs/02-architecture/adr/0024-note-current-projection-and-current-only-refund.md
 - Related handoff: docs/99-archive/handoff/v2/note-finance/2026-04-29-current-projection-refund-edit-handoff.md
 
 ---

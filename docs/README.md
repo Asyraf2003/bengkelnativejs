@@ -2,180 +2,104 @@
 
 ## Purpose
 
-This directory contains rules, decisions, blueprints, handoffs, workflows, audits, and operational notes for the Hyperpos Laravel kasir/bengkel project.
+Direktori ini berisi seluruh dokumentasi teknis sistem Hyperpos — aturan kerja AI, keputusan arsitektur, blueprint implementasi, lifecycle records, dan audit.
 
-The goal of this index is to prevent humans or AI assistants from reading every document just to understand where to start.
+Tujuan index ini: memudahkan manusia atau AI agent menemukan dokumen yang tepat tanpa harus baca semua.
 
 ## Fast Start
 
-Run:
-
-    make docs-help
-
-Then read:
+Baca dalam urutan ini:
 
     docs/01-standards/ai-usage-guide.md
     docs/01-standards/00-index.md
-    The active blueprint for the current scope
-    The latest relevant handoff
-    The latest local command output from the operator
+    Blueprint aktif untuk scope saat ini
+    Output lokal terbaru dari operator
 
 ## Source Of Truth Priority
 
-Use this order when documents conflict:
+Gunakan urutan ini ketika dokumen saling bertentangan:
 
-1. Local command output from the operator
-2. docs/01-standards
-3. docs/adr
-4. Active blueprint
-5. Latest relevant handoff
-6. Older handoff or archive note
-7. General memory or model knowledge
-
-If local output conflicts with GitHub, local output wins.
+1. Output lokal dari operator (tertinggi)
+2. `docs/01-standards`
+3. `docs/02-architecture/adr`
+4. Blueprint aktif di `docs/03-blueprints`
+5. Handoff terbaru di `docs/04-lifecycle/handoff`
+6. Archive di `docs/99-archive`
+7. General model knowledge (terendah)
 
 ## Directory Map
 
-### docs/01-standards
+### `docs/01-standards`
 
-Mandatory operating rules for AI work in this repo.
+Aturan wajib untuk semua sesi kerja AI di repo ini.
 
-Use for: zero assumption rule, blueprint-first rule, one active step rule, proof and progress rule,
-response structure, handoff policy, architecture boundary, public contract protection,
-redaction and error handling, final domain map, stack rules.
+Gunakan untuk: zero assumption rule, blueprint-first rule, one active step rule,
+proof and progress rule, response structure, handoff policy, architecture boundary,
+public contract protection, redaction rule, final domain map, stack rules.
 
-Do not use for: daily bug notes, feature status ledger, commit hash snapshots,
-temporary UI issues, local stash notes.
+Tidak untuk: bug notes, feature status, commit hash, temporary local state.
 
-### docs/adr
+### `docs/02-architecture/adr`
 
-Permanent decision records.
+Permanent decision records. Sequential numbered `NNNN-kebab-title.md`.
 
-Use for: accepted architecture decisions, accepted domain decisions, lifecycle decisions,
-reporting boundary decisions, data representation decisions.
+Gunakan untuk: keputusan arsitektur, keputusan domain, lifecycle decisions,
+reporting boundary, data representation.
 
-Do not use for: daily handoff, temporary implementation notes, unverified ideas,
-task checklist, local command output dump.
+Jika keputusan berubah: buat ADR baru yang supersede, jangan edit ADR lama.
 
-ADR files should be stable. If a decision is replaced, mark the old ADR as superseded instead of deleting it.
+### `docs/03-blueprints`
 
-### docs/blueprint
+Design blueprints + DoD + Workflow per topik. Diorganisir dalam subfolder:
 
-Design contracts for active or recent scopes.
+- `security/` — ADR-0019 s/d ADR-0023 blueprints, dod, workflow
+- `finance/` — note finance, residual, revision-refund-ledger
+- `reporting/` — report export, reporting execution
+- `seeder/` — legacy-to-clean
+- `mobile/` — mobile API
+- `error-log-remediation/` — error log remediation docs
+- `feature-continuation/` — feature continuation blueprint
 
-Use for: scope goal, problem statement, architecture direction, phases,
-required tests, definition of done, known gaps, next active step.
+Naming: `topic-name.md` (blueprint), `topic-name-dod.md` (DoD), `topic-name-workflow.md` (Workflow).
 
-Blueprints may be active, closed, superseded, or archived.
+### `docs/04-lifecycle`
 
-### docs/workflow
+Runtime records.
 
-Roadmap and process flow documents.
+- `error-log/` — individual bug/security findings, numbered `NNN-kebab-title.md`
+- `handoff/` — session recovery notes untuk sesi aktif/terbaru
 
-Important: Some tests and old handoffs reference docs/workflow/workflow_v1.md.
-Do not rename or move this folder before backlink audit and test update.
+### `docs/05-audits`
 
-### docs/dod
+Formal audit records dengan date prefix `YYYY-MM-DD-topic.md`.
 
-Definition of done documents.
+### `docs/99-archive`
 
-### docs/handoff
+Semua dokumen legacy, superseded, dan historical. Copy penuh, tidak dimodifikasi.
 
-Session recovery notes.
+- `standards/` — old standards docs
+- `blueprints/` — blueprint v1
+- `dod/` — dod v1
+- `handoff/` — semua handoff lama (step-based, ui, v2, kotlin, dll)
 
-Use for: what was done, what was proven, what was not done, changed files,
-latest branch and HEAD, next safe step, opening prompt for the next session.
+## Naming Convention
 
-Do not treat an old handoff as permanent truth unless its decision was promoted into ADR or active blueprint.
-
-### docs/03-blueprints/v2 or docs/99-archive/handoff/v2
-
-V2 continuation lane.
-
-Use for: app running while being improved, feature continuation ledger,
-live local gaps, UI continuation handoffs, V2 session recovery.
-
-This folder is not automatically more authoritative than ADR or AI_RULES.
-
-### docs/99-archive/handoff/ui
-
-Error and audit notes. Use for: investigation notes, error-specific documentation, bug trail.
-
-## Status Tags
-
-Use these tags in docs when possible:
-
-- ACTIVE: Current source for an ongoing scope.
-- ACCEPTED: Permanent accepted decision.
-- CLOSED: Finished scope or session.
-- SUPERSEDED: Replaced by another document.
-- HISTORICAL: Kept for traceability, not current instruction.
-- STALE: May contain outdated paths or decisions. Must be reviewed before use.
-- DRAFT: Not accepted yet.
-
-## Known Overlaps To Clean Later
-
-### ADR 0014 and ADR 0015
-
-ADR 0014 is now a superseded pointer to ADR 0015.
-
-Canonical decision record:
-
-    docs/02-architecture/adr/0015-note-operational-status-open-close-editable-partial-payment.md
-
-Historical superseded pointer:
-
-    docs/02-architecture/adr/0014-note-operational-status-open-close-editable-partial-payment.md
-
-### Handoff template
-
-Canonical template: docs/01-standards/04-handoff-template.md
-Legacy template: docs/99-archive/handoff/handoff_template.md
-
-Recommended cleanup: Convert the legacy template into a pointer or archive it
-after confirming no active workflow depends on it.
-
-### docs/03-blueprints/v2/feature-continuation
-
-This path contains a feature control ledger:
-
-    docs/03-blueprints/v2/feature-continuation/00-blueprint.md
-
-Recommended cleanup: Keep it, but document that it is a V2 continuation control ledger, not a permanent ADR.
-
-### Stale setting_control references
-
-Some old handoffs reference:
-
-    docs/setting_control/first_in.md
-    docs/setting_control/ai_contract.md
-
-These paths are historical unless proven active.
-
-## Naming Rules
-
-ADR preferred:       docs/02-architecture/adr/0016-short-decision-name.md
-Blueprint preferred: docs/03-blueprints/v2/scope/YYYY-MM-DD-scope-name.md
-Handoff preferred:   docs/99-archive/handoff/v2/scope/YYYY-MM-DD-short-session-name.md
-Audit preferred:     docs/99-archive/handoff/ui/YYYY-MM-DD-short-error-name.md
+| Jenis | Format | Contoh |
+|---|---|---|
+| ADR | `NNNN-kebab-title.md` | `0019-note-access-boundary.md` |
+| Blueprint | `topic-name.md` | `finance-residual.md` |
+| DoD | `topic-name-dod.md` | `finance-residual-dod.md` |
+| Workflow | `topic-name-workflow.md` | `finance-residual-workflow.md` |
+| Error log | `NNN-kebab-title.md` | `009-cashiers-can-rewrite.md` |
+| Audit record | `YYYY-MM-DD-topic.md` | `2026-05-06-error-log-coverage.md` |
+| Handoff aktif | `YYYY-MM-DD-topic-handoff.md` | `2026-05-12-kotlin-skeleton-handoff.md` |
+| Folder | `kebab-case` | `error-log/`, `01-standards/` |
 
 ## Promotion Rule
 
-If a handoff contains a decision that should become permanent:
+Jika handoff mengandung keputusan yang harus permanen:
 
-1. Create or update an ADR.
-2. Reference the handoff as evidence.
-3. Mark the handoff as historical or closed.
-4. Do not leave the permanent decision only inside handoff.
-
-## Cleanup Rule
-
-Before moving or renaming docs:
-
-1. Run grep backlink audit.
-2. Check route, test, Makefile, and docs references.
-3. Update references.
-4. Run targeted tests if code references docs.
-5. Commit small.
-
-Never move many docs just because the tree looks ugly.
+1. Buat atau update ADR.
+2. Referensikan handoff sebagai evidence.
+3. Tandai handoff sebagai historical.
+4. Jangan biarkan keputusan permanen hanya ada di handoff.

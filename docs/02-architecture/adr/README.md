@@ -63,7 +63,7 @@ Note operational status uses open and close with editable partial payment.
 
 Current file:
 
-- docs/02-architecture/adr/2026-04-29-note-current-projection-and-current-only-refund.md
+- docs/02-architecture/adr/0024-note-current-projection-and-current-only-refund.md
 
 Status:
 

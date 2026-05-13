@@ -170,8 +170,8 @@ Common note/refund/workspace ADRs:
 - docs/02-architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
 - docs/02-architecture/adr/0021-note-detail-hybrid-versioning-billing-refund.md
 - docs/02-architecture/adr/0022-payment-allocation-concurrency-and-over-allocation-protection.md
-- docs/02-architecture/adr/2026-04-29-note-current-projection-and-current-only-refund.md
-- docs/02-architecture/adr/2026-05-04-note-revision-carry-forward-settlement.md
+- docs/02-architecture/adr/0024-note-current-projection-and-current-only-refund.md
+- docs/02-architecture/adr/0025-note-revision-carry-forward-settlement.md
 
 ### Gate 8 - Docs Alignment
 

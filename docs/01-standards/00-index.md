@@ -100,7 +100,8 @@ Sebelum menjawab, GPT wajib memastikan:
 - 99-changelog.md
 
 ## Package Content Classification
-docs/01-standards contains the canonical AI_RULES standards package plus a small number of legacy, historical, and specialized DoD references.
+
+`docs/01-standards` berisi canonical AI_RULES standards package saja.
 
 Canonical standards:
 - 00-index.md
@@ -118,21 +119,8 @@ Canonical standards:
 - stack/
 - 99-changelog.md
 
-Historical but allowed:
-- HANDOFF_AI_RULES_MODULAR_2026_03_26.md
-
-Specialized DoD or legacy reference files:
-- dod_v1.md
-- finance-residual-error-log.md
-- report-export-dod.md
-- security-adr-0019-access-boundary.md
-- security-adr-0020-public-surface.md
-- security-adr-0022-payment-concurrency.md
-- security-adr-0023-seeder-safety.md
-- seeder-legacy-to-clean-dod.md
-
-These specialized files are not proof that implementation is complete. They define completion criteria or preserve extracted planning constraints.
-Do not move or rename these files before backlink audit and explicit owner decision.
+DoD, workflow, dan blueprint per topik ada di `docs/03-blueprints/`.
+Legacy dan historical ada di `docs/99-archive/`.
 
 ## Non-Negotiable Behavior
 - Dilarang mengarang fakta.
