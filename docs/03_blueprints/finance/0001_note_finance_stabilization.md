@@ -380,7 +380,7 @@ Scope ini belum boleh disebut selesai sebelum semua item berikut terpenuhi.
 
 ### 9.1 Documentation DoD
 
-- Blueprint ini ada di docs/03_blueprints/v2/note_finance/.
+- Blueprint ini ada di docs/03_blueprints/finance/0001_note_finance_stabilization.md.
 - Setiap keputusan domain baru dicatat di blueprint atau ADR/handoff terkait.
 - Jika AI_RULES perlu pointer baru, changelog harus ditambah.
 - Tidak semua detail scope dimasukkan ke AI_RULES; AI_RULES tetap constitution kerja, blueprint ini menjadi contract scope.
