@@ -85,6 +85,80 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
         $this->assertSame('Rp 9.001', $viewData['rows'][0]['outstanding']);
     }
 
+
+    public function test_exports_include_surplus_refund_paid_and_remaining_refund_due_from_dataset(): void
+    {
+        $tableWriter = new TransactionReportExcelTableWriter();
+
+        $workbookBuilder = new TransactionReportExcelWorkbookBuilder(
+            new TransactionReportExcelSummarySheetWriter($tableWriter),
+            new TransactionReportExcelDetailSheetWriter($tableWriter),
+            new TransactionReportExcelPeriodSheetWriter($tableWriter),
+            new TransactionReportExcelCustomerSheetWriter($tableWriter),
+        );
+
+        $spreadsheet = $workbookBuilder->build($this->datasetWithSurplusRefundPaid(), [
+            'date_from' => '2030-01-01',
+            'date_to' => '2030-01-31',
+        ]);
+
+        $summary = $spreadsheet->getSheetByName('Ringkasan');
+        $detail = $spreadsheet->getSheetByName('Rincian Nota');
+        $period = $spreadsheet->getSheetByName('Rekap Per Tanggal');
+        $customer = $spreadsheet->getSheetByName('Rekap Per Customer');
+
+        $this->assertNotNull($summary);
+        $this->assertNotNull($detail);
+        $this->assertNotNull($period);
+        $this->assertNotNull($customer);
+
+        $this->assertSame('Total Surplus Refund Paid', $summary->getCell('A11')->getValue());
+        $this->assertSame(3000, $summary->getCell('B11')->getValue());
+        $this->assertSame('Total Sisa Refund Due', $summary->getCell('A12')->getValue());
+        $this->assertSame(4000, $summary->getCell('B12')->getValue());
+
+        $this->assertSame('Surplus Refund Paid', $detail->getCell('I1')->getValue());
+        $this->assertSame(3000, $detail->getCell('I2')->getValue());
+        $this->assertSame('Sisa Refund Due', $detail->getCell('J1')->getValue());
+        $this->assertSame(4000, $detail->getCell('J2')->getValue());
+
+        $this->assertSame('Surplus Refund Paid', $period->getCell('G1')->getValue());
+        $this->assertSame(3000, $period->getCell('G2')->getValue());
+        $this->assertSame('Sisa Refund Due', $period->getCell('H1')->getValue());
+        $this->assertSame(4000, $period->getCell('H2')->getValue());
+
+        $this->assertSame('Surplus Refund Paid', $customer->getCell('G1')->getValue());
+        $this->assertSame(3000, $customer->getCell('G2')->getValue());
+        $this->assertSame('Sisa Refund Due', $customer->getCell('H1')->getValue());
+        $this->assertSame(4000, $customer->getCell('H2')->getValue());
+
+        $spreadsheet->disconnectWorksheets();
+
+        $pdfBuilder = new TransactionReportPdfViewDataBuilder(new class implements ClockPort {
+            public function now(): DateTimeImmutable
+            {
+                return new DateTimeImmutable('2030-01-31 10:00:00');
+            }
+        });
+
+        $viewData = $pdfBuilder->build($this->datasetWithSurplusRefundPaid(), [
+            'date_from' => '2030-01-01',
+            'date_to' => '2030-01-31',
+        ]);
+
+        $this->assertContains(
+            ['label' => 'Surplus Refund Paid', 'value' => 'Rp 3.000'],
+            $viewData['summaryItems'],
+        );
+        $this->assertContains(
+            ['label' => 'Sisa Refund Due', 'value' => 'Rp 4.000'],
+            $viewData['summaryItems'],
+        );
+
+        $this->assertSame('Rp 3.000', $viewData['rows'][0]['surplus_refund_paid']);
+        $this->assertSame('Rp 4.000', $viewData['rows'][0]['remaining_refund_due']);
+    }
+
     private function dataset(): array
     {
         return [
@@ -133,4 +207,62 @@ final class TransactionReportExportRefundDueVisibilityTest extends TestCase
             ]],
         ];
     }
+    private function datasetWithSurplusRefundPaid(): array
+    {
+        return [
+            'summary' => [
+                'total_rows' => 1,
+                'gross_transaction_rupiah' => 100000,
+                'allocated_payment_rupiah' => 99999,
+                'refunded_rupiah' => 9000,
+                'refund_due_rupiah' => 7000,
+                'surplus_refund_paid_rupiah' => 3000,
+                'remaining_refund_due_rupiah' => 4000,
+                'net_cash_collected_rupiah' => 90999,
+                'outstanding_rupiah' => 9001,
+                'settled_rows' => 0,
+                'outstanding_rows' => 1,
+            ],
+            'rows' => [[
+                'note_id' => 'note-export-surplus-refund-paid-001',
+                'transaction_date' => '2030-01-07',
+                'customer_name' => 'Customer Export Surplus Refund Paid',
+                'gross_transaction_rupiah' => 100000,
+                'allocated_payment_rupiah' => 99999,
+                'refunded_rupiah' => 9000,
+                'refund_due_rupiah' => 7000,
+                'surplus_refund_paid_rupiah' => 3000,
+                'remaining_refund_due_rupiah' => 4000,
+                'net_cash_collected_rupiah' => 90999,
+                'outstanding_rupiah' => 9001,
+                'payment_status_label' => 'Belum Lunas',
+            ]],
+            'period_rows' => [[
+                'period_label' => '2030-01-07',
+                'total_rows' => 1,
+                'gross_transaction_rupiah' => 100000,
+                'allocated_payment_rupiah' => 99999,
+                'refunded_rupiah' => 9000,
+                'refund_due_rupiah' => 7000,
+                'surplus_refund_paid_rupiah' => 3000,
+                'remaining_refund_due_rupiah' => 4000,
+                'net_cash_collected_rupiah' => 90999,
+                'outstanding_rupiah' => 9001,
+            ]],
+            'customer_rows' => [[
+                'customer_name' => 'Customer Export Surplus Refund Paid',
+                'total_rows' => 1,
+                'gross_transaction_rupiah' => 100000,
+                'allocated_payment_rupiah' => 99999,
+                'refunded_rupiah' => 9000,
+                'refund_due_rupiah' => 7000,
+                'surplus_refund_paid_rupiah' => 3000,
+                'remaining_refund_due_rupiah' => 4000,
+                'net_cash_collected_rupiah' => 90999,
+                'outstanding_rupiah' => 9001,
+            ]],
+        ];
+    }
+
+
 }
