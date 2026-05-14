@@ -108,6 +108,61 @@ final class TransactionReportPageFeatureTest extends TestCase
     }
 
 
+
+    public function test_admin_can_see_surplus_refund_paid_and_remaining_refund_due_on_transaction_report_page(): void
+    {
+        $this->seedNote('note-surplus-paid-screen', 'Budi Surplus Paid', '2030-01-10', 100000);
+        $this->seedWorkItem('wi-surplus-paid-screen', 'note-surplus-paid-screen', 1, 100000);
+
+        $this->seedCustomerPayment('payment-surplus-paid-screen', 100000, '2030-01-10');
+        $this->seedPaymentAllocation(
+            'allocation-surplus-paid-screen',
+            'payment-surplus-paid-screen',
+            'note-surplus-paid-screen',
+            100000,
+        );
+
+        $this->seedCustomerRefund(
+            'refund-customer-screen',
+            'payment-surplus-paid-screen',
+            'note-surplus-paid-screen',
+            9000,
+            '2030-01-10',
+            'Customer refund screen fixture',
+        );
+
+        $this->seedRefundDueDisposition(
+            'disp-surplus-paid-screen',
+            'note-surplus-paid-screen',
+            'rev-surplus-paid-screen',
+            'settlement-surplus-paid-screen',
+            7000,
+        );
+
+        $this->seedSurplusRefundPayment(
+            'surplus-payment-screen',
+            'disp-surplus-paid-screen',
+            'note-surplus-paid-screen',
+            'rev-surplus-paid-screen',
+            'settlement-surplus-paid-screen',
+            3000,
+            '2030-01-10',
+        );
+
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.transaction_summary.index', [
+                'period_mode' => 'monthly',
+                'reference_date' => '2030-01-31',
+            ])
+        );
+
+        $response->assertOk();
+        $response->assertSee('Surplus Refund Paid');
+        $response->assertSee('Sisa Refund Due');
+        $response->assertSee('Rp 3.000');
+        $response->assertSee('Rp 4.000');
+    }
+
     public function test_admin_can_filter_transaction_report_with_custom_range(): void
     {
         $this->seedNote('note-outside-before', 'Outside Before', '2030-01-04', 10000);
@@ -216,4 +271,118 @@ final class TransactionReportPageFeatureTest extends TestCase
             'reason' => $reason,
         ]);
     }
+    private function seedRefundDueDisposition(
+        string $id,
+        string $noteId,
+        string $revisionId,
+        string $settlementId,
+        int $amountRupiah,
+    ): void {
+        DB::table('note_revisions')->insert([
+            'id' => $revisionId,
+            'note_root_id' => $noteId,
+            'revision_number' => 1,
+            'parent_revision_id' => null,
+            'created_by_actor_id' => null,
+            'reason' => 'Report screen refund due fixture',
+            'customer_name' => 'Reporting Screen Customer',
+            'customer_phone' => null,
+            'transaction_date' => '2030-01-10',
+            'grand_total_rupiah' => 100000,
+            'line_count' => 0,
+            'created_at' => '2030-01-10 09:00:00',
+            'updated_at' => null,
+        ]);
+
+        DB::table('note_revision_settlements')->insert([
+            'id' => $settlementId,
+            'note_revision_id' => $revisionId,
+            'note_root_id' => $noteId,
+            'gross_total_rupiah' => 100000,
+            'carry_forward_paid_rupiah' => 107000,
+            'carry_forward_refunded_rupiah' => 0,
+            'net_paid_rupiah' => 107000,
+            'outstanding_rupiah' => 0,
+            'surplus_rupiah' => $amountRupiah,
+            'settlement_status' => 'overpaid_pending',
+            'created_at' => '2030-01-10 09:00:00',
+            'updated_at' => null,
+        ]);
+
+        DB::table('audit_events')->insert([
+            'id' => 'audit-' . $id,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_disposition',
+            'aggregate_id' => $id,
+            'event_name' => 'note_revision_surplus_refund_due_created',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => 'Report screen refund due fixture',
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => '2030-01-10 09:30:00',
+            'metadata_json' => null,
+        ]);
+
+        DB::table('note_revision_surplus_dispositions')->insert([
+            'id' => $id,
+            'note_revision_settlement_id' => $settlementId,
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'disposition_type' => 'refund_due',
+            'amount_rupiah' => $amountRupiah,
+            'before_pending_rupiah' => $amountRupiah,
+            'after_pending_rupiah' => 0,
+            'status' => 'active',
+            'occurred_at' => '2030-01-10 09:30:00',
+            'created_at' => '2030-01-10 09:30:00',
+            'updated_at' => null,
+            'audit_event_id' => 'audit-' . $id,
+        ]);
+    }
+
+    private function seedSurplusRefundPayment(
+        string $id,
+        string $dispositionId,
+        string $noteId,
+        string $revisionId,
+        string $settlementId,
+        int $amountRupiah,
+        string $effectiveDate,
+    ): void {
+        DB::table('audit_events')->insert([
+            'id' => 'audit-' . $id,
+            'bounded_context' => 'note',
+            'aggregate_type' => 'note_revision_surplus_refund_payment',
+            'aggregate_id' => $id,
+            'event_name' => 'note_revision_surplus_refund_paid_recorded',
+            'actor_id' => 'admin-1',
+            'actor_role' => 'admin',
+            'reason' => 'Report screen surplus refund paid fixture',
+            'source_channel' => 'test',
+            'request_id' => null,
+            'correlation_id' => null,
+            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'metadata_json' => null,
+        ]);
+
+        DB::table('note_revision_surplus_refund_payments')->insert([
+            'id' => $id,
+            'note_revision_surplus_disposition_id' => $dispositionId,
+            'note_revision_settlement_id' => $settlementId,
+            'note_root_id' => $noteId,
+            'note_revision_id' => $revisionId,
+            'amount_rupiah' => $amountRupiah,
+            'effective_date' => $effectiveDate,
+            'occurred_at' => $effectiveDate . ' 10:00:00',
+            'status' => 'active',
+            'idempotency_key' => 'idem-' . $id,
+            'audit_event_id' => 'audit-' . $id,
+            'created_at' => $effectiveDate . ' 10:00:00',
+            'updated_at' => null,
+        ]);
+    }
+
+
 }
