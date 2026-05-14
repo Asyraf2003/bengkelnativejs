@@ -136,6 +136,34 @@ final class RecordCustomerRefundFeatureTest extends TestCase
         ]);
     }
 
+
+    public function test_it_stores_operational_timestamps_on_new_refund(): void
+    {
+        $this->seedNote();
+        $this->seedPaymentAndAllocations();
+
+        $result = app(RecordCustomerRefundHandler::class)->handle(
+            'payment-1',
+            'note-1',
+            4000,
+            '2026-04-03',
+            'Refund jasa timestamp',
+            'actor-1',
+        );
+
+        $this->assertTrue($result->isSuccess());
+
+        $row = DB::table('customer_refunds')
+            ->where('customer_payment_id', 'payment-1')
+            ->where('note_id', 'note-1')
+            ->first(['created_at', 'updated_at']);
+
+        $this->assertNotNull($row);
+        $this->assertNotNull($row->created_at);
+        $this->assertNotNull($row->updated_at);
+        $this->assertSame($row->created_at, $row->updated_at);
+    }
+
     private function seedNote(): void
     {
         $this->seedNotePaymentProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 5000);

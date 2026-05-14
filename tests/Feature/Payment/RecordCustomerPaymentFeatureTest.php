@@ -97,4 +97,61 @@ final class RecordCustomerPaymentFeatureTest extends TestCase
 
         $this->assertDatabaseCount('customer_payments', 0);
     }
+
+    public function test_record_customer_payment_handler_stores_operational_timestamps_on_new_payment(): void
+    {
+        $handler = new RecordCustomerPaymentHandler(
+            new DatabaseCustomerPaymentWriterAdapter(),
+            new class () implements UuidPort {
+                public function generate(): string
+                {
+                    return 'payment-timestamp-1';
+                }
+            },
+        );
+
+        $result = $handler->handle(
+            150000,
+            '2026-03-15',
+        );
+
+        $this->assertTrue($result->isSuccess());
+
+        $row = DB::table('customer_payments')
+            ->where('id', 'payment-timestamp-1')
+            ->first(['created_at', 'updated_at']);
+
+        $this->assertNotNull($row);
+        $this->assertNotNull($row->created_at);
+        $this->assertNotNull($row->updated_at);
+        $this->assertSame($row->created_at, $row->updated_at);
+    }
+
+    public function test_customer_payment_writer_stores_operational_timestamps_on_cash_detail(): void
+    {
+        $payment = CustomerPayment::create(
+            'payment-cash-timestamp-1',
+            Money::fromInt(150000),
+            new DateTimeImmutable('2026-03-15'),
+            CustomerPayment::METHOD_CASH,
+        );
+
+        $cashDetail = CustomerPaymentCashDetail::create(
+            'payment-cash-timestamp-1',
+            Money::fromInt(150000),
+            Money::fromInt(200000),
+        );
+
+        (new DatabaseCustomerPaymentWriterAdapter())->create($payment, $cashDetail);
+
+        $row = DB::table('customer_payment_cash_details')
+            ->where('customer_payment_id', 'payment-cash-timestamp-1')
+            ->first(['created_at', 'updated_at']);
+
+        $this->assertNotNull($row);
+        $this->assertNotNull($row->created_at);
+        $this->assertNotNull($row->updated_at);
+        $this->assertSame($row->created_at, $row->updated_at);
+    }
+
 }
