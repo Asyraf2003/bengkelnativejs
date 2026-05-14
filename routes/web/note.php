@@ -77,10 +77,6 @@ Route::middleware(['auth', EnsureCashierAreaAccess::class, EnsureTransactionEntr
         Route::get('/products/lookup', ProductLookupController::class)->name('products.lookup');
         Route::get('/workspace/draft', GetTransactionWorkspaceDraftController::class)->name('workspace.draft.show');
         Route::post('/workspace/draft', SaveTransactionWorkspaceDraftController::class)->name('workspace.draft.save');
-        Route::post(
-            '/revision-settlements/{settlementId}/refund-due',
-            AdminCreateNoteRevisionSurplusRefundDueController::class
-        )->name('revision-settlements.refund-due.store');
         Route::get('/workspace/create', CreateTransactionWorkspacePageController::class)->name('workspace.create');
 
         Route::middleware(EnsureCashierNoteAccess::class)->group(function (): void {

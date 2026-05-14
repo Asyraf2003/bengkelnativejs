@@ -133,6 +133,32 @@ final class CreateNoteRevisionSurplusRefundDueControllerFeatureTest extends Test
         ]);
     }
 
+    public function test_cashier_cannot_create_refund_due_through_cashier_route(): void
+    {
+        $cashier = $this->seedActor('cashier-refund-due-cashier-route@example.test', 'kasir');
+        $this->seedSourceSettlement('settlement-refund-due-http-cashier-route-001', 122000);
+        $this->bindDeterministicPorts();
+
+        $response = $this->actingAs($cashier)
+            ->post('/cashier/notes/revision-settlements/settlement-refund-due-http-cashier-route-001/refund-due', [
+                'amount_rupiah' => 50000,
+                'reason' => 'Cashier must not create refund due through cashier route.',
+            ]);
+
+        $response->assertNotFound();
+
+        $this->assertDatabaseMissing('note_revision_surplus_dispositions', [
+            'note_revision_settlement_id' => 'settlement-refund-due-http-cashier-route-001',
+        ]);
+
+        $this->assertDatabaseMissing('audit_events', [
+            'aggregate_type' => 'note_revision_surplus_disposition',
+            'actor_id' => (string) $cashier->getAuthIdentifier(),
+            'actor_role' => 'admin',
+            'source_channel' => 'web_admin',
+        ]);
+    }
+
     public function test_admin_without_transaction_capability_can_create_refund_due(): void
     {
         $admin = $this->seedActor('admin-no-transaction-cap-refund-due@example.test', 'admin');
