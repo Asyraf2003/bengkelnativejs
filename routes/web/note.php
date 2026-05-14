@@ -6,6 +6,7 @@ use App\Adapters\In\Http\Controllers\Admin\Note\NoteDetailPageController as Admi
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryPageController as AdminNoteHistoryPageController;
 use App\Adapters\In\Http\Controllers\Admin\Note\NoteHistoryTableDataController as AdminNoteHistoryTableDataController;
 use App\Adapters\In\Http\Controllers\Admin\Note\CreateNoteRevisionSurplusRefundDueController as AdminCreateNoteRevisionSurplusRefundDueController;
+use App\Adapters\In\Http\Controllers\Admin\Note\RecordNoteRevisionSurplusRefundPaymentController as AdminRecordNoteRevisionSurplusRefundPaymentController;
 use App\Adapters\In\Http\Controllers\Admin\Note\ReopenClosedNoteController as AdminReopenClosedNoteController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\CreateTransactionWorkspacePageController;
 use App\Adapters\In\Http\Controllers\Cashier\Note\EditTransactionWorkspacePageController;
@@ -49,6 +50,10 @@ Route::middleware(['auth', EnsureAdminPageAccess::class, 'app.shell'])
             '/revision-settlements/{settlementId}/refund-due',
             AdminCreateNoteRevisionSurplusRefundDueController::class
         )->name('revision-settlements.refund-due.store');
+        Route::post(
+            '/revision-surplus-dispositions/{dispositionId}/refund-paid',
+            AdminRecordNoteRevisionSurplusRefundPaymentController::class
+        )->name('revision-surplus-dispositions.refund-paid.store');
         Route::get('/{noteId}/workspace/edit', EditTransactionWorkspacePageController::class)->name('workspace.edit');
         Route::get('/{noteId}', AdminNoteDetailPageController::class)->name('show');
 
