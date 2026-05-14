@@ -481,3 +481,10 @@ Create the DB audit matrix for P0 tables.
 Do not patch `notes` yet.
 
 Start with the `notes` matrix row because it is the root transaction header and reduces downstream rework risk.
+
+## 12. Handoff Archive
+
+DB hardening handoff archive:
+
+- [DB hardening handoff folder](../../99_archive/handoff/db/)
+- [Current DB hardening handoff](../../99_archive/handoff/db/0001_db_hardening_notes_payment_refund_handoff.md)

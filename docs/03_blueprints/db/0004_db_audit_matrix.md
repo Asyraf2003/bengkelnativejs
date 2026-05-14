@@ -106,3 +106,9 @@ Next table group:
 
 - `customer_payments` and `customer_refunds` audit.
 
+## 7. Handoff Archive
+
+DB hardening handoff archive:
+
+- [DB hardening handoff folder](../../99_archive/handoff/db/)
+- [Current DB hardening handoff](../../99_archive/handoff/db/0001_db_hardening_notes_payment_refund_handoff.md)

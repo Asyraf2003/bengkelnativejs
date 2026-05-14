@@ -308,3 +308,10 @@ Remaining gaps:
 - Browser/manual QA not run.
 - PostgreSQL runtime not active/proven.
 - No timestamp read-path/index optimization approved.
+
+## 19. Handoff Archive
+
+DB hardening handoff archive:
+
+- [DB hardening handoff folder](../../99_archive/handoff/db/)
+- [Current DB hardening handoff](../../99_archive/handoff/db/0001_db_hardening_notes_payment_refund_handoff.md)
