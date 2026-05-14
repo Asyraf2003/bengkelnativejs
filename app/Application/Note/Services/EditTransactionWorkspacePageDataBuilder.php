@@ -19,7 +19,7 @@ final class EditTransactionWorkspacePageDataBuilder
         private readonly CreateTransactionWorkspacePageDataBuilder $options,
         private readonly NoteWorkspacePanelDataBuilder $workspacePanel,
         private readonly NoteRefundPaymentOptionsBuilder $refundPaymentOptions,
-        private readonly NoteOutstandingPaymentAmountResolver $paymentSettlement,
+        private readonly EditTransactionWorkspacePaymentSettlementDataBuilder $paymentSettlement,
         private readonly RouteUrlGeneratorPort $urls,
         private readonly ClockPort $clock,
         private readonly EditTransactionWorkspaceRouteNames $routes,
@@ -69,7 +69,7 @@ final class EditTransactionWorkspacePageDataBuilder
             'refundAction' => $this->urls->route($routeNames['refunds_store'], ['noteId' => $normalized]),
             'refundDateDefault' => $today,
             'refundPaymentOptions' => $this->refundPaymentOptions->build($note->id()),
-            'workspacePaymentSettlement' => $this->paymentSettlementData($note->id()),
+            'workspacePaymentSettlement' => $this->paymentSettlement->build($note->id()),
             'workspaceRefundRows' => [],
             'canShowRefundModal' => false,
             'oldNote' => $oldNote,
@@ -84,21 +84,5 @@ final class EditTransactionWorkspacePageDataBuilder
                 'productLookupEndpoint' => $productLookupEndpoint,
             ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: '{}',
         ] + $this->options->build();
-    }
-
-    /**
-     * @return array<string, mixed>|null
-     */
-    private function paymentSettlementData(string $noteId): ?array
-    {
-        $result = $this->paymentSettlement->resolveFull($noteId);
-
-        if ($result->isFailure()) {
-            return null;
-        }
-
-        $data = $result->data();
-
-        return is_array($data) ? $data : null;
     }
 }
