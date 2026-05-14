@@ -159,6 +159,63 @@ final class CreateNoteRevisionSurplusRefundDueControllerFeatureTest extends Test
         ]);
     }
 
+    public function test_refund_due_rejects_amount_that_exceeds_remaining_pending_after_existing_active_disposition(): void
+    {
+        $admin = $this->seedActor('admin-refund-due-existing-active@example.test', 'admin');
+        $this->seedSourceSettlement('settlement-refund-due-http-existing-active-001', 122000);
+
+        DB::table('audit_events')->insert([
+            'id' => 'audit-event-existing-active-refund-due-001',
+            'aggregate_type' => 'note_revision_surplus_disposition',
+            'aggregate_id' => 'disposition-existing-active-refund-due-001',
+            'event_name' => 'note_revision_surplus_refund_due_created',
+            'actor_id' => (string) $admin->getAuthIdentifier(),
+            'actor_role' => 'admin',
+            'reason' => 'Existing active refund due.',
+            'source_channel' => 'web_admin',
+            'request_id' => 'request-existing-active-refund-due-001',
+            'correlation_id' => 'correlation-existing-active-refund-due-001',
+            'occurred_at' => '2026-05-13 09:45:00',
+            'created_at' => '2026-05-13 09:45:00',
+        ]);
+
+        DB::table('note_revision_surplus_dispositions')->insert([
+            'id' => 'disposition-existing-active-refund-due-001',
+            'note_revision_settlement_id' => 'settlement-refund-due-http-existing-active-001',
+            'note_root_id' => 'note-root-http-001',
+            'note_revision_id' => 'note-revision-http-001',
+            'disposition_type' => 'refund_due',
+            'amount_rupiah' => 80000,
+            'before_pending_rupiah' => 122000,
+            'after_pending_rupiah' => 42000,
+            'status' => 'active',
+            'occurred_at' => '2026-05-13 09:45:00',
+            'created_at' => '2026-05-13 09:45:00',
+            'updated_at' => null,
+            'audit_event_id' => 'audit-event-existing-active-refund-due-001',
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->from(route('admin.notes.show', ['noteId' => 'note-root-http-001']))
+            ->post(route('admin.notes.revision-settlements.refund-due.store', [
+                'settlementId' => 'settlement-refund-due-http-existing-active-001',
+            ]), [
+                'amount_rupiah' => 50000,
+                'reason' => 'Second refund due must not exceed remaining pending.',
+            ]);
+
+        $response->assertRedirect(route('admin.notes.show', ['noteId' => 'note-root-http-001']));
+        $response->assertSessionHasErrors(['refund_due']);
+
+        $this->assertSame(
+            80000,
+            (int) DB::table('note_revision_surplus_dispositions')
+                ->where('note_revision_settlement_id', 'settlement-refund-due-http-existing-active-001')
+                ->where('status', 'active')
+                ->sum('amount_rupiah'),
+        );
+    }
+
     public function test_admin_without_transaction_capability_can_create_refund_due(): void
     {
         $admin = $this->seedActor('admin-no-transaction-cap-refund-due@example.test', 'admin');
