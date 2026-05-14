@@ -10,6 +10,8 @@ use App\Ports\Out\Note\NoteReaderPort;
 use App\Ports\Out\Note\NoteWriterPort;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 final class NoteOperationalStatePersistenceFeatureTest extends TestCase
@@ -32,8 +34,20 @@ final class NoteOperationalStatePersistenceFeatureTest extends TestCase
             'admin-2',
         );
 
-        app(NoteWriterPort::class)->create($note);
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-04-03 09:00:00'));
+
+            app(NoteWriterPort::class)->create($note);
+        } finally {
+            Carbon::setTestNow();
+        }
+
+        $row = DB::table('notes')->where('id', 'note-1')->first();
         $loaded = app(NoteReaderPort::class)->getById('note-1');
+
+        $this->assertNotNull($row);
+        $this->assertSame('2026-04-03 09:00:00', (string) $row->created_at);
+        $this->assertSame('2026-04-03 09:00:00', (string) $row->updated_at);
 
         $this->assertNotNull($loaded);
         $this->assertSame(Note::STATE_CLOSED, $loaded->noteState());
@@ -46,7 +60,13 @@ final class NoteOperationalStatePersistenceFeatureTest extends TestCase
     public function test_it_updates_operational_state_metadata(): void
     {
         $open = Note::create('note-2', 'Sari', null, new DateTimeImmutable('2026-04-03'));
-        app(NoteWriterPort::class)->create($open);
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-04-03 09:00:00'));
+
+            app(NoteWriterPort::class)->create($open);
+        } finally {
+            Carbon::setTestNow();
+        }
 
         $closed = Note::rehydrate(
             'note-2',
@@ -62,8 +82,20 @@ final class NoteOperationalStatePersistenceFeatureTest extends TestCase
             null,
         );
 
-        app(NoteWriterPort::class)->updateOperationalState($closed);
+        try {
+            Carbon::setTestNow(Carbon::parse('2026-04-03 13:00:00'));
+
+            app(NoteWriterPort::class)->updateOperationalState($closed);
+        } finally {
+            Carbon::setTestNow();
+        }
+
+        $row = DB::table('notes')->where('id', 'note-2')->first();
         $loaded = app(NoteReaderPort::class)->getById('note-2');
+
+        $this->assertNotNull($row);
+        $this->assertSame('2026-04-03 09:00:00', (string) $row->created_at);
+        $this->assertSame('2026-04-03 13:00:00', (string) $row->updated_at);
 
         $this->assertNotNull($loaded);
         $this->assertSame(Note::STATE_CLOSED, $loaded->noteState());

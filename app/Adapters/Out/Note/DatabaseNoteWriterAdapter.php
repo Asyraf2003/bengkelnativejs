@@ -12,6 +12,8 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
 {
     public function create(Note $note): void
     {
+        $now = now()->format('Y-m-d H:i:s');
+
         DB::table('notes')->insert([
             'id' => $note->id(),
             'customer_name' => $note->customerName(),
@@ -24,6 +26,8 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
             'reopened_at' => $note->reopenedAt()?->format('Y-m-d H:i:s'),
             'reopened_by_actor_id' => $note->reopenedByActorId(),
             'total_rupiah' => $note->totalRupiah()->amount(),
+            'created_at' => $now,
+            'updated_at' => $now,
         ]);
     }
 
@@ -34,6 +38,7 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
             'customer_phone' => $note->customerPhone(),
             'transaction_date' => $note->transactionDate()->format('Y-m-d'),
             'due_date' => $note->dueDate()->format('Y-m-d'),
+            'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -41,6 +46,7 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
     {
         DB::table('notes')->where('id', $note->id())->update([
             'total_rupiah' => $note->totalRupiah()->amount(),
+            'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -52,6 +58,7 @@ final class DatabaseNoteWriterAdapter implements NoteWriterPort
             'closed_by_actor_id' => $note->closedByActorId(),
             'reopened_at' => $note->reopenedAt()?->format('Y-m-d H:i:s'),
             'reopened_by_actor_id' => $note->reopenedByActorId(),
+            'updated_at' => now()->format('Y-m-d H:i:s'),
         ]);
     }
 }
