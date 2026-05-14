@@ -92,6 +92,8 @@ final class TransactionReportPdfExportFeatureTest extends TestCase
                     'paid' => 'Rp 99.999',
                     'refund' => 'Rp 9.000',
                     'refund_due' => 'Rp 0',
+                    'surplus_refund_paid' => 'Rp 0',
+                    'remaining_refund_due' => 'Rp 0',
                     'net_paid' => 'Rp 90.999',
                     'outstanding' => 'Rp 9.001',
                     'status' => 'Ada Refund',
