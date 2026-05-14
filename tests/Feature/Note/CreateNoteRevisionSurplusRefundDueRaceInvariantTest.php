@@ -26,8 +26,8 @@ final class CreateNoteRevisionSurplusRefundDueRaceInvariantTest extends TestCase
 {
     public function test_stale_pending_double_create_must_not_exceed_settlement_surplus(): void
     {
-        $reader = new StalePendingRefundDueReaderFake(122000);
         $writer = new CapturingRefundDueWriterFake();
+        $reader = new LockAwarePendingRefundDueReaderFake(122000, $writer);
         $handler = new CreateNoteRevisionSurplusRefundDueHandler(
             $reader,
             $writer,
@@ -74,26 +74,38 @@ final class CreateNoteRevisionSurplusRefundDueRaceInvariantTest extends TestCase
     }
 }
 
-final class StalePendingRefundDueReaderFake implements NoteRevisionSurplusDispositionReaderPort
+final class LockAwarePendingRefundDueReaderFake implements NoteRevisionSurplusDispositionReaderPort
 {
-    public function __construct(private readonly int $surplusRupiah)
-    {
+    public function __construct(
+        private readonly int $surplusRupiah,
+        private readonly CapturingRefundDueWriterFake $writer,
+    ) {
     }
 
     public function findPendingBySettlementId(string $settlementId): ?NoteRevisionSurplusPending
+    {
+        return $this->pendingWithActiveDisposition(0);
+    }
+
+    public function findPendingBySettlementIdForUpdate(string $settlementId): ?NoteRevisionSurplusPending
+    {
+        return $this->pendingWithActiveDisposition($this->writer->activeTotalRupiah());
+    }
+
+    public function findPendingByNoteRootId(string $noteRootId): array
+    {
+        return [];
+    }
+
+    private function pendingWithActiveDisposition(int $activeDispositionRupiah): NoteRevisionSurplusPending
     {
         return NoteRevisionSurplusPending::create(
             'settlement-race-001',
             'note-root-race-001',
             'note-revision-race-001',
             $this->surplusRupiah,
-            0,
+            $activeDispositionRupiah,
         );
-    }
-
-    public function findPendingByNoteRootId(string $noteRootId): array
-    {
-        return [];
     }
 }
 

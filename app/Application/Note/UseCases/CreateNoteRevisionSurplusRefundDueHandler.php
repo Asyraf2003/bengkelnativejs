@@ -36,7 +36,7 @@ final class CreateNoteRevisionSurplusRefundDueHandler
 
             $reason = $this->guard->assertCommandAllowed($command);
             $pending = $this->guard->pendingOrFail(
-                $this->reader->findPendingBySettlementId($command->noteRevisionSettlementId),
+                $this->reader->findPendingBySettlementIdForUpdate($command->noteRevisionSettlementId),
             );
 
             $this->guard->assertAmountFits($command->amountRupiah, $pending);

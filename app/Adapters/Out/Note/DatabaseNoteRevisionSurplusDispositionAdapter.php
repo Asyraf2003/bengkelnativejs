@@ -36,16 +36,33 @@ final class DatabaseNoteRevisionSurplusDispositionAdapter implements
 
     public function findPendingBySettlementId(string $settlementId): ?NoteRevisionSurplusPending
     {
+        return $this->findPendingBySettlementIdUsingLock($settlementId, false);
+    }
+
+    public function findPendingBySettlementIdForUpdate(string $settlementId): ?NoteRevisionSurplusPending
+    {
+        return $this->findPendingBySettlementIdUsingLock($settlementId, true);
+    }
+
+    private function findPendingBySettlementIdUsingLock(
+        string $settlementId,
+        bool $lockForUpdate,
+    ): ?NoteRevisionSurplusPending {
         $settlementId = trim($settlementId);
 
         if ($settlementId === '') {
             return null;
         }
 
-        $settlement = DB::table('note_revision_settlements')
+        $settlementQuery = DB::table('note_revision_settlements')
             ->where('id', $settlementId)
-            ->where('settlement_status', NoteRevisionSettlement::STATUS_OVERPAID_PENDING)
-            ->first();
+            ->where('settlement_status', NoteRevisionSettlement::STATUS_OVERPAID_PENDING);
+
+        if ($lockForUpdate) {
+            $settlementQuery->lockForUpdate();
+        }
+
+        $settlement = $settlementQuery->first();
 
         if ($settlement === null) {
             return null;
