@@ -1,6 +1,6 @@
 # DB Blueprint 0006 - Customer Payment Refund Timestamp Patch Blueprint
 
-Status: Patch Blueprinted
+Status: Focused Verified
 Scope: `customer_payments`, `customer_refunds`, and `customer_payment_cash_details` system row timestamp hardening
 Owner: HyperPOS
 
@@ -359,12 +359,43 @@ Stop or defer if:
 
 ## 18. Current Decision
 
-Patch is not yet implemented.
+Patch is implemented and focused verified.
 
-Next safe step:
+Implemented behavior:
 
-- Add RED characterization test for missing payment/refund/cash detail timestamp columns.
-- Keep schema and writer patch blocked until RED proof exists.
+- Added nullable `created_at` and `updated_at` columns to `customer_payments`.
+- Added nullable `created_at` and `updated_at` columns to `customer_refunds`.
+- Added nullable `created_at` and `updated_at` columns to `customer_payment_cash_details`.
+- Historical/pre-patch rows are backfilled with migration execution time as approximate system timestamp, not `paid_at` or `refunded_at`.
+- New payment rows write `created_at` and `updated_at`.
+- New payment cash detail rows write `created_at` and `updated_at`.
+- New refund rows write `created_at` and `updated_at`.
+- Initial `updated_at` equals `created_at` for insert-only rows.
+
+Preserved decisions:
+
+- `paid_at` remains payment/report date.
+- `refunded_at` remains refund/report date.
+- No timestamp index was added.
+- No domain object timestamp exposure was added.
+- No cascade behavior was changed.
+- Allocation, report semantics, UI, API/mobile, supplier, inventory, Go API, and PostgreSQL runtime implementation were not touched.
+
+Focused proof captured:
+
+- RED schema proof: missing timestamp columns on `customer_payments`, `customer_refunds`, and `customer_payment_cash_details`.
+- GREEN schema proof: `PaymentRefundTimestampSchemaTest` passed.
+- RED writer proof: payment, cash detail, and refund writer rows had null timestamps before writer patch.
+- GREEN writer proof: targeted operational timestamp tests passed, 3 tests / 14 assertions.
+- Focused baseline proof: database/payment/refund focused tests passed, 10 tests / 37 assertions.
+- Syntax proof passed for changed migration and writer adapters.
+
+Remaining gaps:
+
+- Full `make verify` was not rerun in this slice.
+- Browser/manual QA was not run.
+- PostgreSQL runtime migration was not run.
+- Wider reporting/cash ledger blast-radius remains deferred unless separately requested.
 
 ## 19. Handoff Archive
 
@@ -372,3 +403,38 @@ DB hardening handoff archive:
 
 - [DB hardening handoff folder](../../99_archive/handoff/db/)
 - [Current DB hardening handoff](../../99_archive/handoff/db/0001_db_hardening_notes_payment_refund_handoff.md)
+
+## 20. Focused Verification Result
+
+Status after implementation:
+
+- Focused Verified.
+
+Production files changed:
+
+- `database/migrations/2026_05_15_000001_add_operational_timestamps_to_payment_refund_tables.php`
+- `app/Adapters/Out/Payment/DatabaseCustomerPaymentWriterAdapter.php`
+- `app/Adapters/Out/Payment/DatabaseCustomerRefundWriterAdapter.php`
+
+Test files changed:
+
+- `tests/Feature/Database/PaymentRefundTimestampSchemaTest.php`
+- `tests/Feature/Payment/RecordCustomerPaymentFeatureTest.php`
+- `tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+
+Verification proof:
+
+- `php -l database/migrations/2026_05_15_000001_add_operational_timestamps_to_payment_refund_tables.php`
+- `php -l app/Adapters/Out/Payment/DatabaseCustomerPaymentWriterAdapter.php`
+- `php -l app/Adapters/Out/Payment/DatabaseCustomerRefundWriterAdapter.php`
+- `php -l tests/Feature/Payment/RecordCustomerPaymentFeatureTest.php`
+- `php -l tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+- `php artisan test tests/Feature/Database/PaymentRefundTimestampSchemaTest.php tests/Feature/Payment/RecordCustomerPaymentFeatureTest.php tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+- Result: 10 tests passed, 37 assertions.
+
+Compatibility notes:
+
+- Timestamp columns remain nullable for direct insert compatibility.
+- Writer paths now set timestamps explicitly for new rows.
+- Report dates remain `paid_at` and `refunded_at`.
+- No new timestamp index exists in this slice.
