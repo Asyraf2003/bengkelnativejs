@@ -59,7 +59,7 @@ final class StoreTransactionWorkspacePaymentValidator
             $validator->errors()->add('inline_payment.amount_received_rupiah', 'Uang masuk cash wajib lebih dari 0.');
         }
 
-        if ($targetAmount > 0 && $received < $targetAmount) {
+        if ($cashTargetAmount > 0 && $received < $cashTargetAmount) {
             $validator->errors()->add('inline_payment.amount_received_rupiah', 'Uang masuk cash tidak boleh kurang dari total yang dibayar.');
         }
     }
