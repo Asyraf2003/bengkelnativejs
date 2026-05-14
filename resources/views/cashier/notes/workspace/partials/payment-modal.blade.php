@@ -1,4 +1,15 @@
-<div class="modal fade" id="workspace-payment-modal" tabindex="-1" aria-hidden="true">
+<div
+    class="modal fade"
+    id="workspace-payment-modal"
+    tabindex="-1"
+    aria-hidden="true"
+    @isset($workspacePaymentSettlement['amount_rupiah'])
+        data-backend-payable-rupiah="{{ (int) $workspacePaymentSettlement['amount_rupiah'] }}"
+    @endisset
+    @isset($workspacePaymentSettlement['explanation']['basis'])
+        data-backend-payment-basis="{{ $workspacePaymentSettlement['explanation']['basis'] }}"
+    @endisset
+>
     <div class="modal-dialog modal-dialog-centered modal-xl" id="workspace-payment-modal-dialog">
         <div class="modal-content">
             <input
