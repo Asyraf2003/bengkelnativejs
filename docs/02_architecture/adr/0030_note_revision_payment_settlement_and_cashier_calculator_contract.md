@@ -407,3 +407,56 @@ Verification gaps:
 - Full `make verify` has not been rerun after this cashier calculator consumption slice.
 - Browser/manual cashier modal QA has not been run.
 - Runtime JavaScript behavior is protected by static JS contract and focused PHP render tests, not by a browser-executed test.
+
+### S12 - Surplus refund_paid carry-forward compatibility patch
+
+Status: Fixed and locally verified.
+
+Scope:
+- Later revision after downward revision surplus refund payment.
+- Active surplus refund_paid remains cash-out and must reduce net paid instead of becoming reusable available payment.
+- Documentation only in this step. Production patch was already verified locally.
+
+RED proof:
+- Scenario: original paid 265.000; downward revision total 143.000; refund_due 122.000; active surplus refund_paid 50.000; later revision total 230.000.
+- Expected settlement: carry_forward_paid_rupiah 265.000; carry_forward_refunded_rupiah 50.000; net_paid_rupiah 215.000; outstanding_rupiah 15.000; surplus_rupiah 0; settlement_status underpaid.
+- Pre-patch actual incorrectly reclaimed refund_paid as available payment: carry_forward_refunded_rupiah 0; net_paid_rupiah 265.000; surplus_rupiah 35.000; settlement_status overpaid_pending.
+
+Production files:
+- app/Ports/Out/Note/NoteRevisionSurplusRefundPaymentReaderPort.php
+- app/Adapters/Out/Note/DatabaseNoteRevisionSurplusRefundPaymentAdapter.php
+- app/Adapters/Out/Note/DatabaseNoteRevisionSurplusRefundPaymentSumQuery.php
+- app/Application/Note/Services/BuildCreateNoteRevisionSettlement.php
+
+Test files:
+- tests/Feature/Note/CreateNoteRevisionSurplusRefundPaidCarryForwardFeatureTest.php
+- tests/Unit/Application/Note/Services/BuildCreateNoteRevisionSettlementTest.php
+
+Implementation decision:
+- Add sumActiveAmountByNoteRootId(string $noteRootId): int to NoteRevisionSurplusRefundPaymentReaderPort.
+- Delegate surplus refund payment sum reads from DatabaseNoteRevisionSurplusRefundPaymentAdapter to DatabaseNoteRevisionSurplusRefundPaymentSumQuery.
+- BuildCreateNoteRevisionSettlement folds active surplus refund_paid by note root into carry_forward_refunded_rupiah.
+- Formula: carry_forward_refunded_rupiah = ordinary/component refunded + active surplus refund_paid by note root.
+
+Verification:
+- php -l passed for all touched PHP files.
+- Targeted feature test passed: 1 test / 3 assertions.
+- Settlement builder unit test passed: 4 tests / 22 assertions.
+- Focused blast-radius suite passed: 21 tests / 102 assertions.
+- Full make verify passed: 1021 tests / 5485 assertions in 49.50s.
+- Audit-lines blocker on DatabaseNoteRevisionSurplusRefundPaymentAdapter.php was fixed by extracting DatabaseNoteRevisionSurplusRefundPaymentSumQuery.php.
+
+Semantic caveat:
+- This is a compatibility patch. It folds surplus refund_paid into carry_forward_refunded_rupiah.
+- Cleaner future schema may need explicit fields such as surplus_refund_paid_rupiah and remaining_refund_due_rupiah.
+- Schema or migration work is intentionally out of scope for S12.
+
+Locked non-goals:
+- Do not merge revision submit and payment.
+- Do not implement customer_credit, customer_balance_entries, PostgreSQL, Go API, or dashboard.
+- Do not use customer_refunds or refund_component_allocations for surplus refund_paid.
+- Do not trigger refunded lifecycle or inventory reversal for surplus refund_paid.
+
+Remaining verification gaps:
+- No schema split for explicit surplus_refund_paid_rupiah / remaining_refund_due_rupiah.
+- No new production patch in this documentation step unless new regression proof appears.
