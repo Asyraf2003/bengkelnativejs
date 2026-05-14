@@ -20,7 +20,7 @@ final class StoreTransactionWorkspacePaymentValidatorTest extends TestCase
                     'part_source' => 'none',
                     'service' => [
                         'name' => 'Servis ADR 0030',
-                        'price_rupiah' => '100000',
+                        'price_rupiah' => 100000,
                         'notes' => null,
                     ],
                     'product_lines' => [],
