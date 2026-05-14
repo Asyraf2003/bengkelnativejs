@@ -1,8 +1,8 @@
 # DB Blueprint 0005 - Notes Timestamp Patch Blueprint
 
-Status: Focused Verified  
-Scope: `notes` system row timestamp hardening  
-Owner: HyperPOS  
+Status: Focused Verified
+Scope: `notes` system row timestamp hardening
+Owner: HyperPOS
 
 ## 1. Active Table Group
 
@@ -308,4 +308,3 @@ Remaining gaps:
 - Browser/manual QA not run.
 - PostgreSQL runtime not active/proven.
 - No timestamp read-path/index optimization approved.
-
