@@ -4,7 +4,7 @@
 
 Source/test patch locally verified for ADR 0030 S12.
 
-Not yet globally verified.
+Full `make verify` passed after the S12 patch and audit-lines cleanup.
 
 Not yet documented in ADR 0030.
 
@@ -122,6 +122,7 @@ Production/source:
 
 - `app/Ports/Out/Note/NoteRevisionSurplusRefundPaymentReaderPort.php`
 - `app/Adapters/Out/Note/DatabaseNoteRevisionSurplusRefundPaymentAdapter.php`
+- `app/Adapters/Out/Note/DatabaseNoteRevisionSurplusRefundPaymentSumQuery.php`
 - `app/Application/Note/Services/BuildCreateNoteRevisionSettlement.php`
 
 Tests:
@@ -144,12 +145,16 @@ Existing methods preserved:
 
 ### Adapter
 
-`DatabaseNoteRevisionSurplusRefundPaymentAdapter` now sums active surplus refund payments by note root:
+`DatabaseNoteRevisionSurplusRefundPaymentAdapter` delegates active surplus refund payment sum queries to:
 
-- table: `note_revision_surplus_refund_payments`
-- filter: `note_root_id`
-- filter: `status = active`
-- sum: `amount_rupiah`
+`DatabaseNoteRevisionSurplusRefundPaymentSumQuery`
+
+The extracted query object supports:
+
+- sum active refund payments by disposition id
+- sum active refund payments by note root id
+
+This extraction fixed the audit-lines failure where `DatabaseNoteRevisionSurplusRefundPaymentAdapter.php` reached `102` lines.
 
 ### Settlement Builder
 
@@ -208,6 +213,29 @@ Result:
 
 `21 passed / 102 assertions`
 
+Audit-lines cleanup proof:
+
+Initial `make verify` failed at `audit-lines` because:
+
+- `app/Adapters/Out/Note/DatabaseNoteRevisionSurplusRefundPaymentAdapter.php`
+- `102 lines`
+
+Patch:
+
+- extracted `DatabaseNoteRevisionSurplusRefundPaymentSumQuery`
+- adapter now delegates sum queries to the extracted query object
+
+Full verification proof:
+
+Command:
+
+`make verify`
+
+Result:
+
+- `1021 passed / 5485 assertions`
+- duration: `49.50s`
+
 Covered focused areas:
 
 - S12 later revision carry-forward
@@ -219,11 +247,9 @@ Covered focused areas:
 
 ## Verification Gaps
 
-- Full `make verify` has not been run after this patch.
 - ADR 0030 has not yet been updated with S12 implementation verification.
 - No browser/manual QA was run.
 - No reporting/export proof was run.
-- No full Note+Payment suite was run.
 - No commit/push proof is recorded in this handoff.
 
 ## Residual Design Gap
@@ -258,24 +284,22 @@ No work was done for:
 
 ## Current Safe State
 
-S12 source/test patch is locally green in targeted, unit, and focused blast-radius tests.
+S12 source/test patch is locally green in targeted, unit, focused blast-radius, audit-lines cleanup, and full `make verify`.
 
 The system no longer treats active surplus `refund_paid` as available carry-forward money during later revision settlement.
 
 ## Next Safe Step
 
-Run full verification before docs closure:
+Update ADR 0030 Implementation Verification with S12.
 
-`make verify`
+Include:
 
-If full verification passes:
+1. RED proof.
+2. Source map.
+3. GREEN targeted proof.
+4. Focused blast-radius proof.
+5. Audit-lines cleanup proof.
+6. Full `make verify` proof.
+7. Residual schema semantic gap.
 
-1. Update ADR 0030 Implementation Verification with S12.
-2. Include RED proof, source map, GREEN proof, focused proof, and residual gap.
-3. Owner commits/pushes manually.
-
-If full verification fails:
-
-1. Treat failure output as source of truth.
-2. Fix only the failing scope.
-3. Do not update ADR 0030 to fixed until verification is clean or explicitly caveated.
+After ADR docs update, owner commits/pushes manually.
