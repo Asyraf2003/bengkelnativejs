@@ -1,5 +1,5 @@
 <!-- HYPERPOS_LATEST_HANDOFF_START -->
-Latest Handoff: docs/99_archive/handoff/v2/edit_refund_sniper/0022_adr_0030_s12_docs_closure_handoff.md
+Latest Handoff: docs/99_archive/handoff/v2/edit_refund_sniper/0024_ai_pro_repo_logic_audit_triage_handoff.md
 <!-- HYPERPOS_LATEST_HANDOFF_END -->
 
 # App Kasir Hexagonal
