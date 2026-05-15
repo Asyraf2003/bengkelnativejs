@@ -676,7 +676,18 @@ final class GetOperationalProfitSummaryFeatureTest extends TestCase
         $this->assertSame(0, $cashLedger['total_in_rupiah']);
         $this->assertSame(3000, $cashLedger['total_out_rupiah']);
 
-        $row = $this->profitRow('2030-03-01', '2030-03-31');
+        $result = app(GetOperationalProfitSummaryHandler::class)
+            ->handle('2030-03-01', '2030-03-31');
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertTrue($result->isSuccess());
+
+        $data = $result->data();
+
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('row', $data);
+
+        $row = $data['row'];
 
         $this->assertSame(3000, $row['refunded_rupiah']);
         $this->assertSame(-3000, $row['cash_operational_profit_rupiah']);
