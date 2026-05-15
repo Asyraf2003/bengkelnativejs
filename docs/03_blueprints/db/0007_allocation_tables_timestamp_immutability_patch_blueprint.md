@@ -1,6 +1,6 @@
 # DB Blueprint 0007 - Allocation Tables Timestamp Immutability Patch Blueprint
 
-Status: Patch Blueprinted
+Status: Focused Verified
 Scope: `payment_allocations`, `payment_component_allocations`, and `refund_component_allocations` row timestamp and immutability hardening
 Owner: HyperPOS
 
@@ -320,9 +320,81 @@ Stop or defer if:
 
 ## 15. Current Decision
 
-Patch is not yet implemented.
+Patch is implemented and focused verified.
 
-Next safe step:
+Implemented behavior:
 
-- Add RED characterization test for missing allocation timestamp columns.
-- Keep schema and writer patch blocked until RED proof exists.
+- Added nullable `created_at` and `updated_at` columns to `payment_allocations`.
+- Added nullable `created_at` and `updated_at` columns to `payment_component_allocations`.
+- Added nullable `created_at` and `updated_at` columns to `refund_component_allocations`.
+- Historical/pre-patch rows are backfilled with migration execution time as approximate system timestamp.
+- New legacy payment allocation rows write `created_at` and `updated_at`.
+- New payment component allocation rows write `created_at` and `updated_at`.
+- New refund component allocation rows write `created_at` and `updated_at`.
+- Initial `updated_at` equals `created_at` for insert-only rows.
+
+Preserved decisions:
+
+- Allocation timestamps are not business/report dates.
+- No timestamp index was added.
+- FK/delete semantics were not changed.
+- Legacy `payment_allocations` fallback was preserved.
+- Allocation math, refund math, note revision replacement, current/historical projection semantics, UI, API/mobile, supplier, inventory, Go API, and PostgreSQL runtime implementation were not touched.
+
+Focused proof captured:
+
+- RED schema proof: missing timestamp columns on `payment_allocations`, `payment_component_allocations`, and `refund_component_allocations`.
+- GREEN schema proof: `AllocationTimestampSchemaTest` passed.
+- RED writer proof: legacy payment allocation, payment component allocation, and refund component allocation writer rows had null timestamps before writer patch.
+- GREEN writer proof: targeted operational timestamp tests passed, 3 tests / 21 assertions.
+- Focused baseline/blast-radius proof: allocation schema, allocation writer/reader, reporting, cash ledger, transaction summary, transaction report dataset, and operational profit tests passed, 26 tests / 141 assertions.
+- Syntax proof passed for changed migration and writer adapters.
+
+Remaining gaps:
+
+- Full `make verify` was not rerun after this allocation slice unless owner runs it separately.
+- Browser/manual QA was not run.
+- PostgreSQL runtime migration was not run.
+- Wider full-suite regression proof remains deferred unless separately requested.
+
+## 16. Focused Verification Result
+
+Status after implementation:
+
+- Focused Verified.
+
+Production files changed:
+
+- `database/migrations/2026_05_15_000002_add_operational_timestamps_to_allocation_tables.php`
+- `app/Adapters/Out/Payment/DatabasePaymentAllocationWriterAdapter.php`
+- `app/Adapters/Out/Payment/DatabasePaymentComponentAllocationWriterAdapter.php`
+- `app/Adapters/Out/Payment/DatabaseRefundComponentAllocationWriterAdapter.php`
+
+Test files changed:
+
+- `tests/Feature/Database/AllocationTimestampSchemaTest.php`
+- `tests/Feature/Payment/AllocateCustomerPaymentFeatureTest.php`
+- `tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php`
+- `tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+
+Verification proof:
+
+- `php -l database/migrations/2026_05_15_000002_add_operational_timestamps_to_allocation_tables.php`
+- `php -l app/Adapters/Out/Payment/DatabasePaymentAllocationWriterAdapter.php`
+- `php -l app/Adapters/Out/Payment/DatabasePaymentComponentAllocationWriterAdapter.php`
+- `php -l app/Adapters/Out/Payment/DatabaseRefundComponentAllocationWriterAdapter.php`
+- `php -l tests/Feature/Payment/AllocateCustomerPaymentFeatureTest.php`
+- `php -l tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php`
+- `php -l tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+- `php artisan test tests/Feature/Database/AllocationTimestampSchemaTest.php`
+- `php artisan test tests/Feature/Payment/AllocateCustomerPaymentFeatureTest.php tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php --filter=operational_timestamps`
+- `php artisan test tests/Feature/Database/AllocationTimestampSchemaTest.php tests/Feature/Payment/AllocateCustomerPaymentFeatureTest.php tests/Feature/Payment/RecordAndAllocateNotePaymentFeatureTest.php tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php tests/Feature/Payment/DatabasePaymentAllocationReaderAdapterFeatureTest.php tests/Feature/Reporting/TransactionCashLedgerReportingQueryFeatureTest.php tests/Feature/Reporting/TransactionSummaryReportingQueryFeatureTest.php tests/Feature/Reporting/GetTransactionReportDatasetFeatureTest.php tests/Feature/Reporting/GetOperationalProfitSummaryFeatureTest.php`
+- Result: 26 tests passed, 141 assertions.
+
+Compatibility notes:
+
+- Timestamp columns remain nullable for direct insert compatibility.
+- Writer paths now set timestamps explicitly for new allocation rows.
+- Existing allocation/report/refund/settlement semantics remain unchanged.
+- Existing FK/delete semantics remain unchanged.
+- No new timestamp index exists in this slice.
