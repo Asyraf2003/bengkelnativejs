@@ -383,10 +383,55 @@ Remaining verification gaps:
 
 ### HP-ROWS-001 — duplicate line_no under concurrent add rows
 
-Status: Suspected.
+Status: Confirmed RED, fixed GREEN, focused verified.
 
-Required proof:
-- concurrent add rows test showing duplicate line_no or missing DB unique constraint impact.
+Original AI Pro claim:
+- Concurrent add-row flows could assign duplicate `line_no` values under the same note.
+
+Local source-risk proof:
+- `app/Adapters/In/Http/Controllers/Note/CreateNoteRowsAction.php` resolved the starting line number once through `NoteRowsStartingLineNoResolver`, then incremented `$lineNo++` locally while adding rows.
+- `app/Application/Note/Services/NoteRowsStartingLineNoResolver.php` read the note through `NoteReaderPort::getById(...)` and computed `max(line_no) + 1`.
+- `app/Application/Note/UseCases/AddWorkItemHandler.php` previously read the note through `NoteReaderPort::getById(...)`, not `getByIdForUpdate(...)`, before domain duplicate-line validation and total update.
+- `database/migrations/2026_03_14_000200_create_work_items_table.php` only had a non-unique index on `note_id, line_no`, so the database allowed duplicate row numbers.
+- Existing sequential duplicate-line app test already rejected duplicate line numbers through domain/service behavior, but that did not provide a database invariant against concurrent add-row races.
+
+RED proof:
+- Added `tests/Feature/Note/AddServiceOnlyWorkItemFeatureTest.php::test_work_items_reject_duplicate_line_no_for_same_note`.
+- Pre-patch result: failed as expected because two `work_items` rows with the same `note_id = note-line-race-1` and `line_no = 1` were accepted.
+- RED output: expected count `1`, actual count `2`.
+
+Source/test fix:
+- Added `database/migrations/2026_05_15_000006_add_unique_work_items_note_line_no.php`.
+- The migration preflights existing duplicate `work_items(note_id, line_no)` pairs before adding the invariant.
+- The migration adds unique key `work_items_note_line_no_unique` on `note_id, line_no`.
+- Updated `app/Application/Note/UseCases/AddWorkItemHandler.php` to use `NoteReaderPort::getByIdForUpdate(...)` before domain duplicate-line validation and note total update.
+- Updated the RED test to insert the first row, attempt the duplicate row, tolerate the expected `QueryException`, and assert final count remains one.
+
+GREEN proof:
+- Syntax passed:
+  - `database/migrations/2026_05_15_000006_add_unique_work_items_note_line_no.php`
+  - `app/Application/Note/UseCases/AddWorkItemHandler.php`
+  - `tests/Feature/Note/AddServiceOnlyWorkItemFeatureTest.php`
+- Targeted GREEN:
+  - `tests/Feature/Note/AddServiceOnlyWorkItemFeatureTest.php --filter=test_work_items_reject_duplicate_line_no_for_same_note`
+  - Result: `1 passed / 1 assertions`.
+- Focused blast-radius GREEN:
+  - `tests/Feature/Note/AddServiceOnlyWorkItemFeatureTest.php`
+  - `tests/Feature/Note/AddStoreStockSaleOnlyWorkItemFeatureTest.php`
+  - `tests/Feature/Note/AddExternalPurchaseWorkItemFeatureTest.php`
+  - `tests/Feature/Note/AddServiceWithStoreStockPartWorkItemFeatureTest.php`
+  - `tests/Feature/Note/AddWorkItemToPaidNoteFeatureTest.php`
+  - `tests/Feature/Note/AddNoteRowsHttpFeatureTest.php`
+  - `tests/Feature/Note/ReadNoteMultiItemFeatureTest.php`
+  - `tests/Feature/Note/UpdateWorkItemStatusFeatureTest.php`
+  - `tests/Feature/Note/CashierProtectedNoteRoutesAccessGuardFeatureTest.php`
+  - Result: `28 passed / 222 assertions`.
+
+Remaining verification gaps:
+- Full `make verify` not claimed in this HP-ROWS step.
+- No browser/manual QA.
+- No explicit two-connection concurrent stress test; the DB invariant now rejects duplicate `note_id, line_no` pairs even if concurrent application checks race.
+
 
 ### HP-REPORT-001 — operational profit may omit surplus_refund_paid
 
