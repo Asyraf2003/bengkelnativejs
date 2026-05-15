@@ -76,6 +76,9 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
                     'direction' => 'Masuk',
                     'payment_marker' => 'Ada',
                     'refund_marker' => '-',
+                    'source_table' => 'customer_payments',
+                    'source_id' => 'pay-1',
+                    'source_disposition_id' => '-',
                     'amount' => 'Rp 8.000',
                 ],
             ],
@@ -87,6 +90,11 @@ final class TransactionCashLedgerPdfExportFeatureTest extends TestCase
         $this->assertStringContainsString('Kas Keluar', $html);
         $this->assertStringContainsString('Nilai Bersih', $html);
         $this->assertStringContainsString('Alokasi Pembayaran', $html);
+        $this->assertStringContainsString('Tabel Sumber', $html);
+        $this->assertStringContainsString('ID Sumber', $html);
+        $this->assertStringContainsString('ID Disposisi Sumber', $html);
+        $this->assertStringContainsString('customer_payments', $html);
+        $this->assertStringContainsString('pay-1', $html);
     }
 
     private function user(string $role): User

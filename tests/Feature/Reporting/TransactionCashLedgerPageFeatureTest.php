@@ -60,6 +60,13 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('note-2');
         $response->assertSee('Alokasi Pembayaran');
         $response->assertSee('Pengembalian Dana');
+        $response->assertSee('Tabel Sumber');
+        $response->assertSee('ID Sumber');
+        $response->assertSee('ID Disposisi Sumber');
+        $response->assertSee('customer_payments');
+        $response->assertSee('customer_refunds');
+        $response->assertSee('pay-1');
+        $response->assertSee('ref-1');
         $response->assertSee('Rp 12.000');
         $response->assertSee('Rp 1.000');
         $response->assertSee('Rp 11.000');
