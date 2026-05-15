@@ -50,6 +50,9 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
                 'event_amount_rupiah' => 60000,
                 'customer_payment_id' => 'payment-1',
                 'refund_id' => null,
+                'source_table' => 'customer_payments',
+                'source_id' => 'payment-1',
+                'source_disposition_id' => null,
             ],
             [
                 'note_id' => 'note-2',
@@ -59,6 +62,9 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
                 'event_amount_rupiah' => 50000,
                 'customer_payment_id' => 'payment-2',
                 'refund_id' => null,
+                'source_table' => 'customer_payments',
+                'source_id' => 'payment-2',
+                'source_disposition_id' => null,
             ],
             [
                 'note_id' => 'note-1',
@@ -68,6 +74,9 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
                 'event_amount_rupiah' => 10000,
                 'customer_payment_id' => 'payment-1',
                 'refund_id' => 'refund-1',
+                'source_table' => 'customer_refunds',
+                'source_id' => 'refund-1',
+                'source_disposition_id' => null,
             ],
         ], $data['rows']);
     }

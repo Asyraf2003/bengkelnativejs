@@ -188,6 +188,9 @@ final class TransactionCashLedgerReportingQueryFeatureTest extends TestCase
         $this->assertSame(3000, $rows[0]['event_amount_rupiah']);
         $this->assertNull($rows[0]['customer_payment_id']);
         $this->assertNull($rows[0]['refund_id']);
+        $this->assertSame('note_revision_surplus_refund_payments', $rows[0]['source_table']);
+        $this->assertSame('surplus-payment-ledger', $rows[0]['source_id']);
+        $this->assertSame('disp-surplus-paid-ledger', $rows[0]['source_disposition_id']);
 
         $this->assertSame(0, $recon['total_in_rupiah']);
         $this->assertSame(3000, $recon['total_out_rupiah']);
