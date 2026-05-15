@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Inventory;
 
 use App\Application\Inventory\Services\ReverseIssuedInventoryOperation;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\SeedsMinimalInventoryProductFixture;
@@ -140,18 +141,19 @@ final class ReverseIssuedInventoryOperationFeatureTest extends TestCase
         $this->seedInventoryProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 12000);
 
         DB::table('inventory_movements')->insert([
-            [
-                'id' => 'reverse-mv-1',
-                'product_id' => 'product-1',
-                'movement_type' => 'stock_in',
-                'source_type' => 'work_item_store_stock_line_reversal',
-                'source_id' => 'line-1',
-                'tanggal_mutasi' => '2026-03-16',
-                'qty_delta' => 2,
-                'unit_cost_rupiah' => 10000,
-                'total_cost_rupiah' => 20000,
-            ],
-            [
+            'id' => 'reverse-mv-1',
+            'product_id' => 'product-1',
+            'movement_type' => 'stock_in',
+            'source_type' => 'work_item_store_stock_line_reversal',
+            'source_id' => 'line-1',
+            'tanggal_mutasi' => '2026-03-16',
+            'qty_delta' => 2,
+            'unit_cost_rupiah' => 10000,
+            'total_cost_rupiah' => 20000,
+        ]);
+
+        try {
+            DB::table('inventory_movements')->insert([
                 'id' => 'reverse-mv-2',
                 'product_id' => 'product-1',
                 'movement_type' => 'stock_in',
@@ -161,8 +163,10 @@ final class ReverseIssuedInventoryOperationFeatureTest extends TestCase
                 'qty_delta' => 2,
                 'unit_cost_rupiah' => 10000,
                 'total_cost_rupiah' => 20000,
-            ],
-        ]);
+            ]);
+        } catch (QueryException) {
+            // Expected: database invariant rejects duplicate reversal source pair.
+        }
 
         $this->assertSame(
             1,
