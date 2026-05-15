@@ -334,10 +334,52 @@ Next action:
 
 ### HP-INV-001 — inventory reversal idempotency race
 
-Status: Suspected.
+Status: Confirmed RED, fixed GREEN, focused verified.
 
-Required proof:
-- duplicate reversal test or DB invariant proof.
+Original AI Pro claim:
+- Inventory reversal for refunded store-stock rows had a plausible idempotency race that could duplicate stock restoration.
+
+Local source-risk proof:
+- `AutoReverseRefundedStoreStockInventory::reverseTargetLines(...)` skipped reversal when `InventoryMovementReaderPort::getBySource('work_item_store_stock_line_reversal', $lineId)` returned existing rows, but the reader was a normal non-locking read.
+- `ReverseIssuedInventoryOperation::execute(...)` also checked existing reverse movements through `InventoryMovementReaderPort::getBySource(...)` before inserting reversal movements.
+- `database/migrations/2026_03_12_000600_create_inventory_movements_table.php` only had a non-unique index on `source_type, source_id`, so the database allowed duplicate reversal source pairs.
+- `ReverseIssuedInventoryOperation::execute(...)` previously used `ProductInventoryReaderPort::getByProductId(...)`, not `getByProductIdForUpdate(...)`, before increasing product inventory during reversal.
+
+RED proof:
+- Added `tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php::test_inventory_movements_reject_duplicate_reversal_source_pairs`.
+- Pre-patch result: failed as expected because duplicate `work_item_store_stock_line_reversal` rows with the same `source_id = line-1` were accepted.
+- RED output: expected count `1`, actual count `2`.
+
+Source/test fix:
+- Added `database/migrations/2026_05_15_000005_add_unique_inventory_reversal_source_key.php`.
+- The migration adds nullable generated column `reversal_source_id`, populated only when `source_type = 'work_item_store_stock_line_reversal'`.
+- The migration adds unique key `im_unique_reversal_source` on `source_type, reversal_source_id`, preventing duplicate store-stock reversal movement pairs without globally uniquing all `source_type, source_id` usage.
+- Updated `app/Application/Inventory/Services/ReverseIssuedInventoryOperation.php` to use `ProductInventoryReaderPort::getByProductIdForUpdate(...)` before applying stock restoration.
+- Updated the RED test to insert the first reversal row, attempt the duplicate row, tolerate the expected `QueryException`, and assert final count remains one.
+
+GREEN proof:
+- Syntax passed:
+  - `database/migrations/2026_05_15_000005_add_unique_inventory_reversal_source_key.php`
+  - `app/Application/Inventory/Services/ReverseIssuedInventoryOperation.php`
+  - `tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php`
+- Targeted GREEN:
+  - `tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php --filter=test_inventory_movements_reject_duplicate_reversal_source_pairs`
+  - Result: `1 passed / 1 assertions`.
+- Focused blast-radius GREEN:
+  - `tests/Feature/Inventory/ReverseIssuedInventoryOperationFeatureTest.php`
+  - `tests/Feature/Inventory/ReverseNoteStoreStockInventoryOperationFeatureTest.php`
+  - `tests/Feature/Note/ClosedNoteFullRefundStoreStockInventoryLifecycleFeatureTest.php`
+  - `tests/Feature/Note/ClosedNoteFullRefundProductOnlyInventoryLifecycleFeatureTest.php`
+  - `tests/Feature/Payment/RecordCustomerRefundFeatureTest.php`
+  - `tests/Feature/Payment/RecordSelectedRowsCustomerRefundFeatureTest.php`
+  - `tests/Feature/Payment/RecordSelectedRowsClosedNoteRefundHttpFeatureTest.php`
+  - Result: `20 passed / 94 assertions`.
+
+Remaining verification gaps:
+- Full `make verify` not claimed in this HP-INV step.
+- No browser/manual QA.
+- No explicit two-connection concurrent stress test; the DB invariant now rejects duplicate reversal source pairs even if concurrent application checks race.
+
 
 ### HP-ROWS-001 — duplicate line_no under concurrent add rows
 

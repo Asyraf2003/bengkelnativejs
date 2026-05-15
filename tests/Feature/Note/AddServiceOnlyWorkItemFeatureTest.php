@@ -121,4 +121,42 @@ final class AddServiceOnlyWorkItemFeatureTest extends TestCase
             'total_rupiah' => 30000,
         ]);
     }
+    public function test_work_items_reject_duplicate_line_no_for_same_note(): void
+    {
+        DB::table('notes')->insert([
+            'id' => 'note-line-race-1',
+            'customer_name' => 'Budi Santoso',
+            'transaction_date' => '2026-03-14',
+            'total_rupiah' => 0,
+        ]);
+
+        DB::table('work_items')->insert([
+            [
+                'id' => 'work-item-line-race-1',
+                'note_id' => 'note-line-race-1',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'subtotal_rupiah' => 30000,
+            ],
+            [
+                'id' => 'work-item-line-race-2',
+                'note_id' => 'note-line-race-1',
+                'line_no' => 1,
+                'transaction_type' => WorkItem::TYPE_SERVICE_ONLY,
+                'status' => WorkItem::STATUS_OPEN,
+                'subtotal_rupiah' => 50000,
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            DB::table('work_items')
+                ->where('note_id', 'note-line-race-1')
+                ->where('line_no', 1)
+                ->count(),
+            'Work item line number must be unique per note to prevent duplicate row numbers under concurrent add-row flows.'
+        );
+    }
+
 }
