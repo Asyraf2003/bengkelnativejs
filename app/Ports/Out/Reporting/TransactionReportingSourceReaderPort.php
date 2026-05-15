@@ -44,7 +44,10 @@ interface TransactionReportingSourceReaderPort
      *   direction:string,
      *   event_amount_rupiah:int,
      *   customer_payment_id:?string,
-     *   refund_id:?string
+     *   refund_id:?string,
+     *   source_table:string,
+     *   source_id:string,
+     *   source_disposition_id:?string
      * }>
      */
     public function getTransactionCashLedgerPerNoteRows(

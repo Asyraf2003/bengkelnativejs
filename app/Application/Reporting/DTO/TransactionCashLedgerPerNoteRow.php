@@ -14,6 +14,9 @@ final class TransactionCashLedgerPerNoteRow
         private readonly int $eventAmountRupiah,
         private readonly ?string $customerPaymentId,
         private readonly ?string $refundId,
+        private readonly string $sourceTable,
+        private readonly string $sourceId,
+        private readonly ?string $sourceDispositionId,
     ) {
     }
 
@@ -52,6 +55,21 @@ final class TransactionCashLedgerPerNoteRow
         return $this->refundId;
     }
 
+    public function sourceTable(): string
+    {
+        return $this->sourceTable;
+    }
+
+    public function sourceId(): string
+    {
+        return $this->sourceId;
+    }
+
+    public function sourceDispositionId(): ?string
+    {
+        return $this->sourceDispositionId;
+    }
+
     /**
      * @return array{
      *   note_id:string,
@@ -60,7 +78,10 @@ final class TransactionCashLedgerPerNoteRow
      *   direction:string,
      *   event_amount_rupiah:int,
      *   customer_payment_id:?string,
-     *   refund_id:?string
+     *   refund_id:?string,
+     *   source_table:string,
+     *   source_id:string,
+     *   source_disposition_id:?string
      * }
      */
     public function toArray(): array
@@ -73,6 +94,9 @@ final class TransactionCashLedgerPerNoteRow
             'event_amount_rupiah' => $this->eventAmountRupiah(),
             'customer_payment_id' => $this->customerPaymentId(),
             'refund_id' => $this->refundId(),
+            'source_table' => $this->sourceTable(),
+            'source_id' => $this->sourceId(),
+            'source_disposition_id' => $this->sourceDispositionId(),
         ];
     }
 }

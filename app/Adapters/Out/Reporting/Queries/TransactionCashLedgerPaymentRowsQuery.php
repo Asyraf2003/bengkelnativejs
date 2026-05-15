@@ -80,6 +80,9 @@ final class TransactionCashLedgerPaymentRowsQuery
                 'event_amount_rupiah' => (int) $row->event_amount_rupiah,
                 'customer_payment_id' => (string) $row->customer_payment_id,
                 'refund_id' => null,
+                'source_table' => 'customer_payments',
+                'source_id' => (string) $row->customer_payment_id,
+                'source_disposition_id' => null,
             ]);
     }
 }

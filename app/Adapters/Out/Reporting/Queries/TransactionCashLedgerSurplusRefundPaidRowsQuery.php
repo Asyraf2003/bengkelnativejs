@@ -24,6 +24,7 @@ final class TransactionCashLedgerSurplusRefundPaidRowsQuery
                 'note_revision_surplus_refund_payments.effective_date as event_date',
                 'note_revision_surplus_refund_payments.amount_rupiah as event_amount_rupiah',
                 'note_revision_surplus_refund_payments.id as surplus_refund_payment_id',
+                'note_revision_surplus_refund_payments.note_revision_surplus_disposition_id as source_disposition_id',
             ])
             ->map(static fn (object $row): array => [
                 'note_id' => (string) $row->note_id,
@@ -37,6 +38,9 @@ final class TransactionCashLedgerSurplusRefundPaidRowsQuery
                 'customer_payment_id' => null,
                 'refund_id' => null,
                 'surplus_refund_payment_id' => (string) $row->surplus_refund_payment_id,
+                'source_table' => 'note_revision_surplus_refund_payments',
+                'source_id' => (string) $row->surplus_refund_payment_id,
+                'source_disposition_id' => (string) $row->source_disposition_id,
             ]);
     }
 }

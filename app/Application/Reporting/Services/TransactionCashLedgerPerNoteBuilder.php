@@ -16,7 +16,10 @@ final class TransactionCashLedgerPerNoteBuilder
      *   direction:string,
      *   event_amount_rupiah:int,
      *   customer_payment_id:?string,
-     *   refund_id:?string
+     *   refund_id:?string,
+     *   source_table:string,
+     *   source_id:string,
+     *   source_disposition_id:?string
      * }> $rows
      * @return list<TransactionCashLedgerPerNoteRow>
      */
@@ -31,6 +34,9 @@ final class TransactionCashLedgerPerNoteBuilder
                 $row['event_amount_rupiah'],
                 $row['customer_payment_id'],
                 $row['refund_id'],
+                $row['source_table'],
+                $row['source_id'],
+                $row['source_disposition_id'],
             ),
             $rows,
         );
