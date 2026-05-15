@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Adapters\Out\MobileApi;
 
 use App\Application\MobileApi\Auth\DTO\MobileApiAuthenticatedUser;
-use App\Models\User;
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Ports\Out\MobileApi\MobileApiCredentialVerifierPort;
 use App\Ports\Out\MobileApi\MobileApiUserReaderPort;
 use Illuminate\Support\Facades\Hash;

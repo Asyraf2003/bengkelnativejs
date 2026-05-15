@@ -5,7 +5,7 @@ namespace Tests;
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Procurement\Services\SupplierInvoiceListProjectionService;
 use App\Application\Procurement\Services\SupplierListProjectionService;
-use App\Models\User;
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\DB;
 

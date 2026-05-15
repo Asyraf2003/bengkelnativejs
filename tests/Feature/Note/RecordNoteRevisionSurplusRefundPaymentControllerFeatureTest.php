@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Note;
 
-use App\Models\User;
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Ports\Out\ClockPort;
 use App\Ports\Out\UuidPort;
 use DateTimeImmutable;
