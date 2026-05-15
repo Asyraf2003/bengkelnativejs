@@ -135,5 +135,44 @@ final class ReverseIssuedInventoryOperationFeatureTest extends TestCase
         );
     }
 
+    public function test_inventory_movements_reject_duplicate_reversal_source_pairs(): void
+    {
+        $this->seedInventoryProduct('product-1', 'KB-001', 'Ban Luar', 'Federal', 100, 12000);
+
+        DB::table('inventory_movements')->insert([
+            [
+                'id' => 'reverse-mv-1',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_in',
+                'source_type' => 'work_item_store_stock_line_reversal',
+                'source_id' => 'line-1',
+                'tanggal_mutasi' => '2026-03-16',
+                'qty_delta' => 2,
+                'unit_cost_rupiah' => 10000,
+                'total_cost_rupiah' => 20000,
+            ],
+            [
+                'id' => 'reverse-mv-2',
+                'product_id' => 'product-1',
+                'movement_type' => 'stock_in',
+                'source_type' => 'work_item_store_stock_line_reversal',
+                'source_id' => 'line-1',
+                'tanggal_mutasi' => '2026-03-16',
+                'qty_delta' => 2,
+                'unit_cost_rupiah' => 10000,
+                'total_cost_rupiah' => 20000,
+            ],
+        ]);
+
+        $this->assertSame(
+            1,
+            DB::table('inventory_movements')
+                ->where('source_type', 'work_item_store_stock_line_reversal')
+                ->where('source_id', 'line-1')
+                ->count(),
+            'Inventory reversal movement source pair must be unique to prevent duplicate stock restoration.'
+        );
+    }
+
 
 }
