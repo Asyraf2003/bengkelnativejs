@@ -6,7 +6,6 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
-use App\Application\ProductCatalog\Context\ProductChangeContext;
 use App\Application\EmployeeFinance\Context\EmployeeChangeContext;
 use App\Adapters\Out\Audit\DatabaseAuditLogAdapter;
 use App\Adapters\Out\Audit\DatabaseAuditEventWriterAdapter;
@@ -83,12 +82,6 @@ use App\Adapters\Out\Procurement\DatabaseSupplierReceiptWriterAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierWriterAdapter;
 use App\Adapters\Out\Procurement\DatabaseProcurementInvoiceTableReaderAdapter;
 use App\Adapters\Out\Procurement\DatabaseSupplierTableReaderAdapter;
-use App\Adapters\Out\ProductCatalog\DatabaseProductDuplicateCheckerAdapter;
-use App\Adapters\Out\ProductCatalog\DatabaseProductReaderAdapter;
-use App\Adapters\Out\ProductCatalog\DatabaseProductDetailReaderAdapter;
-use App\Adapters\Out\ProductCatalog\DatabaseProductTableReaderAdapter;
-use App\Adapters\Out\ProductCatalog\DatabaseProductWriterAdapter;
-use App\Adapters\Out\ProductCatalog\DatabaseVersionedProductWriterAdapter;
 use App\Application\Inventory\Policies\DefaultNegativeStockPolicy;
 use App\Application\Inventory\Services\InventoryCostingProjectionBuilder;
 use App\Application\Inventory\Services\InventoryProjectionBuilder;
@@ -119,7 +112,6 @@ use App\Application\Procurement\Services\SupplierReceiptFactory;
 use App\Application\Procurement\Services\SupplierService;
 use App\Application\System\Health\HealthCheckHandler;
 use App\Core\Inventory\Policies\NegativeStockPolicy;
-use App\Core\ProductCatalog\Policies\MinSellingPricePolicy;
 use App\Ports\In\HealthCheckUseCase;
 use App\Ports\Out\AuditEventWriterPort;
 use App\Ports\Out\AuditLogPort;
@@ -204,12 +196,6 @@ use App\Ports\Out\Procurement\SupplierReceiptWriterPort;
 use App\Ports\Out\Procurement\SupplierWriterPort;
 use App\Ports\Out\Procurement\ProcurementInvoiceTableReaderPort;
 use App\Ports\Out\Procurement\SupplierTableReaderPort;
-use App\Ports\Out\ProductCatalog\ProductDuplicateCheckerPort;
-use App\Ports\Out\ProductCatalog\ProductLifecyclePort;
-use App\Ports\Out\ProductCatalog\ProductReaderPort;
-use App\Ports\Out\ProductCatalog\ProductDetailReaderPort;
-use App\Ports\Out\ProductCatalog\ProductTableReaderPort;
-use App\Ports\Out\ProductCatalog\ProductWriterPort;
 use App\Ports\Out\TransactionManagerPort;
 use App\Ports\Out\UuidPort;
 use Illuminate\Support\ServiceProvider;
@@ -218,7 +204,6 @@ class HexagonalServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        $this->app->scoped(ProductChangeContext::class, fn (): ProductChangeContext => new ProductChangeContext());
         $this->app->scoped(EmployeeChangeContext::class, fn (): EmployeeChangeContext => new EmployeeChangeContext());
         $this->app->bind(HealthCheckUseCase::class, HealthCheckHandler::class);
 
@@ -231,7 +216,6 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(TransactionManagerPort::class, DatabaseTransactionManagerAdapter::class);
 
         $this->app->singleton(NegativeStockPolicy::class, DefaultNegativeStockPolicy::class);
-        $this->app->singleton(MinSellingPricePolicy::class);
         $this->app->singleton(NotePaidStatusPolicy::class);
         $this->app->singleton(NoteAddabilityPolicy::class);
         $this->app->singleton(CashierNoteAccessGuard::class);
@@ -261,13 +245,6 @@ class HexagonalServiceProvider extends ServiceProvider
         $this->app->singleton(SupplierListProjectionService::class);
         $this->app->singleton(SupplierReceiptFactory::class);
         $this->app->scoped(SupplierInvoiceChangeContext::class, fn (): SupplierInvoiceChangeContext => new SupplierInvoiceChangeContext());
-
-        $this->app->singleton(ProductReaderPort::class, DatabaseProductReaderAdapter::class);
-        $this->app->singleton(ProductDetailReaderPort::class, DatabaseProductDetailReaderAdapter::class);
-        $this->app->singleton(ProductTableReaderPort::class, DatabaseProductTableReaderAdapter::class);
-        $this->app->scoped(ProductWriterPort::class, DatabaseVersionedProductWriterAdapter::class);
-        $this->app->scoped(ProductLifecyclePort::class, DatabaseVersionedProductWriterAdapter::class);
-        $this->app->singleton(ProductDuplicateCheckerPort::class, DatabaseProductDuplicateCheckerAdapter::class);
 
         $this->app->singleton(SupplierReaderPort::class, DatabaseSupplierReaderAdapter::class);
         $this->app->singleton(SupplierWriterPort::class, DatabaseSupplierWriterAdapter::class);

@@ -7,5 +7,6 @@ return [
     App\Providers\MobileApiServiceProvider::class,
     App\Providers\ReportingServiceProvider::class,
     App\Providers\ExpenseServiceProvider::class,
+    App\Providers\ProductCatalogServiceProvider::class,
     App\Providers\HexagonalServiceProvider::class,
 ];
