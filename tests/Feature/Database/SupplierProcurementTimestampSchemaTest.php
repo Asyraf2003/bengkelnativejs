@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Schema;
+use PHPUnit\Framework\Assert;
 
 it('has operational timestamps on supplier procurement root tables', function (): void {
     $columns = [
@@ -15,8 +16,9 @@ it('has operational timestamps on supplier procurement root tables', function ()
     ];
 
     foreach ($columns as $label => [$table, $column]) {
-        expect(Schema::hasColumn($table, $column))
-            ->withContext($label)
-            ->toBeTrue();
+        Assert::assertTrue(
+            Schema::hasColumn($table, $column),
+            $label,
+        );
     }
 });
