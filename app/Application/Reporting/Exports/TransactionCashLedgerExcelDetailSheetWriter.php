@@ -29,6 +29,9 @@ final class TransactionCashLedgerExcelDetailSheetWriter
                 (int) ($row['event_amount_rupiah'] ?? 0),
                 (string) ($row['customer_payment_id'] ?? ''),
                 (string) ($row['refund_id'] ?? ''),
+                (string) ($row['source_table'] ?? ''),
+                (string) ($row['source_id'] ?? ''),
+                (string) ($row['source_disposition_id'] ?? ''),
             ];
         }
 
@@ -42,9 +45,12 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'Nominal',
             'ID Pembayaran',
             'ID Pengembalian Dana',
+            'Tabel Sumber',
+            'ID Sumber',
+            'ID Disposisi Sumber',
         ], $values);
 
-        $this->tables->autosize($sheet, 9);
+        $this->tables->autosize($sheet, 12);
     }
 
     private function eventTypeLabel(string $type): string

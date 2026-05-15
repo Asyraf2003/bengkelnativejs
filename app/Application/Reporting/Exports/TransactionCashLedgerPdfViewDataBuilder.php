@@ -56,6 +56,9 @@ final class TransactionCashLedgerPdfViewDataBuilder
             'amount' => $this->rupiah($row['event_amount_rupiah'] ?? 0),
             'payment_marker' => $paymentId !== '' ? 'Ada' : '-',
             'refund_marker' => $refundId !== '' ? 'Ada' : '-',
+            'source_table' => $this->stringValue($row['source_table'] ?? '-') ?: '-',
+            'source_id' => $this->stringValue($row['source_id'] ?? '-') ?: '-',
+            'source_disposition_id' => $this->stringValue($row['source_disposition_id'] ?? '-') ?: '-',
         ];
     }
 

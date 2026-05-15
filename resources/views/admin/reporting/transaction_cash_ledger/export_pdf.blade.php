@@ -96,6 +96,9 @@
                 <th>Arah</th>
                 <th>Pembayaran</th>
                 <th>Refund</th>
+                <th>Tabel Sumber</th>
+                <th>ID Sumber</th>
+                <th>ID Disposisi Sumber</th>
                 <th>Nominal</th>
             </tr>
         </thead>
@@ -109,11 +112,14 @@
                     <td>{{ $row['direction'] }}</td>
                     <td>{{ $row['payment_marker'] }}</td>
                     <td>{{ $row['refund_marker'] }}</td>
+                    <td>{{ $row['source_table'] }}</td>
+                    <td>{{ $row['source_id'] }}</td>
+                    <td>{{ $row['source_disposition_id'] }}</td>
                     <td class="number">{{ $row['amount'] }}</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="8" class="muted">Belum ada kejadian kas pada periode ini.</td>
+                    <td colspan="11" class="muted">Belum ada kejadian kas pada periode ini.</td>
                 </tr>
             @endforelse
         </tbody>

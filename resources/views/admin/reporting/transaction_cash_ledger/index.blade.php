@@ -117,6 +117,9 @@
                                 <th class="text-end">Nominal</th>
                                 <th>Pembayaran</th>
                                 <th>Pengembalian Dana</th>
+                                <th>Tabel Sumber</th>
+                                <th>ID Sumber</th>
+                                <th>ID Disposisi Sumber</th>
                             </tr>
                         </thead>
                         <tbody id="transaction-cash-ledger-table-body">
@@ -140,10 +143,13 @@
                                     <td class="text-end">Rp {{ number_format($row['event_amount_rupiah'], 0, ',', '.') }}</td>
                                     <td>{{ ($row['customer_payment_id'] ?? null) ? 'Ada' : '-' }}</td>
                                     <td>{{ ($row['refund_id'] ?? null) ? 'Ada' : '-' }}</td>
+                                    <td>{{ $row['source_table'] ?? '-' }}</td>
+                                    <td>{{ $row['source_id'] ?? '-' }}</td>
+                                    <td>{{ $row['source_disposition_id'] ?? '-' }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-center text-muted">Belum ada kejadian kas pada periode ini.</td>
+                                    <td colspan="10" class="text-center text-muted">Belum ada kejadian kas pada periode ini.</td>
                                 </tr>
                             @endforelse
                         </tbody>
