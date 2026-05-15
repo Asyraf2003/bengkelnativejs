@@ -14,5 +14,6 @@ return [
     App\Providers\InventoryServiceProvider::class,
     App\Providers\ProcurementServiceProvider::class,
     App\Providers\PaymentServiceProvider::class,
+    App\Providers\NoteServiceProvider::class,
     App\Providers\HexagonalServiceProvider::class,
 ];
