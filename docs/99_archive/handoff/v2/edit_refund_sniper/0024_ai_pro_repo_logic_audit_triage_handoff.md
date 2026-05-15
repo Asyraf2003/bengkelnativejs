@@ -183,15 +183,45 @@ AI Pro described plausible race risk, but no local RED proof has been produced y
 Required proof:
 - concurrent or invariant test showing double refund / over-refund / duplicate stock reversal.
 
-### HP-SURPLUS-001 — refund_due race exceeds pending surplus
+### HP-SURPLUS-001 - refund_due race can exceed pending surplus
 
-Status: Suspected.
+Status: Source-mitigated and locally verified by transaction-level invariant.
 
-Reason:
-AI Pro described plausible aggregate race risk, but no local RED proof has been produced yet.
+Original AI Pro claim:
+- Two concurrent `refund_due` requests for the same pending surplus settlement could both read the same remaining surplus and create active dispositions that exceed pending surplus.
 
-Required proof:
-- concurrent test or transaction-level invariant proving active refund_due total can exceed settlement surplus.
+Local source proof:
+- `CreateNoteRevisionSurplusRefundDueHandler` starts a transaction before reading pending settlement.
+- The handler reads pending settlement through `findPendingBySettlementIdForUpdate(...)`.
+- The handler validates requested amount after the locked pending read.
+- The handler writes the disposition before commit.
+- `DatabaseNoteRevisionSurplusPendingQuery` applies `lockForUpdate()` to the `note_revision_settlements` row when the for-update reader path is used.
+- The pending query computes already-active dispositions from `note_revision_surplus_dispositions` where `status = active`.
+
+Local verification proof:
+- Source anchors inspected locally:
+  - `app/Application/Note/UseCases/CreateNoteRevisionSurplusRefundDueHandler.php`
+  - `app/Adapters/Out/Note/DatabaseNoteRevisionSurplusPendingQuery.php`
+  - `app/Adapters/Out/Persistence/DatabaseTransactionManagerAdapter.php`
+- Focused tests passed:
+  - `tests/Feature/Note/CreateNoteRevisionSurplusRefundDueControllerFeatureTest.php`
+  - `tests/Feature/Note/CreateNoteRevisionSurplusRefundDueHandlerTest.php`
+  - `tests/Feature/Note/DatabaseNoteRevisionSurplusDispositionAdapterTest.php`
+  - `tests/Feature/Database/NoteRevisionSurplusDispositionMigrationTest.php`
+- Result: 18 passed, 101 assertions.
+
+Conclusion:
+- The suspected race is mitigated by transaction-scoped settlement row locking plus post-lock active disposition aggregation.
+- No production source patch was required for this finding.
+
+Remaining verification gaps:
+- No true parallel two-connection stress test was executed.
+- No explicit DB lock wait or timeout assertion was executed.
+- No full `make verify` run was executed for this documentation-only status update.
+
+Next action:
+- Do not patch HP-SURPLUS-001 source unless a new RED proof shows the invariant can still be violated.
+- If deeper proof is needed later, add a dedicated concurrency stress test around two simultaneous refund_due requests for the same settlement.
 
 ### HP-UI-001 — shared UI surplus action role-agnostic
 
