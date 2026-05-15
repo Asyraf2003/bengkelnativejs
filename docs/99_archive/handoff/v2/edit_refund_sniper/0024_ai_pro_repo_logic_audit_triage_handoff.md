@@ -491,85 +491,46 @@ Remaining verification gaps:
 - Dashboard operational performance query was not patched in this step unless later proof shows it has the same omission. This HP-REPORT fix is scoped to operational profit report calculation.
 
 
-### HP-IDEMP-001 — refund_paid deterministic idempotency key
+### HP-IDEMP-001 — refund_paid idempotency retry/stale-tab semantics
 
-Status: Suspected / design risk.
+Status: No production patch required; backend guarded; characterization verified.
 
-Reason:
-Potential stale-tab collision is plausible, but it is not proven as financial corruption.
-Likely UX/idempotency semantics risk.
+Original AI Pro claim:
+- refund_paid UI idempotency key was suspected to be deterministic/stale-tab collision-prone.
+- The suspected risk was that repeated refund_paid submissions might create duplicate refund_paid records or ambiguous retry behavior.
 
-Required proof:
-- same key, different amount stale-tab scenario.
-- expected behavior decision: reject stale form vs allow new key per attempt.
+Local classification:
+- Classified as no confirmed financial overpay issue.
+- Backend idempotency guard already mitigates same-key duplicate recording.
+- Same idempotency key with the same payload reuses the existing refund_paid record.
+- Same idempotency key with a different payload is rejected.
+- Database/storage layer keeps refund_paid idempotency uniqueness scoped by disposition and idempotency key.
+- Remaining concern is UX/stale-tab semantics only, not a confirmed production financial corruption bug.
 
-## Recommended Next Sniper Target
+Local proof:
+- Baseline HTTP controller proof before characterization:
+  - `php artisan test tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest.php --filter=RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest`
+  - PASS: 4 passed / 25 assertions.
+- Characterization proof after adding same-key retry tests:
+  - `php artisan test tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest.php --filter=RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest`
+  - PASS: 6 passed / 45 assertions.
+- Focused blast-radius proof:
+  - `php artisan test tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest.php tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentHandlerTest.php tests/Feature/Note/DatabaseNoteRevisionSurplusRefundPaymentAdapterTest.php tests/Feature/Note/AdminNoteSurplusRefundPaidUiFeatureTest.php tests/Feature/Note/NoteDetailSurplusDispositionPayloadFeatureTest.php`
+  - PASS: 17 passed / 113 assertions.
 
-Next safest target:
+Files changed for classification proof:
+- `tests/Feature/Note/RecordNoteRevisionSurplusRefundPaymentControllerFeatureTest.php`
+- `docs/99_archive/handoff/v2/edit_refund_sniper/0024_ai_pro_repo_logic_audit_triage_handoff.md`
 
-- HP-SURPLUS-001 refund_due race/idempotency.
+Production source files changed:
+- None.
 
-Reason:
-- Adjacent to the just-fixed HP-AUTH-001 route.
-- Affects surplus settlement integrity.
-- Likely smaller than selected-row refund plus inventory reversal race.
+Out of scope:
+- No refund_paid production source patch.
+- No dashboard/reporting patch.
+- No HP-UI, HP-REFUND, HP-INV, HP-ROWS, or HP-REPORT re-audit.
+- No global `make verify` proof in this HP-IDEMP closure step.
 
-Required first step:
-Read only:
-- app/Application/Note/UseCases/CreateNoteRevisionSurplusRefundDueHandler.php
-- app/Application/Note/UseCases/CreateNoteRevisionSurplusRefundDueGuard.php
-- app/Adapters/Out/Note/DatabaseNoteRevisionSurplusDispositionAdapter.php
-- migration for note_revision_surplus_dispositions
-- tests/Feature/Note/CreateNoteRevisionSurplusRefundDueControllerFeatureTest.php
-
-Then produce a minimal RED/invariant test plan before patch.
-
-## Do Not Do
-
-Do not:
-- accept all AI Pro findings as confirmed.
-- broad audit entire repo again.
-- patch concurrency risks without RED/invariant proof.
-- touch seeders as primary bug source.
-- ignore UI-to-logic boundary.
-- manage git push/sync here.
-
-- app/Application/Note/UseCases/CreateNoteRevisionSurplusRefundDueGuard.php
-- app/Adapters/Out/Note/DatabaseNoteRevisionSurplusDispositionAdapter.php
-- migration for note_revision_surplus_dispositions
-- tests/Feature/Note/CreateNoteRevisionSurplusRefundDueControllerFeatureTest.php
-
-Before any patch:
-- produce minimal RED/invariant test plan.
-- do not accept AI Pro finding as confirmed without local RED or invariant proof.
-- do not patch concurrency/idempotency risk directly.
-- do not run broad repo audit.
-- do not use seeders as primary bug source.
-- include UI-to-logic boundary only if rendered action, route, payload, hidden input, idempotency_key, amount/default/max, status label, or role/status conditional rendering affects business logic.
-
-## Next Session Opening Prompt
-
-Lanjutkan HyperPOS edit_refund_sniper.
-
-Current state:
-- HP-AUTH-001 is Fixed GREEN with owner command proof.
-- docs 0024 exists and records AI Pro audit triage.
-- Owner handles commit/push/manual sync.
-- Do not start with git status/log/diff.
-- Do not broad repo audit.
-- Do not patch before RED/invariant proof.
-
-Next active target:
-- HP-SURPLUS-001 — refund_due race/idempotency.
-
-Read only:
-- app/Application/Note/UseCases/CreateNoteRevisionSurplusRefundDueHandler.php
-- app/Application/Note/UseCases/CreateNoteRevisionSurplusRefundDueGuard.php
-- app/Adapters/Out/Note/DatabaseNoteRevisionSurplusDispositionAdapter.php
-- migration for note_revision_surplus_dispositions
-- tests/Feature/Note/CreateNoteRevisionSurplusRefundDueControllerFeatureTest.php
-
-First required output:
-- FACT / GAP / ASSUMPTION / DECISION
-- minimal RED/invariant test plan
-- no patch yet
+Closure decision:
+- HP-IDEMP-001 does not need a production patch based on current local proof.
+- Keep the HTTP characterization tests to lock backend idempotency behavior against future regressions.
