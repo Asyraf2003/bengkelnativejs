@@ -68,7 +68,9 @@
     if (type === "service_store_stock") {
       return [
         row.querySelector('input[name$="[service][name]"]'),
+        row.querySelector("[data-pricing-mode]"),
         moneyInputs[0],
+        row.querySelector("[data-package-total-input]"),
         row.querySelector("[data-product-search]"),
         row.querySelector("[data-qty-input]"),
         row.querySelector("[data-price-input]"),
@@ -183,6 +185,8 @@
     set('input[name$="[service][name]"]', item?.service?.name || "");
     set('textarea[name$="[service][notes]"]', item?.service?.notes || "");
     set("[data-product-search]", item?.selected_label || "");
+    set("[data-pricing-mode]", item?.pricing_mode || "manual_split");
+    set('input[name$="[package_total_rupiah]"]', item?.package_total_rupiah || "");
     set("[data-product-id]", item?.product_lines?.[0]?.product_id || "");
     set("[data-price-basis]", item?.product_lines?.[0]?.price_basis || "current_catalog");
     set('input[name$="[external_purchase_lines][0][label]"]', item?.external_purchase_lines?.[0]?.label || "");
