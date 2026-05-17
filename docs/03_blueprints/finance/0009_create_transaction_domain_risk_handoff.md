@@ -580,3 +580,72 @@ Next technical target:
 - Characterize current service + store-stock writer behavior before implementation.
 - Then introduce package composer with RED/GREEN tests.
 
+## Implementation proof - Service store-stock package pricing allocation
+
+Status: Focused GREEN, not globally verified.
+
+Scope implemented:
+
+- Create transaction only.
+- Service with store-stock part only.
+- Package total is a UI/input convenience.
+- Backend composes explicit service and sparepart allocation before work item persistence.
+- Payment logic remains untouched.
+- External purchase package pricing remains out of scope.
+
+Files changed:
+
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceRules.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceItemNormalizer.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceServiceItemValidator.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php`
+- `app/Core/Note/WorkItem/ServiceDetail.php`
+- `tests/Feature/Note/CreateTransactionWorkspaceServiceStoreStockFeatureTest.php`
+
+Behavior proven:
+
+- Manual service + store-stock create still persists the existing split.
+- Package total above sparepart minimum:
+  - package_total: `150.000`
+  - sparepart allocation: `40.000`
+  - service residual: `110.000`
+  - note total: `150.000`
+- Package total equal sparepart minimum:
+  - package_total: `40.000`
+  - sparepart allocation: `40.000`
+  - service residual: `0`
+  - note total: `40.000`
+- Package total below sparepart minimum:
+  - request is rejected through the create workspace failure path
+  - no note/work item/service detail/store stock line/inventory/payment side effect is created
+
+Focused proof:
+
+- `php -l app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceRules.php`
+  - PASS.
+- `php -l app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceItemNormalizer.php`
+  - PASS.
+- `php -l app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceServiceItemValidator.php`
+  - PASS.
+- `php -l app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer.php`
+  - PASS.
+- `php -l app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php`
+  - PASS.
+- `php -l app/Core/Note/WorkItem/ServiceDetail.php`
+  - PASS.
+- `php -l tests/Feature/Note/CreateTransactionWorkspaceServiceStoreStockFeatureTest.php`
+  - PASS.
+- `php artisan test --filter=CreateTransactionWorkspaceServiceStoreStockFeatureTest`
+  - PASS: 4 tests, 30 assertions.
+- `php artisan test --filter='CreateTransactionWorkspaceServiceStoreStockFeatureTest|CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest|CreateTransactionWorkspaceFullCashFeatureTest|CreateTransactionWorkspaceFullTransferFeatureTest|CreateTransactionWorkspaceSkipFeatureTest|CreateTransactionWorkspacePartialTransferFeatureTest|CreateTransactionWorkspacePartialCashFeatureTest'`
+  - PASS: 10 tests, 71 assertions.
+
+Remaining gaps:
+
+- No `make verify` proof yet.
+- No browser/manual QA.
+- No edit/revision/refund package recalculation support.
+- No external purchase package pricing support.
+- No explicit package allocation audit table/event beyond current persisted service/store-stock facts.
+

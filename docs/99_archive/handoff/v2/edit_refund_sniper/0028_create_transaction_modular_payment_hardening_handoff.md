@@ -450,3 +450,50 @@ Remaining gaps:
 - Package service+sparepart single-price allocation remains design-only and out of scope.
 - Next technical target is item compiler/composer seam inspection before package pricing implementation.
 
+## Step 6 - Service store-stock package pricing focused proof
+
+Status: Focused GREEN.
+
+Scope:
+
+- Create transaction only.
+- Service + store-stock package pricing only.
+- Payment seam remains untouched.
+- External purchase package pricing remains out of scope.
+
+Production files changed:
+
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceRules.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceItemNormalizer.php`
+- `app/Adapters/In/Http/Requests/Note/StoreTransactionWorkspaceServiceItemValidator.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceServiceStoreStockPackagePricingComposer.php`
+- `app/Application/Note/Services/CreateTransactionWorkspaceWorkItemPayloadMapper.php`
+- `app/Core/Note/WorkItem/ServiceDetail.php`
+
+Test files changed:
+
+- `tests/Feature/Note/CreateTransactionWorkspaceServiceStoreStockFeatureTest.php`
+
+Focused proof:
+
+- `php artisan test --filter=CreateTransactionWorkspaceServiceStoreStockFeatureTest`
+  - PASS: 4 tests, 30 assertions.
+- `php artisan test --filter='CreateTransactionWorkspaceServiceStoreStockFeatureTest|CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest|CreateTransactionWorkspaceFullCashFeatureTest|CreateTransactionWorkspaceFullTransferFeatureTest|CreateTransactionWorkspaceSkipFeatureTest|CreateTransactionWorkspacePartialTransferFeatureTest|CreateTransactionWorkspacePartialCashFeatureTest'`
+  - PASS: 10 tests, 71 assertions.
+
+Behavior proven:
+
+- Manual service + store-stock create remains compatible.
+- Package total above sparepart minimum auto-splits into sparepart minimum and service residual.
+- Package total equal sparepart minimum allows zero service fee.
+- Package total below sparepart minimum is rejected without note/work item/inventory/payment side effect.
+- Service + external purchase remains unchanged.
+- Create transaction payment matrix remains green.
+
+Remaining gaps:
+
+- No `make verify` proof.
+- No browser/manual QA.
+- External purchase package pricing is intentionally not implemented.
+- Edit/revision/refund package behavior is intentionally not implemented.
+
