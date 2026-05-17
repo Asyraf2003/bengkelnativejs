@@ -19,8 +19,8 @@ final class StoreTransactionWorkspaceServiceItemValidator
             $validator->errors()->add("items.$index.service.name", 'Nama servis wajib diisi.');
         }
 
-        if (self::intValue($service['price_rupiah'] ?? null) <= 0) {
-            $validator->errors()->add("items.$index.service.price_rupiah", 'Harga servis wajib lebih dari 0.');
+        if (! self::hasValidServicePrice($item)) {
+            $validator->errors()->add("items.$index.service.price_rupiah", 'Harga servis wajib lebih dari 0 kecuali package service + sparepart.');
         }
 
         if (! in_array($partSource, ['none', 'store_stock', 'customer_owned', 'external_purchase'], true)) {
@@ -70,6 +70,37 @@ final class StoreTransactionWorkspaceServiceItemValidator
         $first = array_values($value)[0] ?? [];
 
         return is_array($first) ? $first : [];
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private static function hasValidServicePrice(array $item): bool
+    {
+        $service = is_array($item['service'] ?? null) ? $item['service'] : [];
+        $price = self::intValue($service['price_rupiah'] ?? null);
+
+        if ($price > 0) {
+            return true;
+        }
+
+        return $price === 0
+            && ($item['pricing_mode'] ?? null) === 'package_auto_split'
+            && self::intValue($item['package_total_rupiah'] ?? null) > 0
+            && self::hasStoreStockLine($item);
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     */
+    private static function hasStoreStockLine(array $item): bool
+    {
+        $line = self::firstLine($item['product_lines'] ?? []);
+
+        return is_string($line['product_id'] ?? null)
+            && trim((string) $line['product_id']) !== ''
+            && self::intValue($line['qty'] ?? null) > 0
+            && self::intValue($line['unit_price_rupiah'] ?? null) > 0;
     }
 
     private static function blank(mixed $value): bool
