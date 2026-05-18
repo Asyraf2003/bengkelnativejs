@@ -50,13 +50,18 @@ final class CreateTransactionWorkspaceHandler
             $note = $this->noteFactory->make((array) ($payload['note'] ?? []));
             $this->notes->create($note);
 
-            $itemsCount = $this->items->persist($note, $payload['items'] ?? []);
+            $persistedItems = $this->items->persist($note, $payload['items'] ?? []);
             $this->notes->updateTotal($note);
 
             $paymentSummary = $this->payments->record($note, $payload['inline_payment'] ?? []);
             $this->audit->record(
                 'transaction_workspace_created',
-                $this->auditPayloads->build($note, $itemsCount, $paymentSummary)
+                $this->auditPayloads->build(
+                    $note,
+                    $persistedItems->itemsCount(),
+                    $paymentSummary,
+                    $persistedItems->packageAllocations()
+                )
             );
 
             $this->projection->syncNote($note->id());
