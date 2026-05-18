@@ -28,6 +28,6 @@ final class UpdateTransactionWorkspaceWorkItemPersister
 
         $note->replaceWorkItems([]);
 
-        return $this->createPersister->persist($note, $items, $nextLineNo);
+        return $this->createPersister->persist($note, $items, $nextLineNo)->itemsCount();
     }
 }
