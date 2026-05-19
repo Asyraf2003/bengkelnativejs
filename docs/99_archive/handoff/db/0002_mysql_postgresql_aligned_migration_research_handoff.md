@@ -351,7 +351,7 @@ Current residuals:
 - payload_json JSON alignment is Focused Verified for transaction workspace drafts and note mutation snapshots.
 - framework longText/mediumText remains skipped.
 - framework jobs unsigned remains skipped.
-- supplier_payment_proof_attachments.file_size_bytes signed metadata alignment signed metadata alignment is Focused Verified.
+- supplier_payment_proof_attachments.file_size_bytes signed metadata alignment is Focused Verified.
 
 Active target:
 
@@ -478,3 +478,27 @@ BOUNDARY:
 - This does not claim production PostgreSQL cutover readiness.
 - Live transition still requires explicit forward migration, SQL transform, or export/import mapping.
 - Seeder work remains intentionally out of scope until DB baseline is frozen.
+
+## Final DB baseline residual classification before seeder
+
+Status: DB baseline freeze candidate.
+
+FACT:
+- App-owned MySQL/PostgreSQL-alignment residuals found during this research track are now either Focused Verified or explicitly classified.
+- `->change()` cleanup is Focused Verified.
+- `payload_json` JSON alignment is Focused Verified.
+- `supplier_payment_proof_attachments.file_size_bytes` signed metadata alignment is Focused Verified.
+- User-linked `foreignId('user_id')` usage in `push_subscriptions` and `mobile_api_tokens` is Focused Verified as framework-coupled and compatible with `users.id`.
+- Remaining `json(...)` columns are intentional JSON/snapshot/payload columns.
+- Remaining framework/default-owned text or unsigned signals are intentionally documented skips:
+  - `0001_01_01_000002_create_jobs_table.php`
+  - `0001_01_01_000001_create_cache_table.php`
+  - `0001_01_01_000000_create_users_table.php` sessions table fields
+- Seeder work remains intentionally deferred until this DB baseline is accepted as frozen.
+
+BOUNDARY:
+- This freeze candidate only covers MySQL DB migration research baseline.
+- This does not modify the live MySQL database by itself.
+- This does not claim production PostgreSQL cutover readiness.
+- PostgreSQL transition still requires explicit forward migration, SQL transform, or export/import mapping.
+- PostgreSQL runtime verification is a later track.

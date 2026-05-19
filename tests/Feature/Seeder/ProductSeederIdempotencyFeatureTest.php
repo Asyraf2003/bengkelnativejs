@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Seeder;
 
+use Database\Seeders\Product\ProductScenarioActiveBasicSeeder;
 use Database\Seeders\Product\ProductScenarioRecreatedSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +17,36 @@ use Tests\TestCase;
 final class ProductSeederIdempotencyFeatureTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_active_basic_product_scenario_can_be_rerun_without_warning_or_state_growth(): void
+    {
+        $logger = new class extends AbstractLogger {
+            public int $warningCount = 0;
+
+            /**
+             * @param mixed $level
+             * @param array<string, mixed> $context
+             */
+            public function log($level, string|Stringable $message, array $context = []): void
+            {
+                if ($level === LogLevel::WARNING) {
+                    $this->warningCount++;
+                }
+            }
+        };
+
+        Log::swap($logger);
+
+        $this->seed(ProductScenarioActiveBasicSeeder::class);
+
+        $this->assertActiveBasicScenarioState();
+
+        $this->seed(ProductScenarioActiveBasicSeeder::class);
+
+        $this->assertActiveBasicScenarioState();
+
+        self::assertSame(0, $logger->warningCount);
+    }
 
     public function test_recreated_product_scenario_can_be_rerun_without_warning_or_state_growth(): void
     {
@@ -45,6 +76,44 @@ final class ProductSeederIdempotencyFeatureTest extends TestCase
         $this->assertRecreatedScenarioState();
 
         self::assertSame(0, $logger->warningCount);
+    }
+
+    private function assertActiveBasicScenarioState(): void
+    {
+        $rows = DB::table('products')
+            ->where('kode_barang', 'like', 'PRD-ACT-%')
+            ->get([
+                'kode_barang',
+                'deleted_at',
+                'reorder_point_qty',
+                'critical_threshold_qty',
+            ]);
+
+        self::assertCount(20, $rows);
+
+        self::assertSame(
+            20,
+            $rows->filter(fn (object $row): bool => $row->deleted_at === null)->count(),
+            'Expected all active basic product rows to remain active.'
+        );
+
+        self::assertSame(
+            0,
+            $rows->filter(fn (object $row): bool => $row->deleted_at !== null)->count(),
+            'Expected active basic product scenario to have no deleted lifecycle rows.'
+        );
+
+        for ($number = 1; $number <= 20; $number++) {
+            $code = 'PRD-ACT-' . str_pad((string) $number, 3, '0', STR_PAD_LEFT);
+            $matchingRows = $rows->where('kode_barang', $code);
+
+            self::assertSame(1, $matchingRows->count(), 'Expected one active basic row for ' . $code . '.');
+
+            $row = $matchingRows->first();
+
+            self::assertNotNull($row->reorder_point_qty, 'Expected reorder threshold for ' . $code . '.');
+            self::assertNotNull($row->critical_threshold_qty, 'Expected critical threshold for ' . $code . '.');
+        }
     }
 
     private function assertRecreatedScenarioState(): void
