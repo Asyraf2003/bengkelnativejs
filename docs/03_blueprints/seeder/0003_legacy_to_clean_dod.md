@@ -13,13 +13,13 @@ This document does not claim the current Makefile already satisfies this DoD.
 ## Source Of Truth
 
 - database/seeders/README.md
-- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
-- docs/03_blueprints/seeder/legacy-to-clean-workflow.md
-- docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
-- docs/03_blueprints/security/adr-0023-seeder-safety.md
-- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
-- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
+- docs/03_blueprints/seeder/0001_legacy_to_clean.md
+- docs/03_blueprints/seeder/0002_legacy_to_clean_manifest.md
+- docs/03_blueprints/seeder/0004_legacy_to_clean_workflow.md
+- docs/02_architecture/adr/0023_seeder_credential_and_environment_safety.md
+- docs/03_blueprints/security/0010_seeder_safety.md
+- docs/99_archive/handoff/v2/seedernew/0002_seedernew_finance_blueprint_adr.md
+- docs/99_archive/handoff/v2/seedernew/0004_seedernew_scenario_matrix.md
 - local command output at execution time
 
 ## Goal
@@ -357,9 +357,9 @@ Required:
 Seeder migration is not done until these docs are updated:
 
 - database/seeders/README.md
-- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
-- docs/03_blueprints/seeder/legacy-to-clean-workflow.md
+- docs/03_blueprints/seeder/0001_legacy_to_clean.md
+- docs/03_blueprints/seeder/0002_legacy_to_clean_manifest.md
+- docs/03_blueprints/seeder/0004_legacy_to_clean_workflow.md
 - docs/03_blueprints/seeder/legacy-to-clean-dod.md
 - scenario matrix docs
 - relevant error_log docs if a security/finance issue is fixed

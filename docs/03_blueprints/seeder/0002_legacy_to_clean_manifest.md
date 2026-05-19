@@ -16,11 +16,11 @@ This document does not mark any seeder as clean, fixed, safe, idempotent, or pro
 
 ## Source Of Truth
 
-- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
-- docs/03_blueprints/security/adr-0023-seeder-safety.md
-- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
-- docs/99_archive/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
+- docs/03_blueprints/seeder/0001_legacy_to_clean.md
+- docs/02_architecture/adr/0023_seeder_credential_and_environment_safety.md
+- docs/03_blueprints/security/0010_seeder_safety.md
+- docs/99_archive/handoff/v2/seedernew/0002_seedernew_finance_blueprint_adr.md
+- docs/99_archive/handoff/v2/seedernew/0004_seedernew_scenario_matrix.md
 - local command output from 2026-05-11 inventory
 
 ## Classification Rule
@@ -346,7 +346,7 @@ Scope:
 - `database/seeders/UserSeeder.php`
 - `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
 - `docs/04_lifecycle/error_log/0002_seeder_introduces_predictable_admin_credentials.md`
-- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/03_blueprints/seeder/0002_legacy_to_clean_manifest.md`
 
 Status:
 
@@ -418,7 +418,7 @@ Scope:
 - `database/seeders/Product/ProductScenarioRecreatedSeeder.php`
 - `tests/Feature/Seeder/ProductSeederIdempotencyFeatureTest.php`
 - `tests/Feature/Seeder/UserSeederCredentialBoundaryFeatureTest.php`
-- `docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md`
+- `docs/03_blueprints/seeder/0002_legacy_to_clean_manifest.md`
 - `docs/04_lifecycle/handoff/seeder/2026-05-11-product-recreated-seeder-idempotency-handoff.md`
 
 Status:

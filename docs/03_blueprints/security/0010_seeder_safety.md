@@ -16,7 +16,7 @@ This is not a prototype, demo, or reduced-scope system.
 
 ## Source Of Truth
 
-- docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+- docs/02_architecture/adr/0023_seeder_credential_and_environment_safety.md
 - docs/04_lifecycle/error_log/0002_seeder_introduces_predictable_admin_credentials.md
 - docs/05_audits/codex_security/2026-05-06-error-log-solution-and-adr-coverage-summary.md
 - docs/02_architecture/adr/0019-note-access-boundary-cashier-date-window-and-transaction-capability-enforcement.md
@@ -30,7 +30,7 @@ This is not a prototype, demo, or reduced-scope system.
 
 Local proof from user command output:
 
-    grep -nE "^(#|## Status|## Context|## Problem Statement|## Decision|## Owner Decisions Locked|## Environment Classification|## Approved Immediate Safety Direction|## Future Seeder Structure Direction|## Required Verification Themes|## Stop Conditions|## Final Rule)" docs/02_architecture/adr/0023-seeder-credential-and-environment-safety.md
+    grep -nE "^(#|## Status|## Context|## Problem Statement|## Decision|## Owner Decisions Locked|## Environment Classification|## Approved Immediate Safety Direction|## Future Seeder Structure Direction|## Required Verification Themes|## Stop Conditions|## Final Rule)" docs/02_architecture/adr/0023_seeder_credential_and_environment_safety.md
 
 showed ADR-0023 has required planning sections.
 

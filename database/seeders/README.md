@@ -21,12 +21,12 @@ Legacy compatibility means:
 
 Read these documents before changing seeders:
 
-- docs/03_blueprints/seeder/2026-05-11-legacy-to-clean-seeder-blueprint.md
-- docs/03_blueprints/seeder/2026-05-11-legacy-seeder-manifest.md
-- docs/adr/0023-seeder-credential-and-environment-safety.md
-- docs/blueprint/security/2026-05-06-seeder-credential-and-environment-safety-blueprint.md
-- docs/handoff/v2/seedernew/2026-04-26-seedernew-finance-blueprint-adr.md
-- docs/handoff/v2/seedernew/2026-04-26-seedernew-scenario-matrix.md
+- docs/03_blueprints/seeder/0001_legacy_to_clean.md
+- docs/03_blueprints/seeder/0002_legacy_to_clean_manifest.md
+- docs/02_architecture/adr/0023_seeder_credential_and_environment_safety.md
+- docs/03_blueprints/security/0010_seeder_safety.md
+- docs/99_archive/handoff/v2/seedernew/0002_seedernew_finance_blueprint_adr.md
+- docs/99_archive/handoff/v2/seedernew/0004_seedernew_scenario_matrix.md
 
 ## Current Direction
 
