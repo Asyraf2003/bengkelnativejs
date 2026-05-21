@@ -66,3 +66,10 @@ seed-employee-debt-payment:
 
 .PHONY: employee-debt-payment
 employee-debt-payment: seed-employee-debt-payment
+
+.PHONY: seed-employee-debt-adjustment
+seed-employee-debt-adjustment:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateEmployeeDebtAdjustmentSeeder"
+
+.PHONY: employee-debt-adjustment
+employee-debt-adjustment: seed-employee-debt-adjustment
