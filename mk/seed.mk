@@ -73,3 +73,10 @@ seed-employee-debt-adjustment:
 
 .PHONY: employee-debt-adjustment
 employee-debt-adjustment: seed-employee-debt-adjustment
+
+.PHONY: seed-payroll-disbursement
+seed-payroll-disbursement:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreatePayrollDisbursementSeeder"
+
+.PHONY: payroll-disbursement
+payroll-disbursement: seed-payroll-disbursement
