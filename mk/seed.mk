@@ -80,3 +80,21 @@ seed-payroll-disbursement:
 
 .PHONY: payroll-disbursement
 payroll-disbursement: seed-payroll-disbursement
+
+.PHONY: seed-create-all-v1
+seed-create-all-v1: user admin-cashier-area-access product-1 inventory procurement supplier-payment expense employee-debt employee-debt-payment employee-debt-adjustment payroll-disbursement
+
+.PHONY: create-all-v1
+create-all-v1: seed-create-all-v1
+
+.PHONY: seed-create-all-v2
+seed-create-all-v2: user admin-cashier-area-access product-1 product-2 inventory procurement supplier-payment expense employee-debt employee-debt-payment employee-debt-adjustment payroll-disbursement
+
+.PHONY: create-all-v2
+create-all-v2: seed-create-all-v2
+
+.PHONY: seed-create-all-v3
+seed-create-all-v3: user admin-cashier-area-access product-1 product-2 product-year inventory procurement supplier-payment expense employee-debt employee-debt-payment employee-debt-adjustment payroll-disbursement
+
+.PHONY: create-all-v3
+create-all-v3: seed-create-all-v3
