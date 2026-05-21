@@ -59,3 +59,10 @@ seed-employee-debt:
 
 .PHONY: employee-debt
 employee-debt: seed-employee-debt
+
+.PHONY: seed-employee-debt-payment
+seed-employee-debt-payment:
+	php artisan db:seed --class="Database\Seeders\CreateOnly\CreateEmployeeDebtPaymentSeeder"
+
+.PHONY: employee-debt-payment
+employee-debt-payment: seed-employee-debt-payment
