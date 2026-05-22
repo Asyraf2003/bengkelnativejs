@@ -12,3 +12,17 @@ Jangan edit file di sini. Jika ada keputusan yang masih relevan, promote ke ADR.
 | `blueprints/` | Blueprint v1 dan workflow v1 (era awal proyek) |
 | `dod/` | DoD v1 (definition of done era awal, multi-domain) |
 | `handoff/` | Semua handoff lama dari semua topik dan era |
+
+## Gunakan Untuk
+
+- referensi sejarah
+- backlink audit
+- pembacaan konteks lama
+
+## Jangan Gunakan Untuk
+
+- work aktif
+- keputusan baru
+- patch dokumen yang masih canonical
+
+Kalau ada keputusan yang masih berlaku, promote ke ADR atau pindahkan ke blueprint/handoff aktif yang sesuai.

@@ -27,6 +27,27 @@ Gunakan urutan ini ketika dokumen saling bertentangan:
 6. Archive di `docs/99_archive`
 7. General model knowledge (terendah)
 
+## Placement Guide
+
+Pakai aturan ini untuk menaruh dokumen di tempat yang benar:
+
+| Jenis dokumen | Tempat | Isi |
+|---|---|---|
+| Standards / aturan wajib | `docs/01_standards` | Rule global AI, decision policy, output rules, domain map, stack rules |
+| ADR / keputusan permanen | `docs/02_architecture/adr` | Keputusan arsitektur, domain, lifecycle, reporting, data representation |
+| Blueprint / desain aktif | `docs/03_blueprints` | Scope, design, DoD, workflow, test matrix, implementation order |
+| Error log / finding | `docs/04_lifecycle/error_log` | Bug, security finding, lifecycle issue, satu issue satu file |
+| Handoff aktif | `docs/04_lifecycle/handoff` | Progress terakhir, proof, changed files, blocker, next step |
+| Audit report | `docs/05_audits` | Laporan audit berdiri sendiri, ringkasan proof, coverage, temuan |
+| Legacy / historical | `docs/99_archive` | Handoff lama, blueprint lama, standards lama, dokumen superseded |
+
+Kalau ragu:
+
+1. Keputusan permanen masuk ADR.
+2. Desain yang masih dikerjakan masuk blueprint.
+3. Hasil kerja sesi masuk handoff aktif.
+4. Riwayat lama yang tidak lagi aktif masuk archive.
+
 ## Directory Map
 
 ### `docs/01_standards`
@@ -50,9 +71,25 @@ Jika keputusan berubah: buat ADR baru yang supersede, jangan edit ADR lama.
 
 ### `docs/03_blueprints`
 
-Design blueprints + DoD + Workflow per topik. Diorganisir dalam subfolder:
+Design blueprints + DoD + Workflow per topik. Hanya untuk scope aktif atau recent scope yang masih dikerjakan.
 
-- `security/` — ADR-0019 s/d ADR-0023 blueprints, dod, workflow
+Isi yang cocok:
+
+- scope in / scope out
+- problem statement
+- design options dan keputusan desain
+- DoD / test matrix / implementation order
+- workflow CLI dan urutan eksekusi
+
+Tidak untuk:
+
+- keputusan permanen yang harus jadi ADR
+- catatan harian sesi
+- hasil uji final yang lebih cocok di handoff
+
+Diorganisir dalam subfolder:
+
+- `security/` — ADR-0019 s/d ADR-0023 blueprints, DoD, workflow
 - `finance/` — note finance, residual, revision-refund-ledger
 - `reporting/` — report export, reporting execution
 - `seeder/` — legacy-to-clean
@@ -66,16 +103,44 @@ Naming: `NNNN_topic_name.md` (blueprint), `NNNN_topic_name_dod.md` (DoD), `NNNN_
 
 Runtime records.
 
-- `error_log/` — individual bug/security findings, numbered `NNNN_snake_title.md`
-- `handoff/` — session recovery notes untuk sesi aktif/terbaru
+`error_log/` — individual bug/security findings, numbered `NNNN_snake_title.md`
+
+`handoff/` — session recovery notes untuk sesi aktif/terbaru
+
+Handoff cocok untuk:
+
+- ringkasan progress
+- proof dan test output
+- file yang berubah
+- blocker dan risiko
+- prompt pembuka sesi berikutnya
+
+Handoff tidak cocok untuk:
+
+- keputusan permanen
+- blueprint aktif
+- catatan yang sudah pasti historical
+
+Kalau sesi selesai, pindahkan handoff ke `docs/99_archive/handoff/`.
 
 ### `docs/05_audits`
 
 Formal audit records dengan numbered snake_case filename `NNNN_topic_name.md`.
 
+Audit cocok untuk:
+
+- ringkasan audit
+- coverage summary
+- proof of work
+- rekomendasi dan risiko
+
+Audit bukan pengganti handoff, dan bukan blueprint.
+
 ### `docs/99_archive`
 
 Semua dokumen legacy, superseded, dan historical. Copy penuh, tidak dimodifikasi.
+
+Jangan simpan work aktif di sini. Kalau sesuatu masih harus dikerjakan, simpan di `docs/03_blueprints` atau `docs/04_lifecycle/handoff`.
 
 - `standards/` — old standards docs
 - `blueprints/` — blueprint v1

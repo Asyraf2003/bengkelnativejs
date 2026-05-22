@@ -62,6 +62,8 @@ Do not put here:
 
 docs/01_standards is the canonical standards root for AI_RULES, not the diary.
 
+For exact repository document placement, use `docs/README.md` and its Placement Guide.
+
 ## Layer 4: docs/02_architecture/adr
 
 Use for permanent accepted decisions.
@@ -97,6 +99,7 @@ Blueprint is the design contract for a scope.
 Use for session recovery.
 
 Current handoff locations include:
+- docs/04_lifecycle/handoff
 - docs/99_archive/handoff
 - docs/99_archive/handoff/v2
 - docs/99_archive/handoff/v2/feature-continuation
