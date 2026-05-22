@@ -62,7 +62,7 @@ Do not put here:
 
 docs/01_standards is the canonical standards root for AI_RULES, not the diary.
 
-For exact repository document placement, use `docs/README.md` and its Panduan Penempatan.
+For exact repository document placement, use `docs/README.md` and its Placement Guide.
 
 ## Layer 4: docs/02_architecture/adr
 
@@ -121,27 +121,27 @@ Handoff may be detailed and messy. That is acceptable because it is a historical
 
 Use to start a new AI session. A good session prompt should include only pointers and fresh proof:
 
-    Kita lanjut repo Laravel kasir/bengkel.
+    We are continuing the Laravel cashier/workshop repo.
 
     Wajib baca:
     1. docs/01_standards/0001_index.md
     2. docs/01_standards/0002_decision_policy.md
     3. docs/01_standards/0007_ai_usage_guide.md
-    4. path blueprint aktif
-    5. path handoff terakhir
+    4. path to the active blueprint
+    5. path to the latest handoff
 
     Rules:
-    - local command output saya adalah source of truth tertinggi
-    - jangan klaim progress tanpa proof
-    - bedakan FACT, GAP, DECISION, PROOF, NEXT
-    - satu active step per respons
-    - jangan implementasi sebelum snapshot dan blueprint minimum
+    - my local command output is the highest source of truth
+    - do not claim progress without proof
+    - distinguish FACT, GAP, DECISION, PROOF, NEXT
+    - one active step per response
+    - do not implement before the snapshot and minimum blueprint
 
-    Scope aktif:
-    - path blueprint
-    - path handoff
+    Active scope:
+    - blueprint path
+    - handoff path
 
-    Output lokal terbaru:
+    Latest local output:
     - paste command output
 
 Do not paste the entire docs tree unless the task is docs audit.
@@ -150,17 +150,17 @@ Do not paste the entire docs tree unless the task is docs audit.
 
 | Information                          | Correct Place                                    |
 |--------------------------------------|--------------------------------------------------|
-| Personal response preference         | ChatGPT memory or personalization; promote stable repo-level subset to `docs/01_standards/0008_ai_personalization_profile.md` when owner decides |
+| Personal response preference         | ChatGPT memory or personalization; promote the stable repo-level subset to `docs/01_standards/0008_ai_personalization_profile.md` when the owner decides |
 | Project-level operating default      | Project custom instructions                      |
-| Mandatory AI rule                    | docs/01_standards                                    |
-| Permanent decision                   | docs/02_architecture/adr                                         |
-| Active scope design                  | docs/03_blueprints                                  |
+| Mandatory AI rule                    | `docs/01_standards`                              |
+| Permanent decision                   | `docs/02_architecture/adr`                       |
+| Active scope design                  | `docs/03_blueprints`                             |
 | Daily work recovery                  | handoff                                          |
-| Feature status ledger                | docs/03_blueprints/feature_continuation or dedicated doc    |
+| Feature status ledger                | `docs/03_blueprints/feature_continuation` or a dedicated doc |
 | Test output                          | handoff or proof note                            |
 | Commit hash                          | handoff                                          |
-| Bug found in live local              | handoff or docs/99_archive/handoff/ui                             |
-| Final source of truth domain map     | docs/01_standards and ADR when needed                |
+| Bug found locally                    | handoff or `docs/99_archive/handoff/ui`          |
+| Final source-of-truth domain map     | `docs/01_standards` and ADRs when needed         |
 
 ## Promotion From Handoff To ADR
 
@@ -181,7 +181,7 @@ Every large session should end with a handoff containing:
 - locked decisions, files changed, proof and verification
 - blockers or gaps, safest next step, opening prompt for a new session
 
-If context risk is 80 percent or higher, stop large implementation and write the handoff first.
+If context risk is 80 percent or higher, stop large implementation work and write the handoff first.
 
 ## Cleanup Safety
 

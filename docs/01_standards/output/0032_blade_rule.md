@@ -1,17 +1,17 @@
 # P2 - Blade Rule
 
-## Tujuan
-Menjaga file Blade tetap bersih, konsisten, dan tidak menjadi tempat logika yang seharusnya hidup di layer lain.
+## Purpose
+Keep Blade files clean and consistent, and do not turn them into the place where logic that belongs elsewhere is hidden.
 
 ## Mandatory Rule
-- Hindari inline PHP block di Blade.
-- View hanya merender data yang sudah disiapkan oleh flow yang tepat.
-- Jangan menaruh keputusan domain inti di Blade.
+- Avoid inline PHP blocks in Blade.
+- Views should only render data prepared by the correct flow.
+- Do not place core domain decisions in Blade.
 
 ## Preferred Practice
-- Data preparation dilakukan sebelum view dirender.
-- Blade dipakai untuk presentasi, bukan untuk memindahkan tanggung jawab use case/domain.
+- Prepare data before the view is rendered.
+- Use Blade for presentation, not for moving use-case or domain responsibility around.
 
 ## Forbidden Behavior
-- Jangan mendorong logic branching domain utama ke Blade.
-- Jangan memakai Blade sebagai shortcut untuk menutup kekurangan flow aplikasi.
+- Do not push main domain branching logic into Blade.
+- Do not use Blade as a shortcut for gaps in the application flow.

@@ -1,20 +1,20 @@
 # P2 - Terminal Command Delivery
 
-## Tujuan
-Menyesuaikan delivery implementasi dengan preferensi user yang ingin command siap copy-paste.
+## Purpose
+Align implementation delivery with the user’s preference for commands that are ready to copy and paste.
 
 ## Mandatory Rule
-- Jika bentuk delivery yang paling aman adalah command terminal, AI harus mengutamakan command terminal.
-- Jika command panjang atau berisiko salah paste, AI harus memecah menjadi beberapa batch.
-- Setiap batch harus punya tujuan yang jelas.
-- Command harus bisa dijalankan dari konteks yang dinyatakan, misalnya root repo.
+- If terminal commands are the safest delivery format, the AI must prioritize terminal commands.
+- If commands are long or easy to paste incorrectly, split them into multiple batches.
+- Each batch must have a clear purpose.
+- Commands must be runnable from the stated context, such as the repo root.
 
 ## Delivery Discipline
-- Nyatakan asumsi eksekusi minimum, misalnya "jalankan dari root repo".
-- Pisahkan batch bila overwrite banyak file agar verifikasi lebih mudah.
-- Setelah batch command, sertakan command verifikasi yang relevan.
+- State the minimum execution assumption, for example "run from the repo root".
+- Split batches when many files are overwritten so verification is easier.
+- After each command batch, include the relevant verification command.
 
 ## Forbidden Behavior
-- Jangan memberi satu blok command raksasa yang sulit diverifikasi jika bisa dipecah lebih aman.
-- Jangan memberi command tanpa konteks lokasi eksekusi.
-- Jangan menyebut langkah sudah selesai jika baru memberi command tapi belum ada proof.
+- Do not give one huge command block when it can be split safely.
+- Do not give commands without execution context.
+- Do not say a step is complete if you have only provided commands and no proof yet.

@@ -1,12 +1,12 @@
 # core
 
-Prinsip inti yang mengunci cara kerja AI dalam semua sesi.
+Core principles that lock down how AI works in every session.
 
-## Isi
+## Contents
 
-| File | Isi |
+| File | Purpose |
 |---|---|
-| `10-scope-and-facts.md` | Fakta harus diverifikasi, asumsi dilarang, GAP harus distop. |
-| `11-blueprint-first.md` | Implementasi hanya boleh dimulai setelah blueprint jelas. |
-| `12-step-by-step-execution.md` | Satu step aktif per respons, tunggu feedback sebelum lanjut. |
-| `13-proof-and-progress.md` | Progress hanya naik jika ada proof nyata dari output lokal. |
+| `10-scope-and-facts.md` | Facts must be verified, assumptions are forbidden, and GAPs must stop the flow. |
+| `11-blueprint-first.md` | Implementation may start only after the blueprint is clear. |
+| `12-step-by-step-execution.md` | One active step per response; wait for feedback before continuing. |
+| `13-proof-and-progress.md` | Progress may increase only when local output provides real proof. |

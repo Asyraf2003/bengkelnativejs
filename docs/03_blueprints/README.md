@@ -1,39 +1,39 @@
 # 03_blueprints
 
-Design blueprints, DoD, dan Workflow per topik implementasi.
+Design blueprints, DoD, and workflow for each implementation topic.
 
-## Struktur
+## Structure
 
-Setiap subfolder topik berisi tiga jenis file yang berdampingan:
+Each topic subfolder contains three adjacent file types:
 
-| Suffix | Jenis | Isi |
+| Suffix | Type | Contents |
 |---|---|---|
 | `NNNN_topic_name.md` | Blueprint | Owner decisions, scope, access model, policy design |
 | `NNNN_topic_name_dod.md` | DoD | Kriteria selesai — planning dan implementation |
 | `NNNN_topic_name_workflow.md` | Workflow | Test matrix, implementation order, CLI workflow, commands |
 
-## Cocok Untuk
+## Suitable For
 
-- memetakan scope aktif sebelum implementasi
-- menyimpan desain yang masih bisa berubah
-- mendefinisikan urutan kerja dan proof yang dibutuhkan
-- mengikat DoD supaya selesai-nya jelas
+- mapping the active scope before implementation
+- storing designs that are still allowed to change
+- defining the work order and the proof that is required
+- making the DoD explicit so completion is unambiguous
 
-## Tidak Untuk
+## Not Suitable For
 
-- keputusan permanen yang harus jadi ADR
-- catatan sesi harian
-- hasil uji final yang lebih cocok di handoff
-- riwayat lama yang sudah selesai
+- permanent decisions that should become ADR
+- daily session notes
+- final test results that fit better in a handoff
+- old history that is already finished
 
-## Subfolder
+## Subfolders
 
-| Folder | Topik |
+| Folder | Topic |
 |---|---|
 | `security/` | ADR-0019 access boundary, ADR-0020 public surface, ADR-0022 payment concurrency, ADR-0023 seeder safety |
 | `finance/` | Note finance stabilization, finance residual, note revision refund ledger |
 | `reporting/` | Report export, reporting execution workflow |
 | `seeder/` | Legacy-to-clean seeder migration |
 | `mobile/` | Mobile API v1 |
-| `error_log_remediation/` | Proses remediasi error log |
+| `error_log_remediation/` | Error-log remediation process |
 | `feature_continuation/` | Feature continuation scope blueprint |

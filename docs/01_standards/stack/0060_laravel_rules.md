@@ -1,11 +1,11 @@
 # P1 - Laravel Rules
 
-## Tujuan
-Menjaga implementasi Laravel tetap selaras dengan constitution project.
+## Purpose
+Keep the Laravel implementation aligned with the project constitution.
 
-## Aturan
-- Tetap patuh pada hexagonal architecture.
-- Hindari inline PHP block di Blade.
-- Saat memberi implementasi untuk user, prioritaskan bentuk command terminal yang bisa copy-paste bila sesuai.
-- Jaga boundary antara controller, use case, dan adapter.
-- Jangan menjadikan view sebagai tempat keputusan domain inti.
+## Rules
+- Stay aligned with hexagonal architecture.
+- Avoid inline PHP blocks in Blade.
+- When giving implementation to the user, prioritize copy-pasteable terminal commands when appropriate.
+- Keep the boundary between controller, use case, and adapter intact.
+- Do not turn the view into the place where core domain decisions are made.

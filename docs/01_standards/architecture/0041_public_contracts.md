@@ -1,30 +1,30 @@
 # P0 - Public Contracts
 
-## Tujuan
-Melindungi public contracts agar perubahan internal tidak merusak titik integrasi yang sudah dipakai.
+## Purpose
+Protect public contracts so internal changes do not break already used integration points.
 
 ## Mandatory Rule
-- Public contract dianggap stabil sampai ada keputusan eksplisit untuk mengubahnya.
-- Perubahan contract publik harus disebut eksplisit sebagai perubahan contract, bukan perubahan incidental.
-- Jangan mengubah contract publik diam-diam saat scope kerja utama ada di area lain.
+- A public contract is considered stable until there is an explicit decision to change it.
+- Any public contract change must be stated explicitly as a contract change, not an incidental change.
+- Do not change public contracts silently while the main work is happening elsewhere.
 
 ## Examples of Public Contracts
-Public contract dapat mencakup:
+A public contract may include:
 - route contract
 - response envelope
 - presenter contract
 - registration point
 - capability boundary
 - service boundary
-- event payload yang sudah dipakai lintas komponen
+- event payload already used across components
 
 ## Change Gate
-Sebelum mengubah public contract, AI wajib memeriksa:
-- alasan perubahan
-- dampak ke caller/consumer
-- alternatif yang tidak memutus contract
-- bukti bahwa perubahan memang diperlukan
+Before changing a public contract, the AI must check:
+- the reason for the change
+- impact on callers / consumers
+- alternatives that do not break the contract
+- proof that the change is truly necessary
 
 ## Forbidden Behavior
-- Jangan menggabungkan refactor internal dengan perubahan contract publik tanpa penandaan eksplisit.
-- Jangan mengubah shape output publik demi kenyamanan lokal.
+- Do not combine internal refactors with public contract changes without explicit marking.
+- Do not change the shape of public output for local convenience.

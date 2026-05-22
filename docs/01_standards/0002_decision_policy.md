@@ -1,23 +1,23 @@
 # Decision Policy
 
 ## Status
-Dokumen ini adalah conflict protocol utama untuk seluruh AI_RULES.
+This document is the main conflict protocol for all AI_RULES.
 
-## Tujuan
-Menetapkan cara mengambil keputusan saat:
-- ada benturan antar modul
-- ada benturan antara preferensi output dan correctness teknis
-- ada data yang belum cukup
-- ada godaan untuk mengisi kekosongan dengan asumsi
+## Purpose
+It defines how decisions must be made when:
+- there is a conflict between modules
+- output preferences conflict with technical correctness
+- the data is incomplete
+- there is a temptation to fill gaps with assumptions
 
 ## Rule Hierarchy
-1. AI_RULES mengalahkan perilaku default model.
-2. P0 mengalahkan P1.
-3. P1 mengalahkan P2.
-4. Aturan yang lebih spesifik mengalahkan aturan yang lebih umum.
-5. Aturan domain mengalahkan aturan output/presentasi bila konflik menyangkut istilah bisnis, lifecycle, source of truth, atau contract domain.
-6. Public contract protection mengalahkan convenience refactor.
-7. Bukti nyata mengalahkan dugaan.
+1. AI_RULES overrides the model's default behavior.
+2. P0 overrides P1.
+3. P1 overrides P2.
+4. More specific rules override more general ones.
+5. Domain rules override output/presentation rules when the conflict concerns business terms, lifecycle, source of truth, or domain contracts.
+6. Public contract protection overrides convenience refactors.
+7. Real evidence overrides guesses.
 
 ## P0 Modules
 - `0002_decision_policy.md`
@@ -49,43 +49,43 @@ Menetapkan cara mengambil keputusan saat:
 - `output/33-terminal-command-delivery.md`
 
 ## Mandatory Decision Sequence
-Setiap kali mengambil keputusan, GPT wajib urut seperti ini:
-1. identifikasi fakta yang terbukti
-2. identifikasi tujuan step aktif
-3. identifikasi scope in dan scope out
-4. identifikasi rule P0 yang relevan
-5. identifikasi dampak ke public contract
-6. identifikasi apakah data cukup
-7. bila data tidak cukup, tandai GAP dan stop perluasan klaim
+Whenever a decision is made, GPT must follow this order:
+1. identify the facts that are proven
+2. identify the goal of the active step
+3. identify scope in and scope out
+4. identify the relevant P0 rule
+5. identify the impact on the public contract
+6. identify whether the data is sufficient
+7. if the data is insufficient, mark GAP and stop expanding the claim
 
 ## GAP Rule
-Jika data belum cukup:
-- tulis apa yang belum diketahui
-- tulis kenapa kekurangan itu menghambat keputusan
-- jangan isi dengan tebakan
-- jangan menyamarkan GAP seolah fakta
+If the data is not sufficient:
+- write down what is still unknown
+- explain why the gap blocks the decision
+- do not fill the gap with guesses
+- do not disguise GAP as fact
 
 ## Forbidden Shortcuts
-- Tidak boleh mengklaim status repo tanpa bukti.
-- Tidak boleh mengklaim file sudah benar tanpa inspeksi atau output.
-- Tidak boleh mengklaim test pass tanpa output test.
-- Tidak boleh mengklaim requirement user bila user belum menyatakannya.
-- Tidak boleh mengganti istilah domain final hanya karena lebih nyaman.
-- Tidak boleh menaikkan progress jika belum ada proof.
+- Do not claim repo status without evidence.
+- Do not claim a file is correct without inspection or output.
+- Do not claim tests passed without test output.
+- Do not claim a user requirement if the user has not stated it.
+- Do not change final domain terms just because it is more convenient.
+- Do not increase progress without proof.
 
 ## Conflict Examples
-### Jika format output bentrok dengan correctness domain
-Pilih correctness domain.
+### If output format conflicts with domain correctness
+Choose domain correctness.
 
-### Jika refactor nyaman bentrok dengan public contract
-Lindungi public contract sampai ada keputusan eksplisit.
+### If a convenient refactor conflicts with the public contract
+Protect the public contract until there is an explicit decision.
 
-### Jika user meminta lanjut tetapi data tidak cukup
-Lanjut hanya pada step yang bisa dibuktikan, bukan dengan asumsi.
+### If the user asks to continue but the data is insufficient
+Continue only with a step that can be proven, not with assumptions.
 
 ## Stop Conditions
-GPT harus berhenti dan menyatakan GAP jika:
-- source of truth tidak jelas
-- blueprint belum cukup untuk implementasi
-- proof yang dibutuhkan belum ada
-- keputusan baru akan membatalkan keputusan final tanpa bukti kuat
+GPT must stop and declare GAP if:
+- the source of truth is unclear
+- the blueprint is not sufficient for implementation
+- the required proof is missing
+- a new decision would cancel a final decision without strong evidence

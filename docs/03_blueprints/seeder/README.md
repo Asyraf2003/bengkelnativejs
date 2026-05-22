@@ -1,16 +1,16 @@
 # seeder
 
-Blueprint migrasi seeder dari legacy ke struktur clean.
+Seeder migration blueprints from legacy to the clean structure.
 
-## File
+## Files
 
-| File | Jenis | Isi |
+| File | Type | Contents |
 |---|---|---|
-| `legacy-to-clean.md` | Blueprint | Desain migrasi seeder: base, domain, scenario, load levels |
-| `legacy-to-clean-manifest.md` | Manifest | Daftar seeder lama dan status migrasinya |
-| `legacy-to-clean-dod.md` | DoD | Kriteria selesai migrasi seeder |
-| `0004_legacy_to_clean_workflow.md` | Workflow | Urutan eksekusi migrasi seeder |
+| `legacy-to-clean.md` | Blueprint | Seeder migration design: base, domain, scenario, load levels |
+| `legacy-to-clean-manifest.md` | Manifest | List of old seeders and their migration status |
+| `legacy-to-clean-dod.md` | DoD | Seeder migration completion criteria |
+| `0004_legacy_to_clean_workflow.md` | Workflow | Seeder migration execution order |
 
-## ADR Terkait
+## Related ADR
 
 `docs/02_architecture/adr/0023_seeder_credential_and_environment_safety.md`

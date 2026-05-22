@@ -1,20 +1,20 @@
 # AI_RULES Index
 
 ## Status
-Dokumen ini adalah entrypoint wajib untuk setiap GPT/AI assistant yang akan bekerja pada project ini.
+This document is the mandatory entry point for every GPT/AI assistant that works on this project.
 
-AI_RULES adalah nama paket aturan kerja AI untuk repo ini. Lokasi canonical paket standards saat ini adalah docs/01_standards.
+AI_RULES is the name of the AI working rules package for this repo. The canonical standards package currently lives in `docs/01_standards`.
 
-## Tujuan
-AI_RULES mengunci cara kerja AI agar:
-- tidak berasumsi
-- tidak keluar dari blueprint
-- tidak melompati step aktif
-- tidak mengarang fakta, status repo, hasil test, atau keputusan
-- tetap patuh pada contract domain dan architecture project
+## Purpose
+AI_RULES constrains AI behavior so that it:
+- does not make assumptions
+- does not leave the blueprint
+- does not skip the active step
+- does not invent facts, repo status, test results, or decisions
+- stays aligned with the project domain and architecture contracts
 
 ## Mandatory Read Order
-Setiap GPT wajib membaca urutan ini sebelum memberi arahan kerja:
+Every GPT must read this order before giving work guidance:
 
 1. 0002_decision_policy.md
 2. 0003_gpt_bootstrap_prompt.md
@@ -49,30 +49,30 @@ Setiap GPT wajib membaca urutan ini sebelum memberi arahan kerja:
 31. 0099_changelog.md
 
 ## Constitution Summary
-- Jangan berasumsi.
-- Semua arahan harus berbasis fakta, kondisi saat ini, tujuan step, dan bukti.
-- Mulai dari blueprint.
-- Setelah blueprint, susun workflow step-by-step.
-- Satu respons kerja hanya boleh punya satu step aktif.
-- Setelah satu step aktif selesai, tunggu feedback user.
-- Setiap respons kerja teknis wajib menutup dengan status kapasitas sesi.
-- Progres hanya boleh naik jika ada proof nyata.
-- Jangan buka ulang keputusan final domain tanpa konflik nyata dan bukti kuat.
+- Do not assume.
+- Every instruction must be grounded in facts, current conditions, step goals, and evidence.
+- Start from the blueprint.
+- After the blueprint, build the workflow step by step.
+- Only one active step is allowed per work response.
+- After one active step is complete, wait for user feedback.
+- Every technical work response must end with session capacity status.
+- Progress may increase only when there is real proof.
+- Do not reopen final domain decisions without a real conflict and strong evidence.
 
 ## Priority Model
-- P0 = rule inti, tidak boleh dilanggar tanpa keputusan eksplisit
-- P1 = workflow enforcement dan architecture alignment
-- P2 = delivery format dan output preference
+- P0 = core rules, not to be broken without an explicit decision
+- P1 = workflow enforcement and architecture alignment
+- P2 = delivery format and output preference
 
 ## Operational Bootstrap for GPT
-Sebelum menjawab, GPT wajib memastikan:
-1. apa fakta yang benar-benar ada
-2. apa tujuan step saat ini
-3. apa scope in dan scope out
-4. rule P0 apa yang mengikat
-5. apakah data cukup untuk melanjutkan
-6. bila data tidak cukup, berhenti di GAP
-7. apakah kapasitas sesi masih aman untuk implementasi besar
+Before answering, GPT must verify:
+1. what facts actually exist
+2. the current step goal
+3. scope in and scope out
+4. which P0 rules apply
+5. whether the data is sufficient to continue
+6. if data is insufficient, stop at GAP
+7. whether session capacity is still safe for large implementation
 
 ## Module Map
 - 0002_decision_policy.md
@@ -117,7 +117,7 @@ Sebelum menjawab, GPT wajib memastikan:
 
 ## Package Content Classification
 
-`docs/01_standards` berisi canonical AI_RULES standards package saja.
+`docs/01_standards` contains only the canonical AI_RULES standards package.
 
 Canonical standards:
 - 0001_index.md
@@ -136,20 +136,20 @@ Canonical standards:
 - stack/
 - 0099_changelog.md
 
-DoD, workflow, dan blueprint per topik ada di `docs/03_blueprints/`.
-Legacy dan historical ada di `docs/99_archive/`.
+Topic-specific DoD, workflow, and blueprints live in `docs/03_blueprints/`.
+Legacy and historical material lives in `docs/99_archive/`.
 
 ## Non-Negotiable Behavior
-- Dilarang mengarang fakta.
-- Dilarang mengklaim progress tanpa proof.
-- Dilarang langsung lompat ke implementasi bila blueprint belum jelas.
-- Dilarang menjadikan output formatting lebih penting daripada correctness domain.
-- Dilarang menyamakan proposal dengan eksekusi selesai.
-- Dilarang melanjutkan implementasi besar jika kapasitas sesi berada di bawah threshold pada workflow/24-session-capacity-policy.md.
+- Do not invent facts.
+- Do not claim progress without proof.
+- Do not jump directly into implementation when the blueprint is unclear.
+- Do not make output formatting more important than domain correctness.
+- Do not treat a proposal as completed execution.
+- Do not continue large implementation if session capacity is below the threshold in `workflow/24-session-capacity-policy.md`.
 
 ## Conflict Reminder
-Jika ada konflik, baca 0002_decision_policy.md lalu:
-1. dahulukan P0
-2. dahulukan aturan yang lebih spesifik
-3. dahulukan domain jika konflik menyangkut makna bisnis
-4. jika data kurang, berhenti di GAP
+If there is a conflict, read `0002_decision_policy.md` and then:
+1. prioritize P0
+2. prioritize the more specific rule
+3. prioritize the domain when the conflict concerns business meaning
+4. if the data is insufficient, stop at GAP

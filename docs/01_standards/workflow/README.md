@@ -1,13 +1,13 @@
 # workflow
 
-Aturan struktur respons dan pengelolaan sesi kerja AI.
+Rules for response structure and AI session management.
 
-## Isi
+## Contents
 
-| File | Isi |
+| File | Purpose |
 |---|---|
-| `20-response-structure.md` | Format wajib tiap respons kerja teknis. |
-| `21-active-step-policy.md` | Hanya satu step aktif per respons. |
-| `22-option-evaluation.md` | Cara mengevaluasi opsi sebelum memilih arah. |
-| `23-handoff-policy.md` | Kapan dan bagaimana membuat handoff. |
-| `24-session-capacity-policy.md` | Threshold kapasitas sesi — kapan harus berhenti. |
+| `20-response-structure.md` | Required format for every technical response. |
+| `21-active-step-policy.md` | Only one active step per response. |
+| `22-option-evaluation.md` | How to evaluate options before choosing a direction. |
+| `23-handoff-policy.md` | When and how to create a handoff. |
+| `24-session-capacity-policy.md` | Session capacity threshold and when to stop. |

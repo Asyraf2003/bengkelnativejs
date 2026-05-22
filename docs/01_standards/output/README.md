@@ -1,12 +1,12 @@
 # output
 
-Aturan format dan delivery output teknis dari AI.
+Rules for the format and delivery of AI technical output.
 
-## Isi
+## Contents
 
-| File | Isi |
+| File | Purpose |
 |---|---|
-| `30-file-delivery.md` | Cara deliver file — kapan full, kapan diff. |
-| `31-markdown-output-rule.md` | Konvensi markdown untuk output AI. |
-| `32-blade-rule.md` | Aturan khusus output Blade/Laravel template. |
-| `33-terminal-command-delivery.md` | Format perintah terminal — copy-paste safe. |
+| `30-file-delivery.md` | How to deliver files: when to send the full file, when to send a diff. |
+| `31-markdown-output-rule.md` | Markdown conventions for AI output. |
+| `32-blade-rule.md` | Special rules for Blade/Laravel template output. |
+| `33-terminal-command-delivery.md` | Terminal command format that is safe to copy and paste. |

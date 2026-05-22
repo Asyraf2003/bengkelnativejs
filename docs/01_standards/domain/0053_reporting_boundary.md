@@ -1,14 +1,14 @@
 # P1 - Reporting Boundary
 
-## Tujuan
-Memastikan modul laporan tetap membaca domain final tanpa mengambil alih logika inti.
+## Purpose
+Ensure the reporting module continues to read the final domain without taking over core logic.
 
 ## Mandatory Rule
-- Reporting hanya membaca domain final.
-- Reporting tidak boleh menjadi source of truth.
-- Jangan menaruh logika koreksi domain di layer laporan.
-- Jangan menyusun laporan dengan istilah yang merusak contract domain final.
+- Reporting only reads the final domain.
+- Reporting must not become a source of truth.
+- Do not place domain correction logic in the reporting layer.
+- Do not build reports with terms that damage the final domain contract.
 
 ## Forbidden Behavior
-- Jangan menjadikan query laporan sebagai tempat perbaikan state domain.
-- Jangan menaruh aturan lifecycle utama di modul laporan.
+- Do not use reporting queries as a place to repair domain state.
+- Do not place the main lifecycle rules in the reporting module.

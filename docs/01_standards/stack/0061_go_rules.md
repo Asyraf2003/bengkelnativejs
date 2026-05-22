@@ -1,10 +1,10 @@
 # P1 - Go Rules
 
-## Tujuan
-Menjaga hygiene implementasi Go tetap konsisten.
+## Purpose
+Keep Go implementation hygiene consistent.
 
-## Aturan
-- Satu folder = satu package.
-- Jaga ukuran file tetap terkontrol; bila melewati batas internal project, harus ada alasan jelas.
-- Patuhi boundary/import discipline.
-- Jangan campur domain, transport, dan persistence tanpa jalur yang sah.
+## Rules
+- One folder = one package.
+- Keep file size under control; if it exceeds the project’s internal limit, there must be a clear reason.
+- Follow boundary / import discipline.
+- Do not mix domain, transport, and persistence without a valid path.

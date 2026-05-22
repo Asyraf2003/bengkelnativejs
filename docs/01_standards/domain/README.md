@@ -1,12 +1,12 @@
 # domain
 
-Kontrak domain kasir/bengkel yang wajib dipahami sebelum implementasi fitur apapun.
+Cashier/workshop domain contracts that must be understood before implementing any feature.
 
-## Isi
+## Contents
 
-| File | Isi |
+| File | Purpose |
 |---|---|
-| `50-final-domain-map.md` | Peta domain final: entitas, relasi, batasan. |
-| `51-ui-terms-and-status.md` | Istilah UI dan status yang digunakan di seluruh sistem. |
-| `52-payment-lifecycle.md` | Lifecycle pembayaran, refund, dan settlement. |
-| `53-reporting-boundary.md` | Batasan scope dan sumber data reporting. |
+| `50-final-domain-map.md` | Final domain map: entities, relations, and constraints. |
+| `51-ui-terms-and-status.md` | UI terms and statuses used across the system. |
+| `52-payment-lifecycle.md` | Payment, refund, and settlement lifecycle. |
+| `53-reporting-boundary.md` | Reporting scope and source-data boundaries. |

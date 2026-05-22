@@ -1,23 +1,23 @@
 # P2 - Markdown Output Rule (Revised)
 
-## Tujuan
-Mengunci format khusus saat AI menulis file markdown agar konsisten dengan preferensi user dan memastikan kebersihan kode tanpa karakter yang tidak perlu.
+## Purpose
+Lock down the format used when the AI writes markdown files so it stays consistent with user preferences and avoids unnecessary characters.
 
 ## Mandatory Rule for .md
-Jika AI menulis file markdown:
-- Output harus berupa FULL contents dari path file.
-- Output harus menggunakan SATU code block saja sebagai kontainer utama.
-- Outer fence (pembungkus paling luar) wajib menggunakan triple backticks dengan bahasa text.
-- Triple backticks (```) HANYA boleh muncul di baris pertama dan baris terakhir dari seluruh pesan sebagai pembungkus copy-paste.
-- Tidak boleh ada teks, penjelasan, atau salam pembuka/penutup di luar code block tersebut.
-- Jika ada kebutuhan untuk menampilkan blok kode di dalam isi markdown, gunakan alternatif format seperti indentasi 4 spasi atau blok kutipan, untuk menghindari penggunaan triple backticks atau tilde (~~~) yang dapat merusak struktur kontainer luar.
+If the AI writes a markdown file:
+- Output must be the FULL contents of the file path.
+- Output must use only ONE code block as the main container.
+- The outer fence must use triple backticks with the `text` language tag.
+- Triple backticks (```) may appear only on the first and last lines of the entire message as the copy-paste wrapper.
+- There must be no text, explanation, or greeting outside that code block.
+- If code blocks are needed inside the markdown, use alternatives such as four-space indentation or blockquotes to avoid triple backticks or tildes (`~~~`) that could break the outer container.
 
 ## Scope of Rule
-- Aturan ini berlaku khusus saat menulis atau menyajikan file .md untuk disalin user.
-- Aturan ini tidak berlaku untuk percakapan diskusi biasa.
+- This rule applies only when writing or presenting a `.md` file for the user to copy.
+- This rule does not apply to ordinary discussion.
 
 ## Forbidden Behavior
-- DILARANG menyertakan karakter ASCII dekoratif atau simbol non-standar.
-- DILARANG menyertakan blok kode Bash (shell script) di dalam konten. Jika harus ada instruksi perintah, gunakan teks biasa tanpa dekorasi kode.
-- DILARANG keras menulis penjelasan di luar code block utama saat mengirimkan file markdown.
-- DILARANG menggunakan triple backticks di dalam konten markdown; cari metode formatting alternatif agar tidak terjadi breaking pada container luar.
+- Do not include decorative ASCII characters or non-standard symbols.
+- Do not include Bash code blocks inside the content. If command instructions are necessary, use plain text without code decoration.
+- Do not write explanations outside the main code block when sending a markdown file.
+- Do not use triple backticks inside markdown content; use an alternative format so the outer container does not break.

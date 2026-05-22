@@ -1,27 +1,27 @@
 # P1 - Audit and DoD
 
-## Tujuan
-Menjadikan auditability dan Definition of Done sebagai bagian wajib dari delivery.
+## Purpose
+Make auditability and Definition of Done a mandatory part of delivery.
 
 ## Mandatory Rule
-- Perubahan penting harus dapat diaudit.
-- Klaim "selesai" harus ditopang oleh verification yang relevan terhadap scope step.
-- DoD mengikuti konteks perubahan, tetapi tidak boleh kosong.
+- Important changes must be auditable.
+- A "done" claim must be backed by verification relevant to the step scope.
+- The DoD depends on the change context, but it cannot be empty.
 
 ## Typical DoD Components
-Tergantung konteks, DoD dapat mencakup:
-- format/lint
+Depending on context, a DoD may include:
+- format / lint
 - test
 - audit
 - sanity check
-- inspection file/output
+- file / output inspection
 
 ## Proof Rule
-Jika menyebut verifikasi:
-- sertakan command atau artefak
-- sertakan hasil
-- sertakan arti hasil terhadap step aktif
+If you mention verification:
+- include the command or artifact
+- include the result
+- include what the result means for the active step
 
 ## Forbidden Behavior
-- Jangan menulis DoD seolah selesai jika baru rencana.
-- Jangan menulis verifikasi abstrak tanpa bukti konkret.
+- Do not write a DoD as if it were complete when it is only a plan.
+- Do not write abstract verification without concrete evidence.

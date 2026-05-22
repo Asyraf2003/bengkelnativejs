@@ -1,20 +1,20 @@
 # P2 - File Delivery
 
-## Tujuan
-Menstandarkan cara AI mengirim implementasi file agar user menerima hasil yang utuh, presisi, dan bisa langsung dipakai.
+## Purpose
+Standardize how the AI delivers file implementations so the user receives something complete, precise, and immediately usable.
 
 ## Mandatory Rule
-- Saat memberi implementasi file, AI harus menyebut path exact.
-- Isi file harus lengkap jika user meminta hasil final file.
-- Jangan memberi patch abstrak yang memaksa user menebak bagian lain.
-- Jika hanya sebagian file yang boleh diubah, AI harus menyatakan batas perubahan itu secara eksplisit.
+- When delivering a file implementation, the AI must name the exact path.
+- The file contents must be complete if the user asked for the final file.
+- Do not provide abstract patches that force the user to guess the missing parts.
+- If only part of a file may be changed, state the change boundary explicitly.
 
 ## Delivery Principle
-- Correctness lebih penting daripada ringkas.
-- Kejelasan path lebih penting daripada penjelasan panjang.
-- Jika user meminta file final, utamakan full file content daripada snippet yang terputus.
+- Correctness matters more than brevity.
+- Path clarity matters more than long explanation.
+- If the user asks for a final file, prefer full file content over a truncated snippet.
 
 ## Forbidden Behavior
-- Jangan memberi potongan file seolah itu isi final penuh.
-- Jangan menghilangkan path file.
-- Jangan menyamarkan pseudocode sebagai implementasi final.
+- Do not present a partial file as if it were the full final content.
+- Do not omit the file path.
+- Do not disguise pseudocode as the final implementation.

@@ -1,38 +1,38 @@
 # Handoff
 
-Folder ini menyimpan session recovery notes untuk sesi aktif atau terbaru.
+This folder stores session recovery notes for the active or latest session.
 
-## Aturan
+## Rules
 
-- Satu file per sesi atau per topik sesi.
+- One file per session or per session topic.
 - Naming: `NNNN_topic_handoff.md`
-- Setelah sesi selesai dan tidak relevan lagi, pindah ke `docs/99_archive/handoff/`.
-- Jangan simpan keputusan permanen hanya di sini — promote ke `docs/02_architecture/adr`.
-- Jangan simpan blueprint aktif di sini — promote ke `docs/03_blueprints`.
+- After a session is finished and no longer relevant, move it to `docs/99_archive/handoff/`.
+- Do not keep permanent decisions here only - promote them to `docs/02_architecture/adr`.
+- Do not keep active blueprints here - promote them to `docs/03_blueprints`.
 - Canonical handoff template: `docs/01_standards/0005_handoff_template.md`
 
-## Catatan
+## Note
 
-Folder ini hanya untuk handoff aktif atau terbaru. Jika sesi sudah ditutup, arsipkan ke `docs/99_archive/handoff/` agar riwayat tetap ada tetapi jalur kerja aktif tetap bersih.
+This folder is only for active or latest handoffs. Once a session is closed, archive it to `docs/99_archive/handoff/` so the history remains while the active workflow stays clean.
 
 ## Source of Truth Priority
 
-1. Output lokal dari operator
+1. Latest local operator output
 2. `docs/01_standards`
 3. `docs/02_architecture/adr`
-4. Blueprint aktif di `docs/03_blueprints`
-5. Handoff terbaru di folder ini
-6. Archive di `docs/99_archive/handoff`
+4. Active blueprint in `docs/03_blueprints`
+5. Latest handoff in this folder
+6. Archive in `docs/99_archive/handoff`
 
 ## Archive
 
-Semua handoff lama ada di `docs/99_archive/handoff/`:
+All old handoffs live in `docs/99_archive/handoff/`:
 
-- `step-based/` — handoff step 02 s/d 12 (era v1)
-- `ui/` — UI session handoffs
-- `v2/` — feature continuation session handoffs
-- `kotlin/` — Kotlin Android handoffs
-- `mobile-api/` — Mobile API handoffs
-- `seeder/` — Seeder handoffs
-- `error_log/` — Error log remediation handoffs
-- `codex-security/` — Security audit handoffs
+- `step-based/` - handoffs from steps 02 through 12 (v1 era)
+- `ui/` - UI session handoffs
+- `v2/` - feature continuation session handoffs
+- `kotlin/` - Kotlin Android handoffs
+- `mobile-api/` - Mobile API handoffs
+- `seeder/` - Seeder handoffs
+- `error_log/` - Error-log remediation handoffs
+- `codex-security/` - Security audit handoffs

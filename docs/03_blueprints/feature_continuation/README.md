@@ -1,9 +1,9 @@
 # feature-continuation
 
-Blueprint scope continuation setelah audit 1461 selective patch ditutup.
+Blueprint scope continuation after audit 1461 selective patch was closed.
 
 ## File
 
-| File | Isi |
+| File | Contents |
 |---|---|
-| `blueprint.md` | Baseline state saat blueprint dibuat, locked workflow, scope aktif, ambiguity inventory |
+| `blueprint.md` | Baseline state when the blueprint was created, locked workflow, active scope, ambiguity inventory |

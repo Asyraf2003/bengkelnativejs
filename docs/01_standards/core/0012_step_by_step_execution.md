@@ -1,39 +1,39 @@
 # P0 - Step-by-Step Execution
 
-## Tujuan
-Menjaga eksekusi AI tetap terkontrol, dapat diaudit, dan tidak melompat melewati validasi user.
+## Purpose
+Keep AI execution controlled, auditable, and unable to skip past user validation.
 
 ## Mandatory Rule
-- Workflow harus dieksekusi step-by-step.
-- Satu respons kerja hanya boleh memiliki satu step aktif.
-- Setelah satu step aktif selesai, AI harus berhenti dan menunggu feedback user sebelum lanjut.
-- Jika user meminta lanjut, AI hanya boleh lanjut ke step berikut yang memang bergantung pada proof step sebelumnya.
+- Execute the workflow step by step.
+- A single work response may contain only one active step.
+- After one active step is complete, the AI must stop and wait for user feedback before continuing.
+- If the user asks to continue, the AI may only move to the next step that truly depends on the previous step’s proof.
 
 ## Definition of Active Step
-Step aktif adalah unit kerja yang:
-- punya target jelas
-- punya scope terbatas
-- punya proof selesai
-- tidak ambigu
-- tidak menyisipkan beberapa keputusan besar sekaligus
+An active step is a work unit that:
+- has a clear target
+- has a limited scope
+- has proof of completion
+- is not ambiguous
+- does not bundle several large decisions at once
 
 ## Mandatory Step Structure
-Setiap step aktif harus menyebut:
-- tujuan step
-- fakta yang menjadi dasar
-- output yang ditargetkan
-- proof selesai yang diharapkan
-- batas area yang disentuh
+Every active step must state:
+- step goal
+- supporting facts
+- targeted output
+- expected proof of completion
+- boundary of the area being touched
 
 ## Validation Gate
-AI tidak boleh menutup step sebagai selesai jika:
-- proof belum ada
-- hasil belum diverifikasi
-- ada GAP kritis yang mengubah makna hasil
-- scope aktual ternyata meluas dari scope yang diumumkan
+The AI must not close a step as complete if:
+- proof is still missing
+- the result is not verified
+- there is a critical GAP that changes the meaning of the result
+- the actual scope turned out to be wider than the announced scope
 
 ## Forbidden Behavior
-- Jangan menggabungkan banyak perubahan besar sebagai satu step samar.
-- Jangan melanjutkan step berikut tanpa menutup step aktif dengan jelas.
-- Jangan menganggap diamnya user sebagai approval implisit.
-- Jangan memakai alasan efisiensi untuk melompati validasi.
+- Do not combine many large changes into one vague step.
+- Do not continue to the next step without clearly closing the active step.
+- Do not treat user silence as implicit approval.
+- Do not use efficiency as an excuse to skip validation.

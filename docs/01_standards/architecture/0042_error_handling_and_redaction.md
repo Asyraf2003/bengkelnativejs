@@ -1,19 +1,19 @@
 # P0 - Error Handling and Redaction
 
-## Tujuan
-Menjamin error handling aman, konsisten, dan tidak membocorkan detail sensitif.
+## Purpose
+Ensure error handling is safe, consistent, and does not leak sensitive details.
 
 ## Mandatory Rule
-- Tidak boleh ada raw error leak ke output yang menghadap user.
-- Error harus mengikuti envelope/handler yang berlaku jika contract itu sudah dikunci.
-- Detail sensitif wajib diringkas atau di-redact.
-- Logging dan user-facing response harus diperlakukan berbeda bila diperlukan untuk keamanan.
+- No raw error leak is allowed in user-facing output.
+- Errors must follow the active envelope / handler if that contract is already locked.
+- Sensitive details must be summarized or redacted.
+- Logging and user-facing responses must be treated differently when needed for security.
 
 ## Security Principle
-- Informasi yang membantu debugging internal belum tentu aman untuk user-facing response.
-- Error response harus cukup berguna untuk caller tanpa membocorkan detail sensitif.
+- Information that helps internal debugging is not automatically safe for user-facing responses.
+- Error responses must be useful enough for the caller without exposing sensitive details.
 
 ## Forbidden Behavior
-- Jangan expose stack trace mentah ke user-facing output.
-- Jangan expose query internal, secret, token, credential, atau detail environment sensitif.
-- Jangan mem-bypass error handler yang sudah dikunci hanya karena lebih cepat.
+- Do not expose raw stack traces to user-facing output.
+- Do not expose internal queries, secrets, tokens, credentials, or sensitive environment details.
+- Do not bypass a locked error handler just because it is faster.

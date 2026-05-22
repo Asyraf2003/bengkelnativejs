@@ -1,11 +1,11 @@
 # stack
 
-Aturan penggunaan stack teknologi utama.
+Rules for using the main technology stack.
 
-## Isi
+## Contents
 
-| File | Isi |
+| File | Purpose |
 |---|---|
-| `60-laravel-rules.md` | Konvensi Laravel: routing, middleware, service, test. |
-| `61-go-rules.md` | Konvensi Go jika digunakan sebagai adapter. |
-| `62-aws-baseline.md` | Baseline AWS — storage, deployment boundary. |
+| `60-laravel-rules.md` | Laravel conventions: routing, middleware, service, test. |
+| `61-go-rules.md` | Go conventions when it is used as an adapter. |
+| `62-aws-baseline.md` | AWS baseline: storage and deployment boundaries. |

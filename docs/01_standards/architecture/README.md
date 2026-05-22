@@ -1,13 +1,13 @@
 # architecture
 
-Aturan wajib arsitektur hexagonal untuk repo ini.
+Mandatory hexagonal architecture rules for this repo.
 
-## Isi
+## Contents
 
-| File | Isi |
+| File | Purpose |
 |---|---|
-| `40-hexagonal-baseline.md` | Definisi layer: domain, application, infrastructure, adapter. |
-| `41-public-contracts.md` | Kontrak yang tidak boleh berubah diam-diam. |
-| `42-error-handling-and-redaction.md` | Error handling dan redaksi data sensitif. |
-| `43-debug-gating.md` | Debug output hanya boleh tampil di env yang benar. |
-| `44-audit-and-dod.md` | Standar audit dan definition of done global. |
+| `40-hexagonal-baseline.md` | Layer definitions: domain, application, infrastructure, adapter. |
+| `41-public-contracts.md` | Contracts that must not change silently. |
+| `42-error-handling-and-redaction.md` | Error handling and sensitive data redaction. |
+| `43-debug-gating.md` | Debug output may appear only in the correct environment. |
+| `44-audit-and-dod.md` | Global audit standards and definition of done. |

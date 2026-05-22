@@ -1,31 +1,31 @@
 # Handoff Template
 
 ## Metadata
-- Tanggal:
-- Nama slice / topik:
+- Date:
+- Slice / topic:
 - Workflow step:
 - Status:
-- Progres:
+- Progress:
 
-## Target halaman kerja
-Tuliskan target spesifik halaman kerja atau target slice yang dikerjakan.
+## Target Work Page
+State the specific work page or slice target being handled.
 
-## Referensi yang dipakai
+## References Used
 - Blueprint:
 - Workflow:
 - DoD:
 - ADR:
-- Handoff sebelumnya:
-- Snapshot repo / output command:
+- Previous handoff:
+- Repo snapshot / command output:
 
-## Fakta terkunci
-Tuliskan hanya fakta yang benar-benar terbukti.
+## Locked Facts
+List only facts that are actually proven.
 
 -
 -
 -
 
-## Scope yang dipakai
+## Scope Used
 ### SCOPE-IN
 -
 -
@@ -37,41 +37,41 @@ Tuliskan hanya fakta yang benar-benar terbukti.
 -
 
 ## GAP
-Tuliskan gap yang benar-benar masih ada.
+Write down only the gaps that still genuinely exist.
 
 -
 -
 -
 
-## Keputusan yang dikunci
-Tuliskan keputusan nyata yang sudah diambil.
+## Locked Decisions
+List the real decisions that were made.
 
 -
 -
 -
 
-## File yang dibuat/diubah
-### File baru
+## Files Created / Changed
+### New files
 -
 
-### File diubah
+### Changed files
 -
 
-## Bukti verifikasi
+## Verification Proof
 - command:
-  - hasil:
-  - arti:
+  - result:
+  - meaning:
 - command:
-  - hasil:
-  - arti:
+  - result:
+  - meaning:
 - command:
-  - hasil:
-  - arti:
+  - result:
+  - meaning:
 
-## Risiko / catatan lanjutan
+## Risks / Follow-up Notes
 -
 -
 -
 
-## Next step
-Tuliskan satu step aktif berikutnya yang paling sah menurut workflow.
+## Next Step
+State the single next active step that is most valid according to the workflow.

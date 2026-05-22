@@ -1,16 +1,16 @@
 # reporting
 
-Blueprint dan DoD untuk fitur reporting dan export.
+Blueprints and DoD for reporting and export features.
 
-## File
+## Files
 
-| File | Jenis | Isi |
+| File | Type | Contents |
 |---|---|---|
-| `0001_report_export.md` | Blueprint | Desain PDF dan Excel export: dataset contract, format, output |
-| `0002_report_export_dod.md` | DoD | Kriteria selesai report export |
-| `0003_report_export_workflow.md` | Workflow | Urutan implementasi export — dataset dulu, Excel, baru PDF |
-| `0004_reporting_execution_workflow.md` | Workflow | Workflow eksekusi reporting v2: guard, test discipline, active target |
+| `0001_report_export.md` | Blueprint | PDF and Excel export design: dataset contract, format, output |
+| `0002_report_export_dod.md` | DoD | Report export completion criteria |
+| `0003_report_export_workflow.md` | Workflow | Export implementation order - dataset first, then Excel, then PDF |
+| `0004_reporting_execution_workflow.md` | Workflow | Reporting v2 execution workflow: guards, test discipline, active target |
 
-## ADR Terkait
+## Related ADR
 
 `docs/02_architecture/adr/0009_reporting_as_read_model.md`

@@ -1,30 +1,30 @@
 # 04_lifecycle
 
-Runtime records — rekam jejak operasional sistem yang terus bertambah.
+Runtime records: the operational trace of the system as it evolves.
 
-## Subfolder
+## Subfolders
 
-| Folder | Isi |
+| Folder | Purpose |
 |---|---|
-| `error_log/` | Bug dan security finding individual. Tiap issue satu file. |
-| `handoff/` | Session recovery notes sesi aktif. Naming: `NNNN_topic_handoff.md`. |
+| `error_log/` | Individual bug and security findings; one issue per file. |
+| `handoff/` | Session recovery notes for the active session. Naming: `NNNN_topic_handoff.md`. |
 
-## Cocok Untuk
+## Suitable For
 
-- `error_log/` untuk bug atau security finding yang harus dilacak sampai tuntas
-- `handoff/` untuk progress sesi, proof, changed files, blocker, dan next step
+- `error_log/` for bugs or security findings that must be tracked to completion
+- `handoff/` for session progress, proof, changed files, blockers, and next step
 
-## Tidak Untuk
+## Not Suitable For
 
-- keputusan permanen
-- blueprint aktif
-- dokumen legacy yang sudah selesai
+- permanent decisions
+- active blueprints
+- completed legacy documents
 
-## Catatan
+## Note
 
-Jika handoff sudah tidak relevan untuk kerja aktif, pindahkan ke `docs/99_archive/handoff/`.
+If a handoff is no longer relevant for active work, move it to `docs/99_archive/handoff/`.
 
-## Aturan
+## Rules
 
-- `error_log/` tidak boleh dihapus atau diubah statusnya tanpa proof dan owner acceptance.
-- `handoff/` adalah untuk sesi terbaru saja — setelah selesai, pindah ke `docs/99_archive/handoff/`.
+- `error_log/` may not be deleted or have its status changed without proof and owner acceptance.
+- `handoff/` is only for the latest session; once it is complete, move it to `docs/99_archive/handoff/`.

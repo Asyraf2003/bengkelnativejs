@@ -1,18 +1,18 @@
 # P0 - Payment Lifecycle
 
-## Tujuan
-Mengunci lifecycle pembayaran sesuai keputusan domain yang sudah diambil.
+## Purpose
+Lock the payment lifecycle according to the domain decisions that have already been made.
 
 ## Mandatory Rule
-- Target akhir lifecycle pembayaran adalah partial payment eksplisit.
-- `paid` tidak bisa cancel; jika perlu pembalikan, jalurnya adalah refund.
-- Delete hanya boleh untuk `draft` dan tidak boleh menciptakan konsekuensi domain yang bertentangan.
+- The end goal of the payment lifecycle is explicit partial payment.
+- `paid` cannot be cancelled; if reversal is needed, the path is refund.
+- Delete is allowed only for `draft` and must not create conflicting domain consequences.
 
 ## Implications
-- Jangan membuat flow yang memperbolehkan cancel pada status `paid`.
-- Jangan membuat shortcut pembalikan yang mem-bypass refund.
-- Jangan memperluas hak delete ke status yang sudah memiliki konsekuensi domain final.
+- Do not create a flow that allows cancel on `paid`.
+- Do not create reversal shortcuts that bypass refund.
+- Do not extend delete rights to statuses that already have final domain consequences.
 
 ## Forbidden Behavior
-- Jangan mengaburkan beda antara cancel dan refund.
-- Jangan memakai istilah UI yang membuat lifecycle final tampak berbeda dari contract domain.
+- Do not blur the difference between cancel and refund.
+- Do not use UI terms that make the final lifecycle look different from the domain contract.

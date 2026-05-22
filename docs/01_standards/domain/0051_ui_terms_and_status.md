@@ -1,20 +1,20 @@
 # P1 - UI Terms and Status
 
-## Tujuan
-Menjaga bahasa UI tetap konsisten dengan keputusan domain yang sudah dikunci.
+## Purpose
+Keep UI language consistent with the locked domain decisions.
 
 ## Final UI Terms
-- Nota
-- Kasus
-- Rincian
+- Note
+- Case
+- Detail
 
 ## Final UI Status Mapping
-- `draft` = Belum Lunas
-- `paid` = Lunas
-- `canceled` = Batal
-- `refunded` = Refund
+- `draft` = Not Paid Yet
+- `paid` = Paid
+- `canceled` = Canceled
+- `refunded` = Refunded
 
 ## Mandatory Rule
-- Jangan mengganti istilah final tanpa konflik nyata.
-- Jangan memperkenalkan label UI baru yang mengaburkan istilah final.
-- Jangan menyamakan istilah teknis internal dengan label UI jika contract UI final sudah terkunci.
+- Do not change the final terms without a real conflict.
+- Do not introduce new UI labels that blur the final terms.
+- Do not equate internal technical terms with UI labels if the final UI contract is already locked.

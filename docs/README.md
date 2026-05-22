@@ -2,92 +2,92 @@
 
 ## Purpose
 
-Direktori ini berisi dokumentasi teknis Hyperpos: aturan kerja AI, keputusan arsitektur, blueprint implementasi, lifecycle records, dan audit.
+This directory contains Hyperpos technical documentation: AI working rules, architecture decisions, implementation blueprints, lifecycle records, and audits.
 
-Tujuan index ini adalah memberi jalur baca yang jelas supaya manusia atau AI agent bisa menemukan dokumen yang tepat tanpa menelusuri seluruh tree.
+The purpose of this index is to provide a clear reading path so humans and AI agents can find the right document without traversing the entire tree.
 
-## Urutan Baca Awal
+## Initial Reading Order
 
-Baca dalam urutan ini:
+Read in this order:
 
     docs/01_standards/0007_ai_usage_guide.md
     docs/01_standards/0001_index.md
-    Blueprint aktif yang relevan
-    Output lokal terbaru dari operator
+    The relevant active blueprint
+    The latest local output from the operator
 
-## Prioritas Sumber Kebenaran
+## Source Of Truth Priority
 
-Gunakan urutan ini ketika dokumen saling bertentangan:
+Use this order when documents conflict:
 
-1. Output lokal dari operator (tertinggi)
+1. Latest local output from the operator (highest priority)
 2. `docs/01_standards`
 3. `docs/02_architecture/adr`
-4. Blueprint aktif di `docs/03_blueprints`
-5. Handoff terbaru di `docs/04_lifecycle/handoff`
-6. Archive di `docs/99_archive`
+4. The active blueprint in `docs/03_blueprints`
+5. The latest handoff in `docs/04_lifecycle/handoff`
+6. `docs/99_archive`
 7. General model knowledge (terendah)
 
-## Panduan Penempatan
+## Placement Guide
 
-Gunakan peta ini untuk menaruh dokumen di tempat yang tepat:
+Use this map to place documents in the right location:
 
-| Jenis dokumen | Tempat | Isi |
+| Document type | Location | Contents |
 |---|---|---|
-| Standards / aturan wajib | `docs/01_standards` | Aturan global AI, decision policy, output rules, domain map, stack rules |
-| ADR / keputusan permanen | `docs/02_architecture/adr` | Keputusan arsitektur, domain, lifecycle, reporting, dan data representation |
-| Blueprint / desain aktif | `docs/03_blueprints` | Scope, design, DoD, workflow, test matrix, dan implementation order |
-| Error log / finding | `docs/04_lifecycle/error_log` | Bug, security finding, dan lifecycle issue; satu issue satu file |
-| Handoff aktif | `docs/04_lifecycle/handoff` | Progress terakhir, proof, changed files, blocker, dan next step |
-| Audit report | `docs/05_audits` | Laporan audit berdiri sendiri, ringkasan proof, coverage, dan temuan |
-| Legacy / historical | `docs/99_archive` | Handoff lama, blueprint lama, standards lama, dan dokumen superseded |
+| Standards / mandatory rules | `docs/01_standards` | Global AI rules, decision policy, output rules, domain map, and stack rules |
+| ADR / permanent decisions | `docs/02_architecture/adr` | Architecture, domain, lifecycle, reporting, and data-representation decisions |
+| Blueprint / active design | `docs/03_blueprints` | Scope, design, DoD, workflow, test matrix, and implementation order |
+| Error log / finding | `docs/04_lifecycle/error_log` | Bugs, security findings, and lifecycle issues; one issue per file |
+| Active handoff | `docs/04_lifecycle/handoff` | Latest progress, proof, changed files, blockers, and next step |
+| Audit report | `docs/05_audits` | Standalone audit reports, proof summaries, coverage, and findings |
+| Legacy / historical | `docs/99_archive` | Old handoffs, old blueprints, old standards, and superseded documents |
 
-Jika ragu, ikuti urutan berikut:
+If unsure, follow this order:
 
-1. Keputusan permanen masuk ADR.
-2. Desain yang masih dikerjakan masuk blueprint.
-3. Hasil kerja sesi masuk handoff aktif.
-4. Riwayat lama yang tidak lagi aktif masuk archive.
+1. Permanent decisions go into ADR.
+2. Designs still in progress go into blueprints.
+3. Session work output goes into the active handoff.
+4. Old history that is no longer active goes into the archive.
 
-## Peta Direktori
+## Directory Map
 
 ### `docs/01_standards`
 
-Aturan wajib untuk semua sesi kerja AI di repo ini.
+Mandatory rules for every AI session in this repo.
 
-Gunakan untuk: zero assumption rule, blueprint-first rule, one active step rule,
+Use for: zero assumption rule, blueprint-first rule, one active step rule,
 proof and progress rule, response structure, handoff policy, architecture boundary,
-public contract protection, redaction rule, final domain map, stack rules.
+public contract protection, redaction rule, final domain map, and stack rules.
 
-Tidak untuk: bug notes, feature status, commit hash, temporary local state.
+Not for: bug notes, feature status, commit hashes, or temporary local state.
 
 ### `docs/02_architecture/adr`
 
 Permanent decision records. Sequential numbered `NNNN_snake_title.md`.
 
-Gunakan untuk: keputusan arsitektur, keputusan domain, lifecycle decisions,
-reporting boundary, data representation.
+Use for: architecture decisions, domain decisions, lifecycle decisions,
+reporting boundaries, and data representation.
 
-Jika keputusan berubah: buat ADR baru yang supersede, jangan edit ADR lama.
+If a decision changes: create a new ADR that supersedes the old one; do not edit the old ADR.
 
 ### `docs/03_blueprints`
 
-Design blueprints, DoD, dan workflow per topik. Hanya untuk scope aktif atau scope terbaru yang masih dikerjakan.
+Design blueprints, DoD, and workflow for each topic. Only for the active scope or the most recent scope still in progress.
 
-Isi yang cocok:
+Suitable content:
 
 - scope in / scope out
 - problem statement
-- design options dan keputusan desain
+- design options and design decisions
 - DoD / test matrix / implementation order
-- workflow CLI dan urutan eksekusi
+- CLI workflow and execution order
 
-Tidak untuk:
+Not for:
 
-- keputusan permanen yang harus jadi ADR
-- catatan harian sesi
-- hasil uji final yang lebih cocok di handoff
+- permanent decisions that should become ADR
+- daily session notes
+- final test results that fit better in a handoff
 
-Diorganisir dalam subfolder:
+Organized into subfolders:
 
 - `security/` — ADR-0019 s/d ADR-0023 blueprints, DoD, workflow
 - `finance/` — note finance, residual, revision-refund-ledger
@@ -103,53 +103,53 @@ Naming: `NNNN_topic_name.md` (blueprint), `NNNN_topic_name_dod.md` (DoD), `NNNN_
 
 Runtime records.
 
-`error_log/` — bug dan security finding individual, numbered `NNNN_snake_title.md`
+`error_log/` — individual bug and security findings, numbered `NNNN_snake_title.md`
 
-`handoff/` — session recovery notes untuk sesi aktif/terbaru
+`handoff/` — session recovery notes for the active or latest session
 
-Handoff cocok untuk:
+Handoffs are suitable for:
 
-- ringkasan progress
-- proof dan test output
-- file yang berubah
-- blocker dan risiko
-- prompt pembuka sesi berikutnya
+- progress summary
+- proof and test output
+- changed files
+- blockers and risks
+- the next session-opening prompt
 
-Handoff tidak cocok untuk:
+Handoffs are not suitable for:
 
-- keputusan permanen
-- blueprint aktif
-- catatan yang sudah pasti historical
+- permanent decisions
+- active blueprints
+- notes that are already clearly historical
 
-Kalau sesi selesai, pindahkan handoff ke `docs/99_archive/handoff/`.
+When a session is finished, move the handoff to `docs/99_archive/handoff/`.
 
 ### `docs/05_audits`
 
-Formal audit records dengan numbered snake_case filename `NNNN_topic_name.md`.
+Formal audit records with numbered snake_case filenames `NNNN_topic_name.md`.
 
-Audit cocok untuk:
+Audits are suitable for:
 
-- ringkasan audit
-- coverage summary
+- audit summaries
+- coverage summaries
 - proof of work
-- rekomendasi dan risiko
+- recommendations and risks
 
-Audit bukan pengganti handoff, dan bukan blueprint.
+An audit is not a replacement for a handoff or a blueprint.
 
 ### `docs/99_archive`
 
-Semua dokumen legacy, superseded, dan historical. Salinan utuh, tidak dimodifikasi.
+All legacy, superseded, and historical documents. Keep them as full, unmodified copies.
 
-Jangan simpan pekerjaan aktif di sini. Jika sesuatu masih harus dikerjakan, simpan di `docs/03_blueprints` atau `docs/04_lifecycle/handoff`.
+Do not store active work here. If something still needs to be worked on, keep it in `docs/03_blueprints` or `docs/04_lifecycle/handoff`.
 
 - `standards/` — old standards docs
 - `blueprints/` — blueprint v1
-- `dod/` — dod v1
-- `handoff/` — semua handoff lama (step-based, ui, v2, kotlin, dll)
+- `dod/` — v1 DoD
+- `handoff/` — all old handoffs (step-based, UI, v2, Kotlin, etc.)
 
-## Pola Nama
+## Naming Pattern
 
-| Jenis | Format | Contoh |
+| Type | Format | Example |
 |---|---|---|
 | ADR | `NNNN_snake_title.md` | `0019_note_access_boundary_cashier_date_window_and_transaction_capability_enforcement.md` |
 | Blueprint | `NNNN_topic_name.md` | `0003_finance_residual.md` |
@@ -157,14 +157,14 @@ Jangan simpan pekerjaan aktif di sini. Jika sesuatu masih harus dikerjakan, simp
 | Workflow | `NNNN_topic_name_workflow.md` | `0005_finance_residual_workflow.md` |
 | Error log | `NNNN_snake_title.md` | `0009_cashiers_can_rewrite_closed_paid_notes_via_workspace_update.md` |
 | Audit record | `NNNN_topic_name.md` | `0002_error_log_solution_and_adr_coverage_summary.md` |
-| Handoff aktif | `NNNN_topic_handoff.md` | `0001_scope_handoff.md` |
+| Active handoff | `NNNN_topic_handoff.md` | `0001_scope_handoff.md` |
 | Folder | `NN_prefix_snake_case` for L1, `snake_case` for subfolders | `01_standards/`, `error_log/` |
 
-## Aturan Promosi
+## Promotion Rules
 
-Jika handoff mengandung keputusan yang harus permanen:
+If a handoff contains a decision that must become permanent:
 
-1. Buat atau update ADR.
-2. Referensikan handoff sebagai evidence.
-3. Tandai handoff sebagai historical.
-4. Jangan biarkan keputusan permanen hanya ada di handoff.
+1. Create or update an ADR.
+2. Reference the handoff as evidence.
+3. Mark the handoff as historical.
+4. Do not leave a permanent decision only in the handoff.

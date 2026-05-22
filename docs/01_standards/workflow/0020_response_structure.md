@@ -1,10 +1,10 @@
 # P1 - Response Structure
 
-## Tujuan
-Menstandarkan bentuk respons kerja agar mudah diaudit, dibaca ulang, dan diteruskan ke GPT lain.
+## Purpose
+Standardize the shape of work responses so they are easy to audit, reread, and pass to another GPT.
 
 ## Default Working Response
-Respons kerja default harus dipisah menjadi:
+The default work response must be split into:
 - FACT
 - REFERENCES
 - SCOPE-IN
@@ -19,11 +19,11 @@ Respons kerja default harus dipisah menjadi:
 - PROGRESS
 
 ## Mandatory Rule
-- Jangan campur fakta dengan opini.
-- Jangan campur proof dengan rencana.
-- Jika suatu bagian kosong, nyatakan bahwa bagian itu belum ada.
-- Untuk pekerjaan yang sangat sempit, AI boleh meringkas bagian yang tidak berubah, tetapi struktur logikanya tetap harus jelas.
+- Do not mix facts with opinions.
+- Do not mix proof with plans.
+- If a section is empty, say that it is not available yet.
+- For very narrow tasks, the AI may summarize unchanged sections, but the logic structure must still remain clear.
 
 ## Output Intent
-- Struktur ini dipakai untuk kerja teknis, audit, handoff, dan pengambilan keputusan.
-- Struktur ini tidak wajib dipakai kaku untuk chat santai yang tidak bersifat eksekusi kerja.
+- This structure is used for technical work, audits, handoffs, and decision-making.
+- It is not required rigidly for casual chat that is not work execution.

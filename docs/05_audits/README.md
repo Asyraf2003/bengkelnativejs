@@ -1,29 +1,29 @@
 # 05_audits
 
-Formal audit records — proof of work yang berdiri sendiri.
+Formal audit records that stand on their own as proof of work.
 
-## Subfolder
+## Subfolders
 
-| Folder | Isi |
+| Folder | Purpose |
 |---|---|
-| `codex-security/` | Audit keamanan dari Codex/AI session |
+| `codex-security/` | Security audits from Codex/AI sessions |
 
 ## Naming
 
 `NNNN_topic.md`
 
-Audit records di folder ini mengikuti numbering berurutan agar mudah diselaraskan dengan lifecycle dan blueprint yang terkait.
+Audit records in this folder use sequential numbering so they stay aligned with the related lifecycle and blueprint documents.
 
-## Cocok Untuk
+## Suitable For
 
-- ringkasan audit yang berdiri sendiri
-- coverage summary
+- standalone audit summaries
+- coverage summaries
 - proof of work
-- rekomendasi atau gap yang ditemukan dari audit
+- recommendations or gaps found during the audit
 
-## Tidak Untuk
+## Not Suitable For
 
-- sesi kerja harian
-- blueprint aktif
-- ADR permanen
-- archive panjang riwayat kerja
+- daily work sessions
+- active blueprints
+- permanent ADRs
+- long historical archives

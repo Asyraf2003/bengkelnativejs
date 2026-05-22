@@ -1,13 +1,13 @@
 # P1 - Debug Gating
 
-## Tujuan
-Mencegah fitur debug aktif tanpa kontrol eksplisit.
+## Purpose
+Prevent debug features from being active without explicit control.
 
 ## Mandatory Rule
-- Debug route, debug response, atau debug feature harus digate secara eksplisit.
-- Jangan menganggap environment debug aktif tanpa bukti konfigurasi yang sah.
-- Fitur debug tidak boleh bocor ke flow umum tanpa guard.
+- Debug routes, debug responses, and debug features must be gated explicitly.
+- Do not assume the debug environment is active without valid configuration proof.
+- Debug features must not leak into the general flow without a guard.
 
 ## Forbidden Behavior
-- Jangan membuka debug endpoint secara default.
-- Jangan menaruh shortcut debug di jalur produksi tanpa gate.
+- Do not expose debug endpoints by default.
+- Do not place debug shortcuts on production paths without a gate.

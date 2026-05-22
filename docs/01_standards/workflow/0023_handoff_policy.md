@@ -1,27 +1,27 @@
 # P1 - Handoff Policy
 
-## Tujuan
-Membuat penutupan slice kerja yang bisa dipakai untuk melanjutkan eksekusi oleh GPT lain atau sesi berikutnya.
+## Purpose
+Create a closeout for a work slice that another GPT or the next session can use to continue execution.
 
 ## Mandatory Handoff Content
-Handoff minimal harus memuat:
+A handoff must include at minimum:
 - metadata
-- target halaman kerja atau target slice
-- referensi yang dipakai
-- fakta terkunci
+- the work-page target or slice target
+- the references used
+- locked facts
 - scope in
 - scope out
-- keputusan yang dikunci
-- file yang dibuat/diubah
-- bukti verifikasi
-- gap/risiko tersisa
+- locked decisions
+- files created or changed
+- verification proof
+- remaining gaps / risks
 - next step
 
 ## Mandatory Rule
-- Handoff hanya boleh memuat fakta yang terbukti.
-- Jangan menulis asumsi sebagai fakta handoff.
-- Jangan menulis pekerjaan "sudah selesai" bila proof belum ada.
-- Handoff harus cukup jelas sehingga GPT lain bisa melanjutkan tanpa mengulang interpretasi dari nol.
+- A handoff may contain only proven facts.
+- Do not write assumptions as handoff facts.
+- Do not write that work is "done" if proof is still missing.
+- The handoff must be clear enough for another GPT to continue without reinterpreting everything from scratch.
 
 ## Capacity Handoff Rule
 
@@ -30,9 +30,9 @@ If any session capacity indicator is below 80%, GPT must stop large implementati
 The handoff must include the latest capacity footer:
 
 ~~~text
-Kapasitas sesi:
-- Kemampuan menalar: xx%
-- Status: ganti halaman baru
+Session capacity:
+- Reasoning capacity: xx%
+- Status: switch to a new page
 ~~~
 
 When this condition is reached, the next response should prioritize a continuation-ready handoff over another implementation patch.

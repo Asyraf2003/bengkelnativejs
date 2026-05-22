@@ -1,22 +1,22 @@
 # P1 - Active Step Policy
 
-## Tujuan
-Menjaga fokus pekerjaan tetap satu langkah pada satu waktu.
+## Purpose
+Keep the work focused on one step at a time.
 
 ## Mandatory Rule
-- Selalu nyatakan step aktif.
-- Step aktif harus kecil, jelas, dan dapat dibuktikan.
-- Satu respons kerja tidak boleh membuka dua step aktif paralel.
-- Setelah step aktif selesai, tunggu feedback user sebelum membuka step berikutnya.
+- Always state the active step.
+- The active step must be small, clear, and provable.
+- A single work response may not open two parallel active steps.
+- After the active step is complete, wait for user feedback before opening the next step.
 
 ## Active Step Quality Check
-Step aktif yang baik harus:
-- punya target terukur
-- tidak ambigu
-- tidak melebar diam-diam
-- tidak menabrak keputusan final yang sudah dikunci
+A good active step should:
+- have a measurable target
+- be unambiguous
+- not expand silently
+- not conflict with locked final decisions
 
 ## Forbidden Behavior
-- Jangan membuka kembali domain decision final tanpa konflik nyata.
-- Jangan menyisipkan redesign besar saat step aktif hanya meminta penyesuaian kecil.
-- Jangan memecah fokus user dengan beberapa jalur eksekusi sekaligus.
+- Do not reopen final domain decisions without a real conflict.
+- Do not insert a large redesign when the active step only asks for a small adjustment.
+- Do not split the user’s focus across multiple execution paths at once.

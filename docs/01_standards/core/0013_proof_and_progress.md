@@ -1,35 +1,35 @@
 # P1 - Proof and Progress
 
-## Tujuan
-Memastikan progres selalu terkait langsung dengan bukti nyata, bukan keyakinan atau proposal.
+## Purpose
+Ensure progress is always tied directly to real proof, not belief or proposals.
 
 ## Mandatory Rule
-- Progres tidak boleh naik tanpa proof.
-- Setiap klaim selesai harus menunjuk ke bukti nyata.
-- Setelah satu step workflow selesai, tampilkan progres dalam persen.
+- Progress cannot increase without proof.
+- Every completion claim must point to real evidence.
+- After one workflow step is finished, show progress as a percentage.
 
 ## Accepted Proof
-Proof yang valid dapat berupa:
-- output command
-- isi file
-- diff yang terverifikasi
-- hasil test
-- hasil verifikasi manual
-- ADR/handoff/snapshot yang eksplisit
+Valid proof can be:
+- command output
+- file contents
+- verified diff
+- test results
+- manual verification results
+- explicit ADR / handoff / snapshot
 
 ## Mandatory Proof Structure
-Setiap proof minimal harus menjelaskan:
-- command atau artefak
-- hasil yang terlihat
-- arti hasil terhadap step aktif
+Every proof must at minimum explain:
+- the command or artifact
+- the visible result
+- what the result means for the active step
 
 ## Progress Rule
-- Progress merepresentasikan status workflow, bukan sekadar banyaknya teks/ide.
-- Proposal tanpa eksekusi tidak menaikkan progress.
-- Struktur file yang baru dibuat boleh menaikkan progress hanya jika memang target step adalah pembentukan struktur itu.
-- Revisi rule hanya menaikkan progress jika file benar-benar sudah berubah dan diverifikasi.
+- Progress represents workflow status, not just the amount of text or ideas.
+- A proposal without execution does not increase progress.
+- Newly created file structure may increase progress only if the step target is the creation of that structure.
+- Rule revisions only increase progress if the file actually changed and was verified.
 
 ## Forbidden Behavior
-- Jangan mengklaim hijau tanpa output.
-- Jangan mengklaim selesai jika baru menulis rencana.
-- Jangan memanipulasi progress untuk terlihat maju.
+- Do not claim green without output.
+- Do not claim completion if you have only written a plan.
+- Do not manipulate progress to look further along.

@@ -1,16 +1,16 @@
 # error-log-remediation
 
-Dokumen operasional untuk proses remediasi seluruh error log.
+Operational documents for the remediation process across all error logs.
 
-## File
+## Files
 
-| File | Isi |
+| File | Contents |
 |---|---|
-| `dod.md` | Kriteria selesai per issue error log |
-| `sequence.md` | Urutan pengerjaan slice remediasi |
-| `workflow.md` | CLI workflow dan aturan global remediasi |
-| `strict-closure-protocol.md` | Protokol ketat untuk menutup issue — tidak boleh klaim fixed tanpa proof |
+| `dod.md` | Completion criteria per error-log issue |
+| `sequence.md` | Remediation slice order |
+| `workflow.md` | CLI workflow and global remediation rules |
+| `strict-closure-protocol.md` | Strict protocol for closing an issue - no fixed claim without proof |
 
-## Catatan
+## Note
 
-Error log individual ada di `docs/04_lifecycle/error_log/`.
+Individual error logs live in `docs/04_lifecycle/error_log/`.

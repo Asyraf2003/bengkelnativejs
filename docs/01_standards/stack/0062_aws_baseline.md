@@ -1,9 +1,9 @@
 # P1 - AWS Baseline
 
-## Tujuan
-Mengunci baseline infrastruktur AWS yang sudah dipilih.
+## Purpose
+Lock the chosen AWS infrastructure baseline.
 
-## Aturan
-- Baseline aktif: CloudFront, S3, Lambda, SQS, DynamoDB.
-- Provider non-AWS dianggap tidak aktif kecuali ada keputusan eksplisit.
-- Jangan menggeser baseline provider secara diam-diam saat mengerjakan slice lain.
+## Rules
+- Active baseline: CloudFront, S3, Lambda, SQS, DynamoDB.
+- Non-AWS providers are considered inactive unless there is an explicit decision.
+- Do not silently shift the provider baseline while working on another slice.
