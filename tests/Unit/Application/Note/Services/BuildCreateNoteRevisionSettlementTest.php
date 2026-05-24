@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Unit\Application\Note\Services;
 
 use App\Application\Note\DTO\NoteRevisionSettlement;
+use App\Application\Note\DTO\NoteRevisionSurplusPending;
 use App\Application\Note\Services\BuildCreateNoteRevisionSettlement;
 use App\Application\Note\Services\BuildNoteRevisionSettlement;
 use App\Core\Shared\ValueObjects\Money;
+use App\Ports\Out\Note\NoteRevisionSurplusDispositionReaderPort;
 use App\Ports\Out\Note\NoteRevisionSurplusRefundPaymentReaderPort;
 use App\Ports\Out\Payment\CustomerRefundReaderPort;
 use App\Ports\Out\Payment\PaymentAllocationReaderPort;
@@ -85,12 +87,50 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
         $this->assertSame(0, $settlement->surplusRupiah);
     }
 
+    public function test_it_treats_active_refund_due_as_unavailable_carried_money_when_building_later_revision(): void
+    {
+        $settlement = $this->builder(
+            componentPaid: 0,
+            componentRefunded: 0,
+            legacyPaid: 265000,
+            legacyRefunded: 0,
+            refundDue: 122000,
+        )->build('set-1', 'rev-1', 'note-1', 230000, $this->time());
+
+        $this->assertSame(NoteRevisionSettlement::STATUS_UNDERPAID, $settlement->settlementStatus);
+        $this->assertSame(265000, $settlement->carryForwardPaidRupiah);
+        $this->assertSame(122000, $settlement->carryForwardRefundedRupiah);
+        $this->assertSame(143000, $settlement->netPaidRupiah);
+        $this->assertSame(87000, $settlement->outstandingRupiah);
+        $this->assertSame(0, $settlement->surplusRupiah);
+    }
+
+    public function test_it_does_not_double_count_refund_due_and_refund_paid_for_the_same_surplus_obligation(): void
+    {
+        $settlement = $this->builder(
+            componentPaid: 0,
+            componentRefunded: 0,
+            legacyPaid: 265000,
+            legacyRefunded: 0,
+            surplusRefundPaid: 50000,
+            refundDue: 122000,
+        )->build('set-1', 'rev-1', 'note-1', 230000, $this->time());
+
+        $this->assertSame(NoteRevisionSettlement::STATUS_UNDERPAID, $settlement->settlementStatus);
+        $this->assertSame(265000, $settlement->carryForwardPaidRupiah);
+        $this->assertSame(122000, $settlement->carryForwardRefundedRupiah);
+        $this->assertSame(143000, $settlement->netPaidRupiah);
+        $this->assertSame(87000, $settlement->outstandingRupiah);
+        $this->assertSame(0, $settlement->surplusRupiah);
+    }
+
     private function builder(
         int $componentPaid,
         int $componentRefunded,
         int $legacyPaid,
         int $legacyRefunded,
         int $surplusRefundPaid = 0,
+        int $refundDue = 0,
     ): BuildCreateNoteRevisionSettlement {
         return new BuildCreateNoteRevisionSettlement(
             $this->componentPayments($componentPaid),
@@ -98,6 +138,7 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
             $this->componentRefunds($componentRefunded),
             $this->legacyRefunds($legacyRefunded),
             $this->surplusRefundPayments($surplusRefundPaid),
+            $this->surplusDispositions($refundDue),
             new BuildNoteRevisionSettlement(),
         );
     }
@@ -131,6 +172,17 @@ final class BuildCreateNoteRevisionSettlementTest extends TestCase
             public function findActiveByDispositionIdAndIdempotencyKey(string $dispositionId, string $idempotencyKey): ?\App\Application\Note\DTO\NoteRevisionSurplusRefundPayment { return null; }
             public function sumActiveAmountByDispositionId(string $dispositionId): int { return 0; }
             public function sumActiveAmountByNoteRootId(string $noteRootId): int { return $this->amount; }
+        };
+    }
+
+    private function surplusDispositions(int $refundDue): NoteRevisionSurplusDispositionReaderPort
+    {
+        return new class($refundDue) implements NoteRevisionSurplusDispositionReaderPort {
+            public function __construct(private readonly int $refundDue) {}
+            public function findPendingBySettlementId(string $settlementId): ?NoteRevisionSurplusPending { return null; }
+            public function findPendingBySettlementIdForUpdate(string $settlementId): ?NoteRevisionSurplusPending { return null; }
+            public function findPendingByNoteRootId(string $noteRootId): array { return []; }
+            public function sumActiveRefundDueAmountByNoteRootId(string $noteRootId): int { return $this->refundDue; }
         };
     }
 
