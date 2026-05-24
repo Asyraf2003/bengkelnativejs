@@ -81,6 +81,75 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         ], $data['rows']);
     }
 
+
+    public function test_get_transaction_cash_ledger_per_note_handler_exposes_component_allocation_payment_method(): void
+    {
+        $this->seedNote('note-cash', 'Cash Customer', '2026-04-02', 85000);
+        $this->seedNote('note-transfer', 'Transfer Customer', '2026-04-02', 30000);
+
+        $this->seedWorkItem('work-item-cash', 'note-cash', 1, 85000);
+        $this->seedWorkItem('work-item-transfer', 'note-transfer', 1, 30000);
+
+        $this->seedCustomerPayment('payment-cash', 85000, '2026-04-02', 'cash');
+        $this->seedCustomerPayment('payment-transfer', 30000, '2026-04-02', 'transfer');
+
+        $this->seedPaymentComponentAllocation(
+            'component-allocation-cash',
+            'payment-cash',
+            'note-cash',
+            'work-item-cash',
+            85000
+        );
+
+        $this->seedPaymentComponentAllocation(
+            'component-allocation-transfer',
+            'payment-transfer',
+            'note-transfer',
+            'work-item-transfer',
+            30000
+        );
+
+        $result = app(GetTransactionCashLedgerPerNoteHandler::class)
+            ->handle('2026-04-02', '2026-04-02');
+
+        $this->assertInstanceOf(Result::class, $result);
+        $this->assertTrue($result->isSuccess());
+
+        $data = $result->data();
+
+        $this->assertIsArray($data);
+        $this->assertArrayHasKey('rows', $data);
+
+        $this->assertSame([
+            [
+                'note_id' => 'note-cash',
+                'event_date' => '2026-04-02',
+                'event_type' => 'payment_allocation',
+                'direction' => 'in',
+                'event_amount_rupiah' => 85000,
+                'payment_method' => 'cash',
+                'customer_payment_id' => 'payment-cash',
+                'refund_id' => null,
+                'source_table' => 'payment_component_allocations',
+                'source_id' => 'payment-cash',
+                'source_disposition_id' => null,
+            ],
+            [
+                'note_id' => 'note-transfer',
+                'event_date' => '2026-04-02',
+                'event_type' => 'payment_allocation',
+                'direction' => 'in',
+                'event_amount_rupiah' => 30000,
+                'payment_method' => 'transfer',
+                'customer_payment_id' => 'payment-transfer',
+                'refund_id' => null,
+                'source_table' => 'payment_component_allocations',
+                'source_id' => 'payment-transfer',
+                'source_disposition_id' => null,
+            ],
+        ], $data['rows']);
+    }
+
     private function seedNote(string $id, string $customerName, string $transactionDate, int $totalRupiah): void
     {
         DB::table('notes')->insert([
@@ -91,13 +160,23 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
         ]);
     }
 
-    private function seedCustomerPayment(string $id, int $amountRupiah, string $paidAt): void
-    {
-        DB::table('customer_payments')->insert([
+    private function seedCustomerPayment(
+        string $id,
+        int $amountRupiah,
+        string $paidAt,
+        ?string $paymentMethod = null,
+    ): void {
+        $row = [
             'id' => $id,
             'amount_rupiah' => $amountRupiah,
             'paid_at' => $paidAt,
-        ]);
+        ];
+
+        if ($paymentMethod !== null) {
+            $row['payment_method'] = $paymentMethod;
+        }
+
+        DB::table('customer_payments')->insert($row);
     }
 
     private function seedPaymentAllocation(string $id, string $paymentId, string $noteId, int $amountRupiah): void
@@ -107,6 +186,42 @@ final class GetTransactionCashLedgerPerNoteFeatureTest extends TestCase
             'customer_payment_id' => $paymentId,
             'note_id' => $noteId,
             'amount_rupiah' => $amountRupiah,
+        ]);
+    }
+
+    private function seedWorkItem(
+        string $id,
+        string $noteId,
+        int $lineNo,
+        int $subtotalRupiah,
+    ): void {
+        DB::table('work_items')->insert([
+            'id' => $id,
+            'note_id' => $noteId,
+            'line_no' => $lineNo,
+            'transaction_type' => 'service_only',
+            'status' => 'open',
+            'subtotal_rupiah' => $subtotalRupiah,
+        ]);
+    }
+
+    private function seedPaymentComponentAllocation(
+        string $id,
+        string $paymentId,
+        string $noteId,
+        string $workItemId,
+        int $amountRupiah,
+    ): void {
+        DB::table('payment_component_allocations')->insert([
+            'id' => $id,
+            'customer_payment_id' => $paymentId,
+            'note_id' => $noteId,
+            'work_item_id' => $workItemId,
+            'component_type' => 'service_fee',
+            'component_ref_id' => $workItemId,
+            'component_amount_rupiah_snapshot' => $amountRupiah,
+            'allocated_amount_rupiah' => $amountRupiah,
+            'allocation_priority' => 1,
         ]);
     }
 
