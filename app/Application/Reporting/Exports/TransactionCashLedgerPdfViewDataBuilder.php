@@ -55,6 +55,7 @@ final class TransactionCashLedgerPdfViewDataBuilder
             'note_label' => $this->stringValue($row['note_label'] ?? $row['note_id'] ?? ''),
             'event_type' => $this->eventTypeLabel($this->stringValue($row['event_type'] ?? '')),
             'direction' => $this->directionLabel($this->stringValue($row['direction'] ?? '')),
+            'payment_method' => $this->paymentMethodLabel($this->stringValue($row['payment_method'] ?? '')),
             'amount' => $this->rupiah($row['event_amount_rupiah'] ?? 0),
             'payment_marker' => $paymentId !== '' ? 'Ada' : '-',
             'refund_marker' => $refundId !== '' ? 'Ada' : '-',
@@ -62,6 +63,16 @@ final class TransactionCashLedgerPdfViewDataBuilder
             'source_id' => $this->stringValue($row['source_id'] ?? '-') ?: '-',
             'source_disposition_id' => $this->stringValue($row['source_disposition_id'] ?? '-') ?: '-',
         ];
+    }
+
+    private function paymentMethodLabel(string $paymentMethod): string
+    {
+        return match ($paymentMethod) {
+            'cash' => 'Tunai',
+            'transfer' => 'Transfer',
+            '' => '-',
+            default => $paymentMethod,
+        };
     }
 
     private function eventTypeLabel(string $type): string
