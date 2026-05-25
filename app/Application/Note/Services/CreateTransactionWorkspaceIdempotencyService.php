@@ -11,13 +11,15 @@ final class CreateTransactionWorkspaceIdempotencyService
 {
     private const OPERATION = 'create_transaction_workspace';
 
-    public function __construct(private readonly IdempotencyRecordPort $records)
-    {
+    public function __construct(
+        private readonly IdempotencyRecordPort $records,
+        private readonly CreateTransactionWorkspaceIdempotencyScopeResolver $scopes,
+    ) {
     }
 
     public function replay(array $payload): ?Result
     {
-        $scope = $this->scope($payload);
+        $scope = $this->scopes->resolve($payload);
 
         if ($scope === null) {
             return null;
@@ -49,7 +51,7 @@ final class CreateTransactionWorkspaceIdempotencyService
 
     public function start(array $payload): void
     {
-        $scope = $this->scope($payload);
+        $scope = $this->scopes->resolve($payload);
 
         if ($scope === null) {
             return;
@@ -65,7 +67,7 @@ final class CreateTransactionWorkspaceIdempotencyService
 
     public function succeed(array $payload, Result $result): void
     {
-        $scope = $this->scope($payload);
+        $scope = $this->scopes->resolve($payload);
 
         if ($scope === null) {
             return;
@@ -81,45 +83,5 @@ final class CreateTransactionWorkspaceIdempotencyService
             ['data' => $result->data(), 'message' => $result->message()],
             is_string($noteId) ? $noteId : null
         );
-    }
-
-    /**
-     * @return array{actor_id:string,key:string,hash:string}|null
-     */
-    private function scope(array $payload): ?array
-    {
-        $key = trim((string) ($payload['idempotency_key'] ?? ''));
-
-        if ($key === '') {
-            return null;
-        }
-
-        $actorId = trim((string) ($payload['_actor_id'] ?? ''));
-
-        return [
-            'actor_id' => $actorId !== '' ? $actorId : 'anonymous',
-            'key' => $key,
-            'hash' => $this->hash($payload),
-        ];
-    }
-
-    private function hash(array $payload): string
-    {
-        unset($payload['_actor_id'], $payload['idempotency_key']);
-
-        $this->sortRecursive($payload);
-
-        return hash('sha256', json_encode($payload, JSON_THROW_ON_ERROR));
-    }
-
-    private function sortRecursive(array &$value): void
-    {
-        foreach ($value as &$item) {
-            if (is_array($item)) {
-                $this->sortRecursive($item);
-            }
-        }
-
-        ksort($value);
     }
 }
