@@ -26,6 +26,7 @@ final class TransactionCashLedgerExcelDetailSheetWriter
                 (string) ($row['note_label'] ?? ''),
                 $this->eventTypeLabel((string) ($row['event_type'] ?? '')),
                 $this->directionLabel((string) ($row['direction'] ?? '')),
+                $this->paymentMethodLabel((string) ($row['payment_method'] ?? '')),
                 (int) ($row['event_amount_rupiah'] ?? 0),
                 (string) ($row['customer_payment_id'] ?? ''),
                 (string) ($row['refund_id'] ?? ''),
@@ -42,6 +43,7 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'Nota',
             'Jenis Kejadian',
             'Arah',
+            'Metode Pembayaran',
             'Nominal',
             'ID Pembayaran',
             'ID Pengembalian Dana',
@@ -50,7 +52,7 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'ID Disposisi Sumber',
         ], $values);
 
-        $this->tables->autosize($sheet, 12);
+        $this->tables->autosize($sheet, 13);
     }
 
     private function eventTypeLabel(string $type): string
@@ -69,6 +71,16 @@ final class TransactionCashLedgerExcelDetailSheetWriter
             'in' => 'Masuk',
             'out' => 'Keluar',
             default => $direction,
+        };
+    }
+
+    private function paymentMethodLabel(string $paymentMethod): string
+    {
+        return match ($paymentMethod) {
+            'cash' => 'Tunai',
+            'transfer' => 'Transfer',
+            '' => '-',
+            default => $paymentMethod,
         };
     }
 }
