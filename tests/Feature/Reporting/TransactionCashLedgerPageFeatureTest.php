@@ -94,6 +94,44 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
     }
 
 
+    public function test_admin_cash_ledger_detail_table_exposes_payment_method_for_money_in_rows(): void
+    {
+        $this->seedCashInEvent('note-page-detail-cash', 'wi-page-detail-cash', 'pay-page-detail-cash', '2026-04-02', 85000, 'Cash Detail', 'cash');
+        $this->seedCashInEvent('note-page-detail-transfer', 'wi-page-detail-transfer', 'pay-page-detail-transfer', '2026-04-02', 30000, 'Transfer Detail', 'transfer');
+
+        $response = $this->actingAs($this->user('admin'))->get(
+            route('admin.reports.transaction_cash_ledger.index', [
+                'period_mode' => 'daily',
+                'reference_date' => '2026-04-02',
+            ])
+        );
+
+        $response->assertOk();
+
+        $content = $response->getContent();
+        $tableStart = strpos($content, '<table class="table align-middle mb-0">');
+
+        if ($tableStart === false) {
+            self::fail('Transaction cash ledger detail table was not rendered.');
+        }
+
+        $tableEnd = strpos($content, '</table>', $tableStart);
+
+        if ($tableEnd === false) {
+            self::fail('Transaction cash ledger detail table closing tag was not rendered.');
+        }
+
+        $detailTableHtml = substr(
+            $content,
+            $tableStart,
+            $tableEnd + strlen('</table>') - $tableStart
+        );
+
+        $this->assertStringContainsString('Metode Pembayaran', $detailTableHtml);
+        $this->assertMatchesRegularExpression('/note-page-detail-cash[\s\S]*Tunai/', $detailTableHtml);
+        $this->assertMatchesRegularExpression('/note-page-detail-transfer[\s\S]*Transfer/', $detailTableHtml);
+    }
+
     public function test_daily_mode_uses_reference_date_only(): void
     {
         $this->seedCashInEvent('note-daily-1', 'wi-daily-1', 'pay-daily-1', '2026-04-02', 7000, 'Daily A');
