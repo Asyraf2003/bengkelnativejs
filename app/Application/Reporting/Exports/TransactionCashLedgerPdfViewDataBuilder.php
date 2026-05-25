@@ -38,6 +38,8 @@ final class TransactionCashLedgerPdfViewDataBuilder
         return [
             ['label' => 'Total Kejadian', 'value' => $this->integerValue($summary['total_events'] ?? 0)],
             ['label' => 'Kas Masuk', 'value' => $this->rupiah($summary['total_cash_in_rupiah'] ?? 0)],
+            ['label' => 'Tunai Masuk', 'value' => $this->rupiah($summary['cash_in_rupiah'] ?? 0)],
+            ['label' => 'Transfer Masuk', 'value' => $this->rupiah($summary['transfer_in_rupiah'] ?? 0)],
             ['label' => 'Kas Keluar', 'value' => $this->rupiah($summary['total_cash_out_rupiah'] ?? 0)],
             ['label' => 'Nilai Bersih', 'value' => $this->rupiah($summary['net_amount_rupiah'] ?? 0)],
         ];
