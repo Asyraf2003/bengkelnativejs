@@ -134,6 +134,7 @@
                                 <th>Arah</th>
                                 <th class="text-end">Nominal</th>
                                 <th>Pembayaran</th>
+                                <th>Metode Pembayaran</th>
                                 <th>Pengembalian Dana</th>
                                 <th>Tabel Sumber</th>
                                 <th>ID Sumber</th>
@@ -160,6 +161,13 @@
                                     </td>
                                     <td class="text-end">Rp {{ number_format($row['event_amount_rupiah'], 0, ',', '.') }}</td>
                                     <td>{{ ($row['customer_payment_id'] ?? null) ? 'Ada' : '-' }}</td>
+                                    <td>
+                                        {{ match ($row['payment_method'] ?? '') {
+                                            'cash' => 'Tunai',
+                                            'transfer', 'tf' => 'Transfer',
+                                            default => ($row['customer_payment_id'] ?? null) ? ($row['payment_method'] ?? '-') : '-',
+                                        } }}
+                                    </td>
                                     <td>{{ ($row['refund_id'] ?? null) ? 'Ada' : '-' }}</td>
                                     <td>{{ $row['source_table'] ?? '-' }}</td>
                                     <td>{{ $row['source_id'] ?? '-' }}</td>
@@ -167,7 +175,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="10" class="text-center text-muted">Belum ada kejadian kas pada periode ini.</td>
+                                    <td colspan="11" class="text-center text-muted">Belum ada kejadian kas pada periode ini.</td>
                                 </tr>
                             @endforelse
                         </tbody>
