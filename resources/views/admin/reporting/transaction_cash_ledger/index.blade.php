@@ -28,7 +28,7 @@
 ])
 
 <div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-xl-2">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted small">Total Kejadian</div>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-xl-2">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted small">Kas Masuk</div>
@@ -46,7 +46,25 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-xl-2">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted small">Tunai Masuk</div>
+                <div class="fs-4 fw-bold text-success">Rp {{ number_format($summary['cash_in_rupiah'] ?? 0, 0, ',', '.') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-2">
+        <div class="card">
+            <div class="card-body">
+                <div class="text-muted small">Transfer Masuk</div>
+                <div class="fs-4 fw-bold text-success">Rp {{ number_format($summary['transfer_in_rupiah'] ?? 0, 0, ',', '.') }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6 col-xl-2">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted small">Kas Keluar</div>
@@ -55,7 +73,7 @@
         </div>
     </div>
 
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-xl-2">
         <div class="card">
             <div class="card-body">
                 <div class="text-muted small">Nilai Bersih</div>

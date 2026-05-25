@@ -63,7 +63,7 @@ final class TransactionCashLedgerPageFeatureTest extends TestCase
         $response->assertSee('Tabel Sumber');
         $response->assertSee('ID Sumber');
         $response->assertSee('ID Disposisi Sumber');
-        $response->assertSee('customer_payments');
+        $response->assertSee('payment_allocations');
         $response->assertSee('customer_refunds');
         $response->assertSee('pay-1');
         $response->assertSee('ref-1');
