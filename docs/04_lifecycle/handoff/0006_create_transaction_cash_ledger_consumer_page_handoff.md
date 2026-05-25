@@ -5,7 +5,7 @@
 - Slice / topic: Create transaction lifecycle cash ledger consumer, page, PDF export, Excel export, and verification closure for cash vs transfer split
 - Workflow step: Phase 1F-9 cash ledger consumer/page/export exposure and verify closure
 - Status: continue in next session
-- Progress: 90%
+- Progress: 94%
 
 ## Target Work Page
 Continue lifecycle maturity proof for create transaction cash/transfer reporting after cash ledger reader, handler, summary builder, period builder, admin page, PDF export, Excel export, and full verification were proven GREEN.
@@ -119,6 +119,7 @@ Current next target is admin cash ledger detail table payment method exposure ch
   - 84%: stale reporting export feature regressions fixed after split contract.
   - 88%: full make verify GREEN after cash ledger export split and audit-lines sequence.
   - 90%: admin cash ledger page detail table exposes payment_method and focused adjacent reporting suite remains GREEN.
+  - 94%: create service-only transaction rollback after inline payment writes is proven GREEN with adjacent create/payment suite.
 - Use transfer as canonical customer payment money-in naming.
 - Keep legacy tf normalization where needed.
 - Do not patch UI/payment forms or expense naming unless selected as a separate active step.
@@ -130,6 +131,7 @@ Current next target is admin cash ledger detail table payment method exposure ch
 ## Files Created / Changed
 
 ### New files
+- tests/Feature/Note/CreateTransactionWorkspaceRollbackFeatureTest.php
 - tests/Unit/Application/Reporting/Exports/TransactionCashLedgerPdfExportCashTransferSplitTest.php
 - tests/Unit/Application/Reporting/Exports/TransactionCashLedgerExcelSummaryCashTransferSplitTest.php
 - tests/Unit/Application/Reporting/Exports/TransactionCashLedgerExcelPeriodCashTransferSplitTest.php
@@ -331,3 +333,39 @@ Recommended candidates:
 - Browser/manual QA for admin cash ledger page detail table.
 - Dashboard cash-in wording characterization only if dashboard is explicitly selected as active step.
 - Keep PostgreSQL, Go API, migration/backfill, export, and payment forms out of scope unless selected by owner.
+
+<!-- phase-1f-10a-create-transaction-rollback-proof -->
+## Phase 1F-10A - Create Transaction Rollback Proof
+
+## FACT
+- Create service-only workspace rollback after inline payment writes is proven GREEN.
+- Failure was injected through the inline payment audit path.
+- Adjacent create/payment/package/auto-close suite remains GREEN.
+
+## Verification Proof
+- command:
+  - php artisan test tests/Feature/Note/CreateTransactionWorkspaceRollbackFeatureTest.php tests/Feature/Note/CreateTransactionWorkspaceInlinePaymentLifecycleFeatureTest.php tests/Feature/Note/CreateTransactionWorkspacePackageAllocationAuditFeatureTest.php tests/Feature/Payment/AutoClosePaidNoteOnFullPaymentFeatureTest.php tests/Feature/Payment/RecordCustomerPaymentFeatureTest.php
+  - result:
+    - Tests: 13 passed (134 assertions)
+    - Duration: 6.61s
+  - meaning:
+    - Create transaction service-only rollback after inline payment writes is proven and adjacent create/payment behavior remains GREEN.
+
+## GAP
+- Full make verify was not rerun after the rollback characterization test was added.
+- Store-stock/inventory create lifecycle rollback is not proven.
+- Idempotency / duplicate submit behavior is not proven.
+- Concurrency behavior is not proven.
+
+## DECISION
+- Progress is now 94%.
+- Do not claim a new full make verify GREEN without a new make verify output.
+- Next maturity target should be idempotency characterization or store-stock/inventory create lifecycle characterization.
+
+## Next Step
+Phase 1F-10B - Select next create transaction maturity gap.
+
+Recommended candidates:
+- Create transaction idempotency / duplicate submit characterization.
+- Store-stock/inventory create lifecycle characterization.
+- Full make verify after rollback test if operator wants suite-level confidence before next domain slice.
