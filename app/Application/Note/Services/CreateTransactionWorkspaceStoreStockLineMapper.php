@@ -23,7 +23,8 @@ final class CreateTransactionWorkspaceStoreStockLineMapper
      */
     public function mapMany(array $item): array
     {
-        $lines = $this->lines($item['product_lines'] ?? []);
+        $lines = (new CreateTransactionWorkspaceProductLineCollection())
+            ->lines($item['product_lines'] ?? []);
 
         if ($lines === []) {
             return [$this->map($item)];
@@ -52,47 +53,11 @@ final class CreateTransactionWorkspaceStoreStockLineMapper
 
     /**
      * @param mixed $value
-     * @return list<array<string, mixed>>
-     */
-    private function lines(mixed $value): array
-    {
-        if (! is_array($value)) {
-            return [];
-        }
-
-        if ($this->looksLikeLine($value)) {
-            return [$value];
-        }
-
-        $lines = [];
-
-        foreach (array_values($value) as $line) {
-            if (is_array($line)) {
-                $lines[] = $line;
-            }
-        }
-
-        return $lines;
-    }
-
-    /**
-     * @param mixed $value
      * @return array<string, mixed>
      */
     private function firstLine(mixed $value): array
     {
-        return $this->lines($value)[0] ?? [];
-    }
-
-    /**
-     * @param array<mixed> $value
-     */
-    private function looksLikeLine(array $value): bool
-    {
-        return array_key_exists('product_id', $value)
-            || array_key_exists('qty', $value)
-            || array_key_exists('unit_price_rupiah', $value)
-            || array_key_exists('price_basis', $value);
+        return (new CreateTransactionWorkspaceProductLineCollection())->lines($value)[0] ?? [];
     }
 
     private function priceBasis(mixed $value): string
