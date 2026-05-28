@@ -7,7 +7,7 @@ namespace App\Application\Note\Services;
 final class EditTransactionWorkspacePaymentSettlementDataBuilder
 {
     public function __construct(
-        private readonly NoteOutstandingPaymentAmountResolver $paymentSettlement,
+        private readonly NotePaymentSettlementPreviewResolver $paymentSettlement,
     ) {
     }
 
