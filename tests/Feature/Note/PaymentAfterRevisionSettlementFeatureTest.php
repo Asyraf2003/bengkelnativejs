@@ -49,6 +49,12 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
             'allocated_amount_rupiah' => 100000,
         ]);
 
+        $workspacePanel = $this->app
+            ->make(\App\Application\Note\Services\NoteWorkspacePanelDataBuilder::class)
+            ->build('note-payment-after-revision-001');
+
+        self::assertIsArray($workspacePanel);
+
         $billingRows = $this->app
             ->make(\App\Application\Note\Services\SelectedNoteBillingRowsProvider::class)
             ->provide('note-payment-after-revision-001');
@@ -59,6 +65,7 @@ final class PaymentAfterRevisionSettlementFeatureTest extends TestCase
         );
 
         self::fail(json_encode([
+            'workspace_panel_rows' => $workspacePanel['rows'] ?? null,
             'current_work_item_id_from_work_items_table' => $currentWorkItemId,
             'selected_id_test_would_send' => $currentWorkItemId . '::service_fee::' . $currentWorkItemId,
             'customer_payments' => DB::table('customer_payments')
