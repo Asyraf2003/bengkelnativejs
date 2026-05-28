@@ -2,7 +2,7 @@
 
 ## FACT
 - Dokumen ini adalah indeks analitis untuk audit full-repo pada scope `docs/04_lifecycle/error_log/2026-05-28_full_repo_audit/`.
-- Sumber proof yang dipakai di README ini adalah source code dan output command lokal yang bisa diverifikasi ulang.
+- Sumber proof utama yang dipakai di README ini adalah source code, command output, dan owner-provided verification ledger di `0010_verification_commands_and_test_baseline.md`.
 - Source code dan command output mengalahkan narasi dokumen jika ada konflik.
 - Full suite green adalah baseline positif, tetapi full suite green tidak otomatis berarti PostgreSQL readiness, Go Echo readiness, audit canonicalization, route-specific security, payment race safety, atau JS/XSS safety sudah `READY`.
 - Semua dokumen di folder ini adalah analytical report, bukan patch plan final.
@@ -31,28 +31,28 @@
 
 | Item | Owner baseline yang diminta | Proof lokal yang didapat | Status |
 |---|---|---|---|
-| Git status | `main...origin/main` | `git status -sb` menampilkan `## main...origin/main` | FACT |
-| HEAD | `266af29a` | `git rev-parse --short HEAD` menampilkan `eec9494a` | GAP / CONTRADICTED |
-| Route list | `php artisan route:list` berhasil dan menunjukkan 154 routes | Command berhasil dan output berakhir dengan `Showing [154] routes` | FACT |
-| Migration status | `php artisan migrate:status` menunjukkan listed migrations `Ran` | Command gagal koneksi ke MySQL lokal: `SQLSTATE[HY000] [2002] Unknown error while connecting` ke `127.0.0.1:3306` | GAP |
-| Web page access feature test | `php artisan test --filter=WebPageAccessFeatureTest` PASS `8 tests, 20 assertions` | Command gagal koneksi database, hasil akhir `8 failed (0 assertions)` | GAP |
-| Mobile API authentication feature test | `php artisan test --filter=MobileApiAuthenticationFeatureTest` PASS `7 tests, 25 assertions` | Command gagal koneksi database, hasil akhir `7 failed (0 assertions)` | GAP |
-| Inventory projection feature test | `php artisan test --filter=RebuildInventoryProjectionFeatureTest` PASS `2 tests, 9 assertions` | Command gagal koneksi database, hasil akhir `2 failed (0 assertions)` | GAP |
-| Full test suite | `composer test` PASS `1112 passed, 2 skipped, 6205 assertions` | Local `composer test` tidak membuktikan baseline itu; output menunjukkan kegagalan luas, termasuk error koneksi MySQL dan banyak feature test gagal | GAP |
-| JS / Blade scan | Command berhasil dan menemukan banyak `innerHTML` / `insertAdjacentHTML` serta inline script Blade | Command `rg -n -F -e 'innerHTML' -e 'insertAdjacentHTML' -e '<script' -e '@push(' -e '@section(' -e '{!!' -e 'x-data' resources docs` berhasil dan mengembalikan banyak hit, termasuk `resources/views/cashier/notes/partials/create-script.blade.php`, `resources/views/cashier/notes/show.blade.php`, `resources/views/admin/procurement/supplier_invoices/payment_proofs.blade.php`, dan `resources/views/admin/employees/edit.blade.php` | FACT |
+| Git status | `main...origin/main` | `git status -sb` pada ledger owner menampilkan `## main...origin/main` | FACT |
+| HEAD | `266af29a` | `git rev-parse --short HEAD` pada ledger owner menampilkan `266af29a` | FACT |
+| Route list | `php artisan route:list` berhasil dan menunjukkan 154 routes | Owner ledger mencatat output akhir `Showing [154] routes` | FACT |
+| Migration status | `php artisan migrate:status` menunjukkan listed migrations `Ran` | Owner ledger mencatat migrations listed sebagai `Ran` | FACT |
+| Web page access feature test | `php artisan test --filter=WebPageAccessFeatureTest` PASS `8 tests, 20 assertions` | Owner ledger mencatat `PASS, 8 passed, 20 assertions` | FACT |
+| Mobile API authentication feature test | `php artisan test --filter=MobileApiAuthenticationFeatureTest` PASS `7 tests, 25 assertions` | Owner ledger mencatat `PASS, 7 passed, 25 assertions` | FACT |
+| Inventory projection feature test | `php artisan test --filter=RebuildInventoryProjectionFeatureTest` PASS `2 tests, 9 assertions` | Owner ledger mencatat `PASS, 2 passed, 9 assertions` | FACT |
+| Full test suite | `composer test` PASS `1112 passed, 2 skipped, 6205 assertions` | Owner ledger mencatat `2 skipped, 1112 passed, 6205 assertions` | FACT |
+| JS / Blade scan | Command berhasil dan menemukan banyak `innerHTML` / `insertAdjacentHTML` serta inline script Blade | Owner ledger mencatat scan JS/Blade berhasil dan menunjukkan pemakaian luas `innerHTML` / `insertAdjacentHTML` / inline script | FACT |
 
-### Catatan baseline
-- Baseline `HEAD owner: 266af29a` belum cocok dengan output lokal yang terbukti saat ini.
-- Baseline `migrate:status`, tiga filtered feature test, dan `composer test` tidak bisa dinyatakan PASS dari environment lokal ini berdasarkan output yang ada.
-- Karena itu, item-item tersebut dicatat sebagai `GAP`, bukan dipaksa menjadi fakta.
+## AGENT LOCAL ENVIRONMENT NOTE
+- Ada attempt lokal agent yang sempat membaca environment berbeda untuk HEAD dan test DB.
+- Attempt itu tidak dipakai sebagai canonical owner baseline.
+- Untuk audit ini, `0010_verification_commands_and_test_baseline.md` adalah ledger canonical owner.
 
 ## HOW TO READ THIS ERROR LOG
 - Baca setiap file sebagai laporan analitis, bukan sebagai patch plan.
 - Jika sumber code atau output command bertentangan dengan narasi dokumen lain, percaya source code dan command output terlebih dahulu.
-- Jika status sebuah issue terlihat terlalu kuat tetapi proof yang tersedia hanya parsial, turunkan pembacaan ke `GAP` atau `CONTRADICTED`.
+- Jika status sebuah issue terlihat terlalu kuat tetapi proof yang tersedia hanya parsial, turunkan pembacaan ke `GAP` atau `MISMATCHED`.
 - `FACT` berarti ada proof lokal yang bisa ditunjuk.
 - `GAP` berarti proof belum cukup, atau output lokal bertentangan dengan baseline yang diminta.
-- `CONTRADICTED` berarti klaim owner atau dokumen lain tidak cocok dengan output lokal.
+- `MISMATCHED` berarti klaim owner atau dokumen lain tidak cocok dengan output lokal.
 - `READY` hanya layak dibaca sebagai hasil audit jika proof target, proof regresi, dan proof boundary semuanya tersedia.
 
 ## SEVERITY MODEL
@@ -98,7 +98,7 @@
 10. `0002_seeder_role_contract.md`
 
 ## NEXT OWNER DECISION
-- Konfirmasi hash baseline yang benar: apakah `266af29a` memang referensi owner, atau apakah audit harus mengikuti HEAD lokal `eec9494a`.
-- Sediakan atau konfirmasi environment database agar `migrate:status` dan test yang bergantung pada MySQL bisa diverifikasi sesuai baseline yang diminta.
-- Putuskan apakah audit ini diperlakukan sebagai report-only sampai baseline proof yang diminta benar-benar cocok dengan output lokal.
+- Jika ada mismatch environment lokal terhadap ledger owner, catat sebagai note non-canonical dan lanjutkan ke proof issue-level yang belum lengkap.
+- Sediakan atau konfirmasi environment database agar `migrate:fresh` pada `DB_CONNECTION=pgsql` bisa diverifikasi sesuai baseline yang diminta.
+- Putuskan apakah audit ini diperlakukan sebagai report-only sampai proof target issue-level benar-benar lengkap.
 - Putuskan urutan prioritas baca untuk 10 report ini jika owner ingin lanjut ke review issue-level berikutnya.

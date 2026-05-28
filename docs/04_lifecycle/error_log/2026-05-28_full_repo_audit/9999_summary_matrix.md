@@ -9,7 +9,7 @@
 ## SUMMARY MATRIX
 | ID | File | Area | Severity | Status | Confirmed Facts | Main GAP | Suggested Next Proof | Owner Decision Needed | Risk If Delayed |
 |---|---|---|---|---|---|---|---|---|---|
-| README | `README.md` | Audit index / baseline ledger | Low | FACT / GAP | File map 0001-0010 ada; scope-in/out dan reading order sudah ditulis; source code/output override narasi | Baseline proof table di README masih memuat kontradiksi dengan ledger owner 0010 dan tidak boleh dibaca sebagai final truth sendirian | Reconcile README baseline rows with owner-provided 0010 ledger | Ya - satukan indeks baseline dengan ledger owner | Pembaca audit bisa salah mengira baseline sudah final padahal masih ada kontradiksi |
+| README | `README.md` | Audit index / baseline ledger | Low | FACT / INDEX | File map 0001-0010 ada; scope-in/out dan reading order sudah ditulis; README kini selaras dengan owner ledger 0010 | README hanya index; issue-level proof tetap ada di file 0001-0010 dan 0010 | Baca README bersama `0010_verification_commands_and_test_baseline.md` dan report issue-level terkait | Tidak - README sudah jadi index, bukan issue report | Pembaca audit bisa salah mengira README adalah source of truth tunggal jika tidak dibaca bersama ledger owner |
 | 0001 | `0001_postgresql_migration_readiness.md` | PostgreSQL migration readiness | High | CONFIRMED / GAP | MySQL-specific generated column syntax dan `SHOW INDEX` usage terkonfirmasi; readiness risk migration jelas | Belum ada proof `APP_ENV=testing DB_CONNECTION=pgsql php artisan migrate:fresh --force` | Jalankan `pgsql migrate:fresh` lalu regresi subset | Ya - tetapkan gate proof PostgreSQL | Cutover / shadow migration bisa terblokir oleh incompatibility tersembunyi |
 | 0002 | `0002_seeder_role_contract.md` | Seeder role contract | High | CONFIRMED contract mismatch | `DatabaseSeeder` aktif memakai `CreateOnly\CreateUserSeeder`; seeder itu menulis role `user`; canonical role hanya `admin` dan `kasir` | Belum ada fresh-seed proof yang menjalankan `DatabaseSeeder` dan membuktikan dampak runtime login/route/mobile | Fresh seed SQLite/MySQL, assert `actor_accesses`, login kasir, akses dashboard, mobile login | Ya - pilih canonical seeder path | Seeded role drift bisa mengacaukan auth/akses demo account |
 | 0003 | `0003_route_security_boundary.md` | Route security boundary | High | CONFIRMED boundary observation + GAP | `transaction.entry` alias ada; middleware mengecek actor/user dan policy; legacy route group tertentu memakainya tanpa `auth` eksplisit di group | Belum ada proof unauthorized/capability failure untuk legacy routes yang memakai `transaction.entry` | Feature test unauthenticated POST dan capability matrix per route | Ya - putuskan boundary legacy route mana yang harus dibuktikan/ditutup | Route ambiguity tetap terbuka walau baseline dashboard access PASS |
@@ -59,7 +59,10 @@
 
 ## FINAL READINESS SNAPSHOT
 - Runtime baseline: hijau menurut ledger owner `0010`.
-- Migrasi lokal: `migrate:status` berstatus `Ran`.
-- Proof yang masih paling penting dan belum lengkap: PostgreSQL `migrate:fresh`, fresh-seed runtime, route-specific `transaction.entry`, payment concurrency characterization, audit coverage matrix, dan UI dynamic unsafe value proof.
+- PostgreSQL `DB_CONNECTION=pgsql migrate:fresh`: tetap unproven.
+- Route-specific `transaction.entry`: tetap GAP.
+- Payment concurrency characterization: tetap GAP.
+- Audit coverage matrix: tetap GAP.
+- UI dynamic unsafe value proof: tetap GAP.
 - Issue yang sudah source-confirmed sebagai risiko/kontrak mismatch: seeder role, audit dual path, reporting fallback compatibility, API contract readiness, dan Blade/JS review risk.
-- Kesimpulan operasional: audit ini sudah cukup untuk memprioritaskan workstream, tetapi belum cukup untuk menyatakan seluruh boundary siap diimplementasikan atau dimigrasikan.
+- Kesimpulan operasional: audit ini cukup untuk memprioritaskan workstream, tetapi belum cukup untuk menyatakan seluruh boundary siap diimplementasikan atau dimigrasikan.
