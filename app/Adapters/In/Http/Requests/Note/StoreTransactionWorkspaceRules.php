@@ -39,6 +39,7 @@ final class StoreTransactionWorkspaceRules
             'items.*.external_purchase_lines.0.label' => ['nullable', 'string'],
             'items.*.external_purchase_lines.0.qty' => ['nullable', 'integer', 'min:1'],
             'items.*.external_purchase_lines.0.unit_cost_rupiah' => ['nullable', 'integer', 'min:1'],
+            'items.*.external_purchase_lines.*.total_rupiah' => ['nullable', 'integer', 'min:1'],
 
             'inline_payment' => ['required', 'array'],
             'inline_payment.decision' => ['required', 'string', 'in:skip,pay_full,pay_partial'],
