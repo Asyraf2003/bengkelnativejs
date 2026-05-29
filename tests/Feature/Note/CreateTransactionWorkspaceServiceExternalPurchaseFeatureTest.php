@@ -175,7 +175,7 @@ final class CreateTransactionWorkspaceServiceExternalPurchaseFeatureTest extends
 
         $this->assertDatabaseHas('work_item_external_purchase_lines', [
             'work_item_id' => $workItemId,
-            'cost_description' => '',
+            'cost_description' => 'Pembelian luar',
             'qty' => 1,
             'unit_cost_rupiah' => 80000,
             'line_total_rupiah' => 80000,
