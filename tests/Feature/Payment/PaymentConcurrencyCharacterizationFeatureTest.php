@@ -7,7 +7,7 @@ namespace Tests\Feature\Payment;
 use App\Application\Payment\UseCases\RecordAndAllocateNotePaymentHandler;
 use App\Core\Note\WorkItem\ServiceDetail;
 use App\Core\Note\WorkItem\WorkItem;
-use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Support\SeedsMinimalNotePaymentFixture;
@@ -16,8 +16,21 @@ use Throwable;
 
 final class PaymentConcurrencyCharacterizationFeatureTest extends TestCase
 {
-    use DatabaseMigrations;
     use SeedsMinimalNotePaymentFixture;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Artisan::call('migrate:fresh', ['--force' => true]);
+    }
+
+    protected function tearDown(): void
+    {
+        Artisan::call('migrate:fresh', ['--force' => true]);
+
+        parent::tearDown();
+    }
 
     public function test_concurrent_full_payments_on_same_note_do_not_over_allocate_outstanding(): void
     {
