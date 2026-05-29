@@ -26,6 +26,8 @@ final class CreateTransactionWorkspaceServiceStoreStockPackageProductLinesCompos
             throw new DomainException('Product wajib dipilih.');
         }
 
+        CreateTransactionWorkspaceDuplicateProductLineGuard::assertUnique($lines);
+
         $sparepartTotal = 0;
         $normalizedLines = [];
 
