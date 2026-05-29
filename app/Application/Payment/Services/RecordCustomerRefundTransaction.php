@@ -25,6 +25,7 @@ final class RecordCustomerRefundTransaction
         private readonly AutoRefundNoteWhenFullyRefunded $refundLifecycle,
         private readonly AutoReverseRefundedStoreStockInventory $reverseRefundedInventory,
         private readonly NoteHistoryProjectionService $projection,
+        private readonly PaymentConcurrencyTransientExceptionClassifier $concurrencyErrors,
     ) {
     }
 
@@ -38,57 +39,67 @@ final class RecordCustomerRefundTransaction
         string $performedByActorId,
         array $selectedRowIds = [],
     ): Result {
-        $started = false;
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $started = false;
 
-        try {
-            $this->transactions->begin();
-            $started = true;
+            try {
+                $this->transactions->begin();
+                $started = true;
 
-            $recorded = $this->operation->execute(
-                $customerPaymentId,
-                $noteId,
-                $amountRupiah,
-                $refundedAt,
-                $reason,
-                $selectedRowIds,
-            );
+                $recorded = $this->operation->execute(
+                    $customerPaymentId,
+                    $noteId,
+                    $amountRupiah,
+                    $refundedAt,
+                    $reason,
+                    $selectedRowIds,
+                );
 
-            $refund = $recorded->refund();
+                $refund = $recorded->refund();
 
-            $this->reverseRefundedInventory->execute($refund);
-            $this->refundLifecycle->refundIfEligible(
-                $noteId,
-                $performedByActorId,
-                'kasir',
-                $reason,
-                $customerPaymentId,
-                $refund->id(),
-            );
+                $this->reverseRefundedInventory->execute($refund);
+                $this->refundLifecycle->refundIfEligible(
+                    $noteId,
+                    $performedByActorId,
+                    'kasir',
+                    $reason,
+                    $customerPaymentId,
+                    $refund->id(),
+                );
 
-            $this->audit->record('customer_refund_recorded', array_merge(
-                $this->formatAuditPayload($refund, $performedByActorId),
-                ['refund_allocation_count' => $recorded->allocationCount(), 'selected_row_ids' => $selectedRowIds],
-            ));
+                $this->audit->record('customer_refund_recorded', array_merge(
+                    $this->formatAuditPayload($refund, $performedByActorId),
+                    ['refund_allocation_count' => $recorded->allocationCount(), 'selected_row_ids' => $selectedRowIds],
+                ));
 
-            $this->projection->syncNote($noteId);
-            $this->transactions->commit();
+                $this->projection->syncNote($noteId);
+                $this->transactions->commit();
 
-            return Result::success(
-                array_merge($this->formatSuccessPayload($refund), ['refund_allocation_count' => $recorded->allocationCount()]),
-                'Customer refund berhasil dicatat.'
-            );
-        } catch (DomainException $e) {
-            if ($started) {
-                $this->transactions->rollBack();
+                return Result::success(
+                    array_merge($this->formatSuccessPayload($refund), ['refund_allocation_count' => $recorded->allocationCount()]),
+                    'Customer refund berhasil dicatat.'
+                );
+            } catch (DomainException $e) {
+                if ($started) {
+                    $this->transactions->rollBack();
+                }
+
+                return $this->classify($e);
+            } catch (Throwable $e) {
+                if ($started) {
+                    $this->transactions->rollBack();
+                }
+
+                if ($attempt < 3 && $this->concurrencyErrors->isTransient($e)) {
+                    usleep(25000 * $attempt);
+
+                    continue;
+                }
+
+                throw $e;
             }
-
-            return $this->classify($e);
-        } catch (Throwable $e) {
-            if ($started) {
-                $this->transactions->rollBack();
-            }
-
-            throw $e;
         }
+
+        throw new \LogicException('Unreachable refund concurrency retry state.');
     }
 }

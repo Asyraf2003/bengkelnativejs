@@ -6,6 +6,7 @@ namespace App\Application\Payment\UseCases;
 
 use App\Application\Note\Services\NoteHistoryProjectionService;
 use App\Application\Payment\Services\AllocatePaymentErrorClassifier;
+use App\Application\Payment\Services\PaymentConcurrencyTransientExceptionClassifier;
 use App\Application\Payment\Services\RecordAndAllocateNotePaymentOperation;
 use App\Application\Shared\DTO\Result;
 use App\Core\Payment\CustomerPayment\CustomerPayment;
@@ -22,6 +23,7 @@ final class RecordAndAllocateNotePaymentHandler
         private readonly AllocatePaymentErrorClassifier $errors,
         private readonly AuditLogPort $audit,
         private readonly NoteHistoryProjectionService $projection,
+        private readonly PaymentConcurrencyTransientExceptionClassifier $concurrencyErrors,
     ) {
     }
 
@@ -36,53 +38,63 @@ final class RecordAndAllocateNotePaymentHandler
         string $paymentMethod = CustomerPayment::METHOD_UNKNOWN,
         ?int $amountReceivedRupiah = null,
     ): Result {
-        $started = false;
+        for ($attempt = 1; $attempt <= 3; $attempt++) {
+            $started = false;
 
-        try {
-            $this->transactions->begin();
-            $started = true;
+            try {
+                $this->transactions->begin();
+                $started = true;
 
-            $recorded = $this->operation->execute(
-                $noteId,
-                $amountRupiah,
-                $paidAt,
-                $selectedRowIds,
-                $paymentMethod,
-                $amountReceivedRupiah,
-            );
+                $recorded = $this->operation->execute(
+                    $noteId,
+                    $amountRupiah,
+                    $paidAt,
+                    $selectedRowIds,
+                    $paymentMethod,
+                    $amountReceivedRupiah,
+                );
 
-            $this->audit->record('payment_allocated', [
-                'payment_id' => $recorded->payment()->id(),
-                'note_id' => trim($noteId),
-                'amount' => $amountRupiah,
-                'payment_method' => $recorded->payment()->paymentMethod(),
-                'amount_received' => $amountReceivedRupiah,
-                'change' => $this->changeAmount($recorded->payment()->paymentMethod(), $amountRupiah, $amountReceivedRupiah),
-                'allocation_count' => $recorded->allocationCount(),
-                'selected_row_ids' => $selectedRowIds,
-            ]);
+                $this->audit->record('payment_allocated', [
+                    'payment_id' => $recorded->payment()->id(),
+                    'note_id' => trim($noteId),
+                    'amount' => $amountRupiah,
+                    'payment_method' => $recorded->payment()->paymentMethod(),
+                    'amount_received' => $amountReceivedRupiah,
+                    'change' => $this->changeAmount($recorded->payment()->paymentMethod(), $amountRupiah, $amountReceivedRupiah),
+                    'allocation_count' => $recorded->allocationCount(),
+                    'selected_row_ids' => $selectedRowIds,
+                ]);
 
-            $this->projection->syncNote(trim($noteId));
+                $this->projection->syncNote(trim($noteId));
 
-            $this->transactions->commit();
+                $this->transactions->commit();
 
-            return Result::success([
-                'payment_id' => $recorded->payment()->id(),
-                'allocation_count' => $recorded->allocationCount(),
-            ], 'Pembayaran berhasil dicatat.');
-        } catch (DomainException $e) {
-            if ($started) {
-                $this->transactions->rollBack();
+                return Result::success([
+                    'payment_id' => $recorded->payment()->id(),
+                    'allocation_count' => $recorded->allocationCount(),
+                ], 'Pembayaran berhasil dicatat.');
+            } catch (DomainException $e) {
+                if ($started) {
+                    $this->transactions->rollBack();
+                }
+
+                return $this->errors->classify($e);
+            } catch (Throwable $e) {
+                if ($started) {
+                    $this->transactions->rollBack();
+                }
+
+                if ($attempt < 3 && $this->concurrencyErrors->isTransient($e)) {
+                    usleep(25000 * $attempt);
+
+                    continue;
+                }
+
+                throw $e;
             }
-
-            return $this->errors->classify($e);
-        } catch (Throwable $e) {
-            if ($started) {
-                $this->transactions->rollBack();
-            }
-
-            throw $e;
         }
+
+        throw new \LogicException('Unreachable payment concurrency retry state.');
     }
 
     private function changeAmount(string $paymentMethod, int $amountRupiah, ?int $amountReceivedRupiah): ?int
