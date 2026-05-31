@@ -845,6 +845,19 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
             'change_rupiah' => 0,
         ]);
 
+        $this->assertDatabaseCount('payment_component_allocations', 2);
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => (string) $payment->id,
+            'note_id' => (string) $note->id,
+            'work_item_id' => (string) $workItem->id,
+            'component_type' => 'service_store_stock_part',
+            'component_ref_id' => (string) $storeStockLine->id,
+            'component_amount_rupiah_snapshot' => 40000,
+            'allocated_amount_rupiah' => 40000,
+            'allocation_priority' => 1,
+        ]);
+
         $this->assertDatabaseHas('payment_component_allocations', [
             'customer_payment_id' => (string) $payment->id,
             'note_id' => (string) $note->id,
@@ -852,8 +865,8 @@ final class CreateTransactionWorkspaceServiceStoreStockFeatureTest extends TestC
             'component_type' => 'service_fee',
             'component_ref_id' => (string) $workItem->id,
             'component_amount_rupiah_snapshot' => 210000,
-            'allocated_amount_rupiah' => 100000,
-            'allocation_priority' => 1,
+            'allocated_amount_rupiah' => 60000,
+            'allocation_priority' => 2,
         ]);
 
         $this->assertDatabaseCount('payment_allocations', 0);
