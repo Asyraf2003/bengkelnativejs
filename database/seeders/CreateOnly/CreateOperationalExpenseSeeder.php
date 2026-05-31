@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Database\Seeders\CreateOnly;
 
-use Illuminate\Database\Seeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 
-final class CreateOperationalExpenseSeeder extends Seeder
+final class CreateOperationalExpenseSeeder extends CreateOnlySeeder
 {
     public function run(): void
     {
@@ -38,7 +37,7 @@ final class CreateOperationalExpenseSeeder extends Seeder
                 $expenseDate = sprintf('2026-05-%02d', (($i - 1) % 30) + 1);
                 $paymentMethod = $paymentMethods[($i - 1) % count($paymentMethods)];
 
-                if ($this->insertIfMissing('operational_expenses', $id, [
+                if ($this->createOnly('operational_expenses', 'id', $id, [
                     'id' => $id,
                     'category_id' => (string) $category->id,
                     'category_code_snapshot' => (string) ($category->code ?? ''),
@@ -57,38 +56,6 @@ final class CreateOperationalExpenseSeeder extends Seeder
             }
         });
 
-        $this->command?->info('operational_expenses created=' . $created);
-    }
-
-    private function assertLocalOrTesting(): void
-    {
-        if (! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException('Create-only seeders may only run in local or testing environments.');
-        }
-    }
-
-    /**
-     * @param array<string, mixed> $values
-     */
-    private function insertIfMissing(string $table, string $id, array $values): bool
-    {
-        if (DB::table($table)->where('id', $id)->exists()) {
-            return false;
-        }
-
-        DB::table($table)->insert($this->filterExistingColumns($table, $values));
-
-        return true;
-    }
-
-    /**
-     * @param array<string, mixed> $values
-     * @return array<string, mixed>
-     */
-    private function filterExistingColumns(string $table, array $values): array
-    {
-        $columns = array_flip(Schema::getColumnListing($table));
-
-        return array_intersect_key($values, $columns);
+        $this->command?->info('operational_expenses created='.$created);
     }
 }
