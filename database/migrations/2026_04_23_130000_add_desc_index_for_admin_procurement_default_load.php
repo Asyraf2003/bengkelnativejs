@@ -3,27 +3,25 @@
 declare(strict_types=1);
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement(
-            'CREATE INDEX silp_voided_shipdesc_invoiceasc_idx
-             ON supplier_invoice_list_projection (
-                 voided_at,
-                 shipment_date DESC,
-                 supplier_invoice_id ASC
-             )'
-        );
+        Schema::table('supplier_invoice_list_projection', function (Blueprint $table): void {
+            $table->index(
+                ['voided_at', 'shipment_date', 'supplier_invoice_id'],
+                'silp_voided_shipdesc_invoiceasc_idx'
+            );
+        });
     }
 
     public function down(): void
     {
-        DB::statement(
-            'DROP INDEX silp_voided_shipdesc_invoiceasc_idx
-             ON supplier_invoice_list_projection'
-        );
+        Schema::table('supplier_invoice_list_projection', function (Blueprint $table): void {
+            $table->dropIndex('silp_voided_shipdesc_invoiceasc_idx');
+        });
     }
 };
