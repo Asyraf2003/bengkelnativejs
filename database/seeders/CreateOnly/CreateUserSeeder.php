@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders\CreateOnly;
 
+use App\Core\IdentityAccess\Role\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -23,15 +24,16 @@ final class CreateUserSeeder extends Seeder
             password: self::DEFAULT_LOCAL_PASSWORD,
         );
 
-        $userId = $this->createUserOnly(
-            name: 'User Demo',
+        $kasirId = $this->createUserOnly(
+            name: 'Kasir Demo',
             email: 'kasir@gmail.com',
             password: self::DEFAULT_LOCAL_PASSWORD,
         );
 
-        $this->createActorAccessOnly((string) $adminId, 'admin');
-        $this->createActorAccessOnly((string) $userId, 'user');
+        $this->createActorAccessOnly((string) $adminId, Role::ADMIN);
+        $this->createActorAccessOnly((string) $kasirId, Role::KASIR);
         $this->createAdminCapabilityOnly((string) $adminId);
+        $this->createAdminCashierAreaAccessOnly((string) $adminId);
     }
 
     private function assertLocalOrTesting(): void
@@ -81,6 +83,18 @@ final class CreateUserSeeder extends Seeder
         }
 
         DB::table('admin_transaction_capability_states')->insert([
+            'actor_id' => $actorId,
+            'active' => true,
+        ]);
+    }
+
+    private function createAdminCashierAreaAccessOnly(string $actorId): void
+    {
+        if (DB::table('admin_cashier_area_access_states')->where('actor_id', '=', $actorId)->exists()) {
+            return;
+        }
+
+        DB::table('admin_cashier_area_access_states')->insert([
             'actor_id' => $actorId,
             'active' => true,
         ]);
