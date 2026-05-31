@@ -168,4 +168,65 @@ final class CreateSupplierProcurementSeeder extends CreateOnlySeeder
     }
 
 
+
+    /**
+     * @param list<string> $columns
+     */
+    private function stringFromRow(object $row, array $columns, string $fallback): string
+    {
+        foreach ($columns as $column) {
+            $value = $row->{$column} ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+
+            if (is_int($value) || is_float($value)) {
+                return (string) $value;
+            }
+        }
+
+        return $fallback;
+    }
+
+    /**
+     * @param list<string> $columns
+     */
+    private function nullableStringFromRow(object $row, array $columns): ?string
+    {
+        foreach ($columns as $column) {
+            $value = $row->{$column} ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                return trim($value);
+            }
+
+            if (is_int($value) || is_float($value)) {
+                return (string) $value;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<string> $columns
+     */
+    private function nullableIntFromRow(object $row, array $columns): ?int
+    {
+        foreach ($columns as $column) {
+            $value = $row->{$column} ?? null;
+
+            if (is_int($value)) {
+                return $value;
+            }
+
+            if (is_numeric($value)) {
+                return (int) $value;
+            }
+        }
+
+        return null;
+    }
+
 }
