@@ -16,7 +16,7 @@
         <input type="hidden" name="items[__INDEX__][service][notes]" value="">
 
         <div class="row g-2 align-items-start">
-            <div class="col-12 col-lg-3">
+            <div class="col-12 col-lg-4">
                 <label class="form-label small mb-1">Nama Servis</label>
                 <input
                     type="text"
@@ -36,64 +36,84 @@
                         inputmode="numeric"
                         value=""
                         class="form-control form-control-sm"
-                        placeholder="150.000"
+                        placeholder="300.000"
                         data-money-display
                         data-package-total-input
                     >
                 </div>
             </div>
 
-            <div class="col-12 col-lg-4">
-                <div class="position-relative">
-                    <label class="form-label small mb-1">Sparepart Toko</label>
-                    <input type="hidden" name="items[__INDEX__][product_lines][0][product_id]" value="" data-product-id>
-                    <input type="hidden" name="items[__INDEX__][product_lines][0][price_basis]" value="current_catalog" data-price-basis>
-                    <input
-                        type="text"
-                        class="form-control form-control-sm"
-                        placeholder="Cari produk"
-                        autocomplete="off"
-                        data-product-search
-                    >
-                    <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-product-results></div>
-                </div>
-            </div>
+            <div class="col-12 col-lg-6">
+                <label class="form-label small mb-1">Sparepart Toko</label>
 
-            <div class="col-6 col-lg-1">
-                <label class="form-label small mb-1">Qty</label>
-                <div class="input-group input-group-sm workspace-qty-control">
-                    <button type="button" class="btn btn-outline-secondary px-2" data-qty-decrement>-</button>
-                    <input
-                        type="text"
-                        inputmode="numeric"
-                        name="items[__INDEX__][product_lines][0][qty]"
-                        value="1"
-                        class="form-control text-center px-1"
-                        data-qty-input
-                    >
-                    <button type="button" class="btn btn-outline-secondary px-2" data-qty-increment>+</button>
+                <div class="row g-2 mb-1 align-items-start" data-product-line>
+                    <div class="col-8">
+                        <div class="position-relative">
+                            <input type="hidden" name="items[__INDEX__][product_lines][0][product_id]" value="" data-product-id>
+                            <input type="hidden" name="items[__INDEX__][product_lines][0][price_basis]" value="current_catalog" data-price-basis>
+                            <input type="hidden" name="items[__INDEX__][product_lines][0][unit_price_rupiah]" value="" data-money-raw data-price-input>
+                            <input
+                                type="text"
+                                class="form-control form-control-sm"
+                                placeholder="Cari produk pertama"
+                                autocomplete="off"
+                                data-product-search
+                            >
+                            <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-product-results></div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group input-group-sm workspace-qty-control rounded-pill overflow-hidden">
+                            <button type="button" class="btn btn-outline-secondary px-2 fw-bold" data-qty-decrement>-</button>
+                            <input
+                                type="text"
+                                inputmode="numeric"
+                                name="items[__INDEX__][product_lines][0][qty]"
+                                value="1"
+                                class="form-control text-center px-1 fw-semibold"
+                                data-qty-input
+                            >
+                            <button type="button" class="btn btn-outline-secondary px-2 fw-bold" data-qty-increment>+</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="col-6 col-lg-2">
-                <div data-money-input-group>
-                    <label class="form-label small mb-1">Harga</label>
-                    <input type="hidden" name="items[__INDEX__][product_lines][0][unit_price_rupiah]" value="" data-money-raw>
-                    <input
-                        type="text"
-                        inputmode="numeric"
-                        value=""
-                        class="form-control form-control-sm"
-                        placeholder="150.000"
-                        data-money-display
-                        data-price-input
-                    >
+                <div class="row g-2 align-items-start" data-product-line>
+                    <div class="col-8">
+                        <div class="position-relative">
+                            <input type="hidden" name="items[__INDEX__][product_lines][1][product_id]" value="" data-product-id>
+                            <input type="hidden" name="items[__INDEX__][product_lines][1][price_basis]" value="current_catalog" data-price-basis>
+                            <input type="hidden" name="items[__INDEX__][product_lines][1][unit_price_rupiah]" value="" data-money-raw data-price-input>
+                            <input
+                                type="text"
+                                class="form-control form-control-sm"
+                                placeholder="Cari produk kedua, opsional"
+                                autocomplete="off"
+                                data-product-search
+                            >
+                            <div class="list-group position-absolute w-100 shadow-sm d-none" style="z-index: 20;" data-product-results></div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group input-group-sm workspace-qty-control rounded-pill overflow-hidden">
+                            <button type="button" class="btn btn-outline-secondary px-2 fw-bold" data-qty-decrement>-</button>
+                            <input
+                                type="text"
+                                inputmode="numeric"
+                                name="items[__INDEX__][product_lines][1][qty]"
+                                value="1"
+                                class="form-control text-center px-1 fw-semibold"
+                                data-qty-input
+                            >
+                            <button type="button" class="btn btn-outline-secondary px-2 fw-bold" data-qty-increment>+</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <div class="col-12">
                 <small class="text-muted me-3" data-stock-text>Stok tersedia: -</small>
-                <small class="text-muted me-3" data-min-price-text>Harga minimum: -</small>
+                <small class="text-muted me-3" data-min-price-text>Harga produk mengikuti katalog.</small>
                 <small class="text-danger d-none" data-stock-error>Qty melebihi stok tersedia.</small>
                 <small class="text-danger d-none" data-min-price-warning>Harga tidak boleh di bawah minimum.</small>
             </div>
