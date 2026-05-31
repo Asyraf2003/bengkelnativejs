@@ -31,20 +31,17 @@
                 </div>
             </div>
 
-            <div class="col-8 col-lg-3">
+            <div class="col-auto">
                 <label class="form-label small mb-1">Qty</label>
-                <div class="input-group input-group-sm workspace-qty-control rounded-pill overflow-hidden">
-                    <button type="button" class="btn btn-outline-secondary px-3 fw-bold" data-qty-decrement>-</button>
-                    <input
-                        type="text"
-                        inputmode="numeric"
-                        name="items[__INDEX__][product_lines][0][qty]"
-                        value="1"
-                        class="form-control text-center px-1 fw-semibold"
-                        data-qty-input
-                    >
-                    <button type="button" class="btn btn-outline-secondary px-3 fw-bold" data-qty-increment>+</button>
-                </div>
+                <input
+                    type="text"
+                    inputmode="numeric"
+                    name="items[__INDEX__][product_lines][0][qty]"
+                    value="1"
+                    class="form-control form-control-sm text-center px-1 fw-semibold"
+                    style="width: 3rem;"
+                    data-qty-input
+                >
             </div>
 
             <div class="col-12">

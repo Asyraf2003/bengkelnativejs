@@ -35,10 +35,17 @@
                 </div>
             </div>
 
-            <div class="col-12 col-lg-2">
+            <div class="col-auto">
                 <div class="form-group mb-3">
                     <label class="form-label">Qty</label>
-                    <input type="text" inputmode="numeric" name="items[__INDEX__][external_purchase_lines][0][qty]" value="1" class="form-control">
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        name="items[__INDEX__][external_purchase_lines][0][qty]"
+                        value="1"
+                        class="form-control form-control-sm text-center px-1 fw-semibold"
+                        style="width: 3rem;"
+                    >
                 </div>
             </div>
 
