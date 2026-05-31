@@ -4,31 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Seeders\CreateOnly\Support;
 
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
-use RuntimeException;
-
-abstract class CreateOnlyMasterSeeder extends Seeder
+abstract class CreateOnlyMasterSeeder extends CreateOnlySeeder
 {
-    protected function assertLocalOrTesting(): void
-    {
-        if (! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException(static::class . ' is only allowed in local/testing environments.');
-        }
-    }
-
-    protected function createOnly(string $table, string $key, mixed $value, array $row): bool
-    {
-        if (DB::table($table)->where($key, '=', $value)->exists()) {
-            return false;
-        }
-
-        DB::table($table)->insert($this->filterExistingColumns($table, $row));
-
-        return true;
-    }
-
     protected function seedSuppliers(string $prefix, int $count): void
     {
         for ($i = 1; $i <= $count; $i++) {
@@ -81,8 +58,6 @@ abstract class CreateOnlyMasterSeeder extends Seeder
 
             $this->createOnly('employees', 'id', $id, [
                 'id' => $id,
-
-                // Final employee master v2 columns.
                 'employee_name' => $name,
                 'salary_basis_type' => 'monthly',
                 'default_salary_amount' => 2500000 + ($i * 50000),
@@ -90,8 +65,6 @@ abstract class CreateOnlyMasterSeeder extends Seeder
                 'started_at' => now()->toDateString(),
                 'ended_at' => null,
 
-                // Legacy columns are included only for pre-v2 migrated local DBs.
-                // filterExistingColumns() removes them when final schema already dropped them.
                 'name' => $name,
                 'phone' => sprintf('0800%08d', $i),
                 'base_salary' => 2500000 + ($i * 50000),
@@ -107,11 +80,11 @@ abstract class CreateOnlyMasterSeeder extends Seeder
     protected function seedExpenseCategories(string $prefix): void
     {
         $rows = [
-            ['code' => strtoupper($prefix) . '-OPERASIONAL', 'name' => 'Operasional'],
-            ['code' => strtoupper($prefix) . '-LISTRIK', 'name' => 'Listrik'],
-            ['code' => strtoupper($prefix) . '-INTERNET', 'name' => 'Internet'],
-            ['code' => strtoupper($prefix) . '-MAINTENANCE', 'name' => 'Maintenance'],
-            ['code' => strtoupper($prefix) . '-LAINNYA', 'name' => 'Lainnya'],
+            ['code' => strtoupper($prefix).'-OPERASIONAL', 'name' => 'Operasional'],
+            ['code' => strtoupper($prefix).'-LISTRIK', 'name' => 'Listrik'],
+            ['code' => strtoupper($prefix).'-INTERNET', 'name' => 'Internet'],
+            ['code' => strtoupper($prefix).'-MAINTENANCE', 'name' => 'Maintenance'],
+            ['code' => strtoupper($prefix).'-LAINNYA', 'name' => 'Lainnya'],
         ];
 
         foreach ($rows as $index => $row) {
@@ -127,13 +100,6 @@ abstract class CreateOnlyMasterSeeder extends Seeder
                 'updated_at' => now(),
             ]);
         }
-    }
-
-    private function filterExistingColumns(string $table, array $row): array
-    {
-        $columns = array_flip(Schema::getColumnListing($table));
-
-        return array_intersect_key($row, $columns);
     }
 
     private function normalize(string $value): string
