@@ -31,6 +31,13 @@
       <div class="text-end fw-semibold">{{ \App\Support\ViewDateFormatter::display($note['transaction_date'] ?? null) }}</div>
     </div>
 
+    @if (!empty($note['operational_note']))
+      <div class="ui-key-value d-flex justify-content-between align-items-start py-2 border-bottom">
+        <small>Keterangan Nota</small>
+        <div class="text-end fw-semibold">{{ $note['operational_note'] }}</div>
+      </div>
+    @endif
+
     <div class="ui-key-value d-flex justify-content-between align-items-start py-2 border-bottom">
       <small>Status Operasional</small>
       <div class="text-end">
