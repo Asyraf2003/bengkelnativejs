@@ -60,13 +60,30 @@ final class CurrentRevisionPackageBreakdownMapper
             $parts[] = [
                 'id' => trim((string) ($line['id'] ?? '')),
                 'product_id' => $productId,
-                'product_name' => $names[$productId] ?? $productId,
+                'product_name' => $this->productDisplayName($line, $productId, $names),
                 'qty' => (int) ($line['qty'] ?? 0),
                 'line_total_rupiah' => (int) ($line['line_total_rupiah'] ?? 0),
             ];
         }
 
         return $parts;
+    }
+
+    /**
+     * @param array<string, mixed> $line
+     * @param array<string, string> $currentNames
+     */
+    private function productDisplayName(array $line, string $productId, array $currentNames): string
+    {
+        foreach (['product_name_snapshot', 'product_nama_barang_snapshot'] as $snapshotKey) {
+            $snapshotName = trim((string) ($line[$snapshotKey] ?? ''));
+
+            if ($snapshotName !== '') {
+                return $snapshotName;
+            }
+        }
+
+        return $currentNames[$productId] ?? $productId;
     }
 
     /**
