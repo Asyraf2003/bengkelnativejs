@@ -60,7 +60,7 @@ final class TransactionSummaryPerNoteRow
 
     public function outstandingRupiah(): int
     {
-        return $this->grossTransactionRupiah - $this->allocatedPaymentRupiah + $this->refundedRupiah;
+        return max($this->grossTransactionRupiah - $this->allocatedPaymentRupiah + $this->refundedRupiah, 0);
     }
 
     public function paymentStatusLabel(): string
