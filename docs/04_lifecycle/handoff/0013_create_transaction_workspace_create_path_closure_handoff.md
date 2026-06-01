@@ -466,3 +466,65 @@ DECISION
 - Next work must start as a new scope: Phase 3 - Edit/Revision lifecycle characterization for service store-stock package auto split.
 - First step in the next scope must be characterization only, not patching.
 
+
+---
+
+## ADDENDUM - Final local verify after detail UI contract cleanup
+
+### FACT
+
+This addendum records the final local closure after the detail UI intro cleanup.
+
+The UI intro labels 'Workspace Nota Admin' and 'Workspace Nota Kasir' were removed from the detail page UI. The related feature tests were updated to stop asserting those removed decorative labels while preserving meaningful detail-page assertions.
+
+Still asserted by detail tests:
+- 'Detail Nota'
+- 'Header Nota'
+- 'List Line Nota'
+- 'Versioning Nota'
+- refund/payment/edit visibility rules
+
+### CHANGED FILES
+
+- tests/Feature/Note/AdminNoteDetailPageFeatureTest.php
+- tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php
+- tests/Feature/Note/CashierRefundedNoteDetailViewFeatureTest.php
+
+### PROOF
+
+COMMAND:
+rg -n "Workspace Nota Admin|Workspace Nota Kasir" tests/Feature/Note
+
+Expected result:
+# no output
+
+COMMAND:
+php artisan test \
+  tests/Feature/Note/AdminNoteDetailPageFeatureTest.php \
+  tests/Feature/Note/CashierClosedNoteRefundViewFeatureTest.php \
+  tests/Feature/Note/CashierRefundedNoteDetailViewFeatureTest.php
+
+Known expected result:
+PASS
+
+COMMAND:
+make verify
+
+Known local final result:
+Tests: 2 skipped, 1131 passed (6342 assertions)
+
+DECISION
+
+Detail UI intro removal is accepted.
+
+Tests now follow the current UI contract.
+
+Create/detail/report baseline remains closed.
+
+This proof does not close edit/revision/refund lifecycle.
+
+STILL OPEN
+Next scope remains:
+Phase 3 - Edit/Revision lifecycle characterization for service-store-stock package auto split.
+Do not treat create/detail proof as edit/revision/refund proof.
+
