@@ -183,7 +183,7 @@ Owner later confirmed:
 
 ok bisa dan ui memuaskan
 
-For note-level Keterangan Nota and final create UI.
+For note-level Alasan Nota and final create UI.
 
 SQL proof
 
@@ -318,3 +318,151 @@ resources/views
 tests
 
 END PROMPT
+
+---
+
+## ADDENDUM - Final create/detail/report verification closure after Alasan Nota terminology cleanup
+
+### FACT
+
+This addendum supersedes stale open gaps in earlier sections for the create/detail/report verification slice.
+
+Latest verified local state:
+
+- Create transaction workspace service + store-stock package auto split remains closed.
+- Multi-product service + store-stock create UI remains closed.
+- Package auto split create DB persistence remains closed.
+- Package allocation audit remains closed.
+- Create report impact baseline remains closed.
+- Detail UI package breakdown remains closed.
+- Detail UI note-level text field is now labeled 'Alasan Nota'.
+- The underlying persisted field remains 'notes.operational_note'.
+- No separate create-level 'note_reason' or 'transaction_reason' field was introduced.
+- Existing 'reason' fields remain lifecycle-action reasons for revision/refund/correction/reopen/surplus/audit flows.
+- Reporting/page/export date expectation drift after 'ViewDateFormatter' was reconciled.
+- Final 'make verify' passed locally.
+
+### IMPLEMENTED / VERIFIED TERMINOLOGY
+
+'Keterangan Nota' was renamed to 'Alasan Nota' in the create/detail UI terminology layer only.
+
+Affected files:
+
+- resources/views/cashier/notes/workspace/partials/info-card.blade.php
+- resources/views/shared/notes/partials/header-summary.blade.php
+- tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php
+
+No DB/domain rename was performed.
+
+Reason:
+
+- 'notes.operational_note' is the existing note-level text field.
+- 'reason' is already used for lifecycle audit semantics.
+- Adding a second create-level reason field would be a new product/domain scope and was not part of this closure.
+
+### PROOF
+
+#### Terminology and detail visibility proof
+
+COMMAND:
+rg -n "Keterangan Nota|Alasan Nota|operational_note|note_operational_note" \
+  resources/views/cashier/notes/workspace/partials/info-card.blade.php \
+  resources/views/shared/notes/partials/header-summary.blade.php \
+  tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php
+
+RESULT:
+tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php
+19:    public function test_detail_shows_operational_note_and_store_stock_package_breakdown(): void
+28:            ->assertSee('Alasan Nota')
+
+resources/views/shared/notes/partials/header-summary.blade.php
+34:    @if (!empty($note['operational_note']))
+36:        <small>Alasan Nota</small>
+37:        <div class="text-end fw-semibold">{{ $note['operational_note'] }}</div>
+
+resources/views/cashier/notes/workspace/partials/info-card.blade.php
+64:                <label for="note_operational_note" class="form-label">Alasan Nota</label>
+66:                    id="note_operational_note"
+67:                    name="note[operational_note]"
+71:                >{{ $oldNote['operational_note'] ?? '' }}</textarea>
+
+Focused detail proof
+COMMAND:
+php artisan test tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php
+
+RESULT:
+PASS Tests\Feature\Note\NoteDetailOperationalPackageVisibilityFeatureTest
+Tests: 1 passed (11 assertions)
+
+Focused detail regression proof
+COMMAND:
+php artisan test \
+  tests/Feature/Note/NoteDetailPageFeatureTest.php \
+  tests/Feature/Note/NoteDetailOperationalPackageVisibilityFeatureTest.php \
+  tests/Feature/Note/CashierHybridNoteDetailFeatureTest.php \
+  tests/Feature/Note/CashierDetailRenderedBillingRowsPaymentFeatureTest.php
+
+RESULT:
+PASS Tests\Feature\Note\NoteDetailPageFeatureTest
+PASS Tests\Feature\Note\NoteDetailOperationalPackageVisibilityFeatureTest
+PASS Tests\Feature\Note\CashierHybridNoteDetailFeatureTest
+PASS Tests\Feature\Note\CashierDetailRenderedBillingRowsPaymentFeatureTest
+Tests: 6 passed (37 assertions)
+
+Final full verification proof
+COMMAND:
+make verify
+
+RESULT:
+PHPStan: [OK] No errors
+audit-lines: SUCCESS
+audit-blade: SUCCESS
+Contract audit passed.
+Tests: 2 skipped, 1131 passed (6342 assertions)
+
+CLOSED STATUS
+
+Create/detail/report baseline is closed for the completed scope.
+
+Closed:
+- Create service + store-stock package auto split.
+- Create multi-product UI.
+- Create package validation.
+- Create duplicate product backend rejection.
+- Create package allocation audit.
+- Create report impact baseline.
+- Create inline payment lifecycle baseline.
+- Qty compact UI.
+- Note-level operational_note persistence.
+- UI terminology label Alasan Nota.
+- Detail Alasan Nota visibility.
+- Detail package breakdown visibility:
+  - Paket total
+  - Total sparepart
+  - Sisa jasa
+  - store-stock part product names
+- Reporting/page/export date expectation reconciliation after Indonesian ViewDateFormatter.
+- PHPStan gate.
+- audit-lines gate.
+- audit-blade gate.
+- Full make verify gate.
+
+STILL OPEN / NEXT SCOPE
+
+Not closed by this handoff:
+- Edit/revision lifecycle for service + store-stock package auto split.
+- Refund lifecycle for service + store-stock package auto split.
+- Boundary bug matrix after edit/refund:
+  - multi-product store-stock after edit,
+  - package residual after revision,
+  - revision snapshot and settlement impact,
+  - refund stock reversal behavior,
+  - refund/payment allocation after package autosplit,
+  - stale/historical row behavior after revision,
+  - client-side duplicate product UX guard if still required.
+
+DECISION
+- Do not treat create/detail proof as edit/refund proof.
+- Next work must start as a new scope: Phase 3 - Edit/Revision lifecycle characterization for service store-stock package auto split.
+- First step in the next scope must be characterization only, not patching.
+
