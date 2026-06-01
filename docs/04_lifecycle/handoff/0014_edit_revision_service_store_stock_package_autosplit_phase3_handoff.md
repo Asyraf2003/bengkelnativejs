@@ -439,8 +439,8 @@ Payment / Settlement
 
 OPEN:
 
-Payment allocation rebuild after package multi-product revision is PARTIAL GREEN for partial-paid underpaid and downward overpaid scenarios.
-Settlement record/status after package multi-product revision is PARTIAL GREEN for partial-paid underpaid and downward overpaid scenarios.
+Payment allocation rebuild after package multi-product revision is GREEN for partial-paid underpaid, exact-paid paid, and downward overpaid scenarios.
+Settlement record/status after package multi-product revision is GREEN for partial-paid underpaid, exact-paid paid, and downward overpaid scenarios.
 Paid/partial-paid/overpaid scenario after revision.
 Guarantee no payment amount disappears or doubles.
 note_revision_settlements correctness after r002 revision.
