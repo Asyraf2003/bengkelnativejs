@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Reporting;
 
+use App\Adapters\Out\Persistence\Eloquent\IdentityAccess\EloquentUser as User;
 use App\Application\Note\UseCases\CreateNoteRevisionHandler;
 use App\Application\Reporting\UseCases\GetTransactionReportDatasetHandler;
 use App\Core\Note\WorkItem\WorkItem;
@@ -104,6 +105,103 @@ final class PackageAutoSplitRevisionReportImpactFeatureTest extends TestCase
             'surplus_rupiah' => 50000,
             'settlement_status' => 'overpaid_pending',
         ]);
+    }
+
+    public function test_transaction_report_exports_after_package_multi_product_downward_revision_return_files(): void
+    {
+        $this->seedPackageMultiProductNoteWithFullPayment();
+
+        $result = $this->app->make(CreateNoteRevisionHandler::class)->handle(
+            'note-report-package-revision-001',
+            [
+                'reason' => 'Report export package multi-product downward revision.',
+                'note' => [
+                    'customer_name' => 'Budi Package Revision Report',
+                    'customer_phone' => '08123456789',
+                    'transaction_date' => '2030-01-16',
+                    'operational_note' => 'Alasan export revision package multi.',
+                ],
+                'items' => [
+                    [
+                        'entry_mode' => 'service',
+                        'description' => null,
+                        'part_source' => 'store_stock',
+                        'pricing_mode' => 'package_auto_split',
+                        'package_total_rupiah' => 200000,
+                        'service' => [
+                            'name' => 'Servis Package Revision Report Revised',
+                            'price_rupiah' => 0,
+                            'notes' => null,
+                        ],
+                        'product_lines' => [
+                            [
+                                'product_id' => 'product-report-package-a',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 50000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                            [
+                                'product_id' => 'product-report-package-b',
+                                'qty' => 1,
+                                'unit_price_rupiah' => 30000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                        ],
+                        'external_purchase_lines' => [],
+                    ],
+                ],
+            ],
+            'admin-report-package-revision-001',
+            false,
+        );
+
+        self::assertTrue($result->isSuccess(), $result->message());
+
+        $admin = User::query()->create([
+            'name' => 'Admin Package Revision Export',
+            'email' => 'admin-package-revision-export@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $admin->getAuthIdentifier(),
+            'role' => 'admin',
+        ]);
+
+        $query = [
+            'period_mode' => 'custom',
+            'date_from' => '2030-01-01',
+            'date_to' => '2030-01-31',
+        ];
+
+        $excelResponse = $this->actingAs($admin)->get(
+            route('admin.reports.transaction_summary.export_excel', $query),
+        );
+
+        $excelResponse->assertOk();
+        self::assertStringContainsString(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            (string) $excelResponse->headers->get('Content-Type'),
+        );
+        self::assertStringContainsString(
+            'laporan-transaksi-2030-01-01-sampai-2030-01-31.xlsx',
+            (string) $excelResponse->headers->get('Content-Disposition'),
+        );
+
+        $pdfResponse = $this->actingAs($admin)->get(
+            route('admin.reports.transaction_summary.export_pdf', $query),
+        );
+
+        $pdfResponse->assertOk();
+        self::assertStringContainsString(
+            'application/pdf',
+            (string) $pdfResponse->headers->get('Content-Type'),
+        );
+        self::assertStringContainsString(
+            'laporan-transaksi-2030-01-01-sampai-2030-01-31.pdf',
+            (string) $pdfResponse->headers->get('Content-Disposition'),
+        );
+        self::assertStringStartsWith('%PDF', (string) $pdfResponse->getContent());
     }
 
     private function seedPackageMultiProductNoteWithFullPayment(): void
