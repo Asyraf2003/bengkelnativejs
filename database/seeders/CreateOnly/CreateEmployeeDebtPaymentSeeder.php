@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Database\Seeders\CreateOnly;
 
 use Database\Seeders\CreateOnly\Support\CreateOnlySeeder;
+use Database\Seeders\CreateOnly\Support\CreateOnlySeedCalendar;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -21,13 +22,14 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
      *   remaining_balance:int,
      *   status:string,
      *   notes:string,
-     *   created_at:string,
+     *   day:int,
+     *   time:string,
      *   payments:list<array{
      *     id:string,
      *     amount:int,
-     *     payment_date:string,
+     *     day:int,
+     *     time:string,
      *     notes:string,
-     *     created_at:string
      *   }>
      * }>
      */
@@ -39,14 +41,15 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
             'remaining_balance' => 300000,
             'status' => 'unpaid',
             'notes' => 'Seed kasbon cicilan sebagian - ban dalam',
-            'created_at' => '2026-05-20 10:10:00',
+            'day' => 20,
+            'time' => '10:10:00',
             'payments' => [
                 [
                     'id' => '00000000-0000-5100-0002-000000000001',
                     'amount' => 200000,
-                    'payment_date' => '2026-05-20 11:10:00',
+                    'day' => 20,
+                    'time' => '11:10:00',
                     'notes' => 'Seed pembayaran kasbon sebagian',
-                    'created_at' => '2026-05-20 11:10:00',
                 ],
             ],
         ],
@@ -57,21 +60,22 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
             'remaining_balance' => 0,
             'status' => 'paid',
             'notes' => 'Seed kasbon lunas dua kali bayar',
-            'created_at' => '2026-05-20 10:20:00',
+            'day' => 20,
+            'time' => '10:20:00',
             'payments' => [
                 [
                     'id' => '00000000-0000-5100-0002-000000000002',
                     'amount' => 300000,
-                    'payment_date' => '2026-05-20 11:20:00',
+                    'day' => 20,
+                    'time' => '11:20:00',
                     'notes' => 'Seed pembayaran kasbon lunas tahap 1',
-                    'created_at' => '2026-05-20 11:20:00',
                 ],
                 [
                     'id' => '00000000-0000-5100-0002-000000000003',
                     'amount' => 500000,
-                    'payment_date' => '2026-05-20 12:20:00',
+                    'day' => 20,
+                    'time' => '12:20:00',
                     'notes' => 'Seed pembayaran kasbon lunas tahap 2',
-                    'created_at' => '2026-05-20 12:20:00',
                 ],
             ],
         ],
@@ -82,21 +86,22 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
             'remaining_balance' => 850000,
             'status' => 'unpaid',
             'notes' => 'Seed kasbon besar masih berjalan',
-            'created_at' => '2026-05-20 10:30:00',
+            'day' => 20,
+            'time' => '10:30:00',
             'payments' => [
                 [
                     'id' => '00000000-0000-5100-0002-000000000004',
                     'amount' => 150000,
-                    'payment_date' => '2026-05-20 11:30:00',
+                    'day' => 20,
+                    'time' => '11:30:00',
                     'notes' => 'Seed pembayaran kasbon besar tahap 1',
-                    'created_at' => '2026-05-20 11:30:00',
                 ],
                 [
                     'id' => '00000000-0000-5100-0002-000000000005',
                     'amount' => 200000,
-                    'payment_date' => '2026-05-20 12:30:00',
+                    'day' => 20,
+                    'time' => '12:30:00',
                     'notes' => 'Seed pembayaran kasbon besar tahap 2',
-                    'created_at' => '2026-05-20 12:30:00',
                 ],
             ],
         ],
@@ -107,14 +112,15 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
             'remaining_balance' => 0,
             'status' => 'paid',
             'notes' => 'Seed kasbon kecil langsung lunas',
-            'created_at' => '2026-05-20 10:40:00',
+            'day' => 20,
+            'time' => '10:40:00',
             'payments' => [
                 [
                     'id' => '00000000-0000-5100-0002-000000000006',
                     'amount' => 250000,
-                    'payment_date' => '2026-05-20 11:40:00',
+                    'day' => 20,
+                    'time' => '11:40:00',
                     'notes' => 'Seed pembayaran kasbon kecil lunas',
-                    'created_at' => '2026-05-20 11:40:00',
                 ],
             ],
         ],
@@ -141,6 +147,8 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
             if ($this->debtExists($scenario['id'])) {
                 $this->assertExistingDebtMatches($scenario['id'], $scenario);
             } else {
+                $debtCreatedAt = $this->scenarioDateTime($scenario);
+
                 if ($this->createOnly(self::DEBT_TABLE, 'id', $scenario['id'], [
                     'id' => $scenario['id'],
                     'employee_id' => $employeeId,
@@ -148,8 +156,8 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
                     'remaining_balance' => $scenario['remaining_balance'],
                     'status' => $scenario['status'],
                     'notes' => $scenario['notes'],
-                    'created_at' => $scenario['created_at'],
-                    'updated_at' => $scenario['created_at'],
+                    'created_at' => $debtCreatedAt,
+                    'updated_at' => $debtCreatedAt,
                 ])) {
                     $createdDebts++;
                 }
@@ -161,14 +169,16 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
                     continue;
                 }
 
+                $paymentDate = $this->scenarioDateTime($payment);
+
                 if ($this->createOnly(self::PAYMENT_TABLE, 'id', $payment['id'], [
                     'id' => $payment['id'],
                     'employee_debt_id' => $scenario['id'],
                     'amount' => $payment['amount'],
-                    'payment_date' => $payment['payment_date'],
+                    'payment_date' => $paymentDate,
                     'notes' => $payment['notes'],
-                    'created_at' => $payment['created_at'],
-                    'updated_at' => $payment['created_at'],
+                    'created_at' => $paymentDate,
+                    'updated_at' => $paymentDate,
                 ])) {
                     $createdPayments++;
                 }
@@ -220,6 +230,17 @@ final class CreateEmployeeDebtPaymentSeeder extends CreateOnlySeeder
             throw new RuntimeException(sprintf('Seed debt scenario status mismatch: %s.', $scenario['id']));
         }
     }
+
+    /**
+     * @param array<string, mixed> $scenario
+     */
+    private function scenarioDateTime(array $scenario): string
+    {
+        return CreateOnlySeedCalendar::currentMonthDate((int) $scenario['day'])
+            .' '
+            .(string) $scenario['time'];
+    }
+
 
     private function debtExists(string $id): bool
     {
