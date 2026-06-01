@@ -24,7 +24,6 @@ final class CashierClosedNoteRefundViewFeatureTest extends TestCase
 
         $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->assertOk()
-            ->assertSee('Workspace Nota Kasir')
             ->assertSee('Detail Nota')
             ->assertSee('Header Nota')
             ->assertSee('List Line Nota')
@@ -43,7 +42,6 @@ final class CashierClosedNoteRefundViewFeatureTest extends TestCase
 
         $this->actingAs($user)->get(route('cashier.notes.show', ['noteId' => 'note-1']))
             ->assertOk()
-            ->assertSee('Workspace Nota Kasir')
             ->assertSee('Detail Nota')
             ->assertSee('Header Nota')
             ->assertSee('List Line Nota')

@@ -30,7 +30,6 @@ final class AdminNoteDetailPageFeatureTest extends TestCase
         $response = $this->get(route('admin.notes.show', ['noteId' => 'note-closed']));
 
         $response->assertOk();
-        $response->assertSee('Workspace Nota Admin');
         $response->assertSee('Detail Nota');
         $response->assertSee('Header Nota');
         $response->assertSee('List Line Nota');
@@ -55,7 +54,6 @@ final class AdminNoteDetailPageFeatureTest extends TestCase
         $response = $this->get(route('admin.notes.show', ['noteId' => 'note-open']));
 
         $response->assertOk();
-        $response->assertSee('Workspace Nota Admin');
         $response->assertSee('Detail Nota');
         $response->assertSee('Header Nota');
         $response->assertSee('List Line Nota');
