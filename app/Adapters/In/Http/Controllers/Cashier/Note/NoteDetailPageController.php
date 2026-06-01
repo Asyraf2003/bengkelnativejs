@@ -35,7 +35,7 @@ final class NoteDetailPageController extends Controller
         $actorId = $user !== null ? (string) $user->getAuthIdentifier() : null;
 
         try {
-            $ensureInitialRevision->handle($noteId, trim($noteId) . '-r001', $actorId);
+            $ensureInitialRevision->handle($noteId, trim($noteId).'-r001', $actorId);
         } catch (DomainException $e) {
             abort(500, $e->getMessage());
         }
@@ -48,9 +48,6 @@ final class NoteDetailPageController extends Controller
 
         return view('shared.notes.show', $data + [
             'backUrl' => route('cashier.notes.index'),
-            'pageIntroEyebrow' => 'Workspace Nota Kasir',
-            'pageIntroTitle' => 'Detail Nota',
-            'pageIntroSubtitle' => 'Detail operasional nota aktif untuk kerja kasir pada scope 2 hari terakhir.',
             'detailConfig' => [
                 'workspace_edit_route' => 'cashier.notes.workspace.edit',
             ],
