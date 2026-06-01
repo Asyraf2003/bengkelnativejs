@@ -25,12 +25,7 @@ final class RevisionWorkspaceProductLineMapper
         $unitPrice = (int) ($storeLine['selling_price_rupiah'] ?? ($lineTotal > 0 ? intdiv($lineTotal, $qty) : 0));
 
         $productId = (string) ($storeLine['product_id'] ?? '');
-        $selectedLabel = '';
-
-        if ($productId !== '') {
-            $product = $this->products->getById($productId);
-            $selectedLabel = $product?->namaBarang() ?? '';
-        }
+        $selectedLabel = $this->selectedLabel($storeLine, $productId);
 
         return [
             'product_id' => $productId,
@@ -43,16 +38,53 @@ final class RevisionWorkspaceProductLineMapper
 
     /**
      * @param array<string, mixed> $payload
+     * @return list<array<string, mixed>>
+     */
+    public function storeLines(array $payload, string $message): array
+    {
+        $storeLines = is_array($payload['store_stock_lines'] ?? null)
+            ? array_values(array_filter($payload['store_stock_lines'], 'is_array'))
+            : [];
+
+        if ($storeLines === []) {
+            throw new DomainException($message);
+        }
+
+        return $storeLines;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
      * @return array<string, mixed>
      */
     public function singleStoreLine(array $payload, string $message): array
     {
-        $storeLines = is_array($payload['store_stock_lines'] ?? null) ? $payload['store_stock_lines'] : [];
+        $storeLines = $this->storeLines($payload, $message);
 
-        if (count($storeLines) !== 1 || ! is_array($storeLines[0])) {
+        if (count($storeLines) !== 1) {
             throw new DomainException($message);
         }
 
         return $storeLines[0];
+    }
+
+    /**
+     * @param array<string, mixed> $storeLine
+     */
+    private function selectedLabel(array $storeLine, string $productId): string
+    {
+        foreach (['product_name_snapshot', 'product_nama_barang_snapshot'] as $snapshotKey) {
+            $snapshotName = trim((string) ($storeLine[$snapshotKey] ?? ''));
+
+            if ($snapshotName !== '') {
+                return $snapshotName;
+            }
+        }
+
+        if ($productId === '') {
+            return '';
+        }
+
+        return $this->products->getById($productId)?->namaBarang() ?? '';
     }
 }

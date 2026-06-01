@@ -20,30 +20,49 @@ final class RevisionWorkspaceServiceStoreStockMapper
     {
         $payload = $line->payload();
         $service = is_array($payload['service'] ?? null) ? $payload['service'] : [];
-        $storeLine = $this->products->singleStoreLine(
-            $payload,
-            'Revision servis + sparepart toko hanya mendukung 1 store stock line.'
-        );
 
-        $productLine = $this->products->map($storeLine);
+        $productLines = array_map(
+            fn (array $storeLine): array => $this->products->map($storeLine),
+            $this->products->storeLines(
+                $payload,
+                'Revision servis + sparepart toko wajib memiliki minimal 1 store stock line.'
+            )
+        );
 
         return [
             'entry_mode' => 'service',
             'description' => '',
             'part_source' => 'store_stock',
+            'pricing_mode' => $this->pricingMode($payload),
+            'package_total_rupiah' => $this->packageTotal($line, $payload),
             'service' => [
                 'name' => (string) ($service['service_name'] ?? ($line->serviceLabel() ?? '')),
                 'price_rupiah' => (int) ($service['service_price_rupiah'] ?? ($line->servicePriceRupiah() ?? 0)),
                 'notes' => '',
             ],
-            'selected_label' => $productLine['selected_label'],
-            'product_lines' => [[
-                'product_id' => $productLine['product_id'],
-                'qty' => $productLine['qty'],
-                'unit_price_rupiah' => $productLine['unit_price_rupiah'],
-                'price_basis' => $productLine['price_basis'],
-            ]],
+            'selected_label' => (string) ($productLines[0]['selected_label'] ?? ''),
+            'product_lines' => $productLines,
             'external_purchase_lines' => [],
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function pricingMode(array $payload): string
+    {
+        return ($payload['pricing_mode'] ?? null) === 'package_auto_split'
+            ? 'package_auto_split'
+            : 'package_auto_split';
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function packageTotal(NoteRevisionLineSnapshot $line, array $payload): int
+    {
+        $payloadTotal = (int) ($payload['package_total_rupiah'] ?? 0);
+
+        return $payloadTotal > 0 ? $payloadTotal : $line->subtotalRupiah();
     }
 }
