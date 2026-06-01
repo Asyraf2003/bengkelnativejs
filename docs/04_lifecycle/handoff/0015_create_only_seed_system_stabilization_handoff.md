@@ -464,24 +464,21 @@ Do not scale to monthly 100-200 juta, peak, stress, or refund scaffold in this s
 
 ## NEXT ACTIVE STEP
 
-Verify the handoff patch and inspect changed file summary.
+Plan monthly normal 100-200 juta dataset profile.
 
-Command:
+Goal:
 
-```text
-rg -n "SEED-TXN-003|REPORT-SANITY-001|REPORT-EXPORT-001|VERIFY-001|Current Progress Estimate|99%|65-67%|No monthly normal 100-200 juta|NEXT ACTIVE STEP" docs/04_lifecycle/handoff/0015_create_only_seed_system_stabilization_handoff.md
+- Define the next seed profile above the current June 2026 owner-readable sanity profile.
+- Keep existing weekly and monthly-normal sanity seeds intact.
+- Do not patch code until the monthly 100-200 juta blueprint is explicit.
 
-wc -l docs/04_lifecycle/handoff/0015_create_only_seed_system_stabilization_handoff.md
-```
+Scope:
 
-Expected rough shape:
+- Review current transaction seed totals.
+- Define target note count, cash-in range, product cost mix, paid/unpaid mix, and report expectations.
+- Decide whether the 100-200 juta profile should be a new seeder or a separate make target.
 
-SEED-TXN-003 exists.
-REPORT-SANITY-001 exists.
-REPORT-EXPORT-001 exists.
-VERIFY-001 exists.
-progress shows CreateOnly seed stabilization 99%.
-full serious create-all seed system shows 65-67%.
+Do not start peak, stress, refund scaffold, or report wording patch in the same step.
 
 ## Opening Prompt For Next Session
 
@@ -512,5 +509,5 @@ Cara kerja wajib:
 - Jangan bahas git kecuali diminta eksplisit.
 
 Mulai dari NEXT ACTIVE STEP di handoff:
-Verify the handoff patch and inspect changed file summary.
+Plan monthly normal 100-200 juta dataset profile.
 
