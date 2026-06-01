@@ -1028,6 +1028,199 @@ final class EditTransactionWorkspacePackageAutoSplitCharacterizationTest extends
     }
 
 
+    public function test_package_auto_split_multi_product_exact_paid_revision_records_paid_settlement(): void
+    {
+        $this->seedOpenMultiProductPackageNote();
+
+        $this->seedCustomerPaymentBase(
+            'payment-edit-package-multi-exact-001',
+            250000,
+            '2026-05-31',
+        );
+
+        $this->seedPaymentAllocationBase(
+            'payment-allocation-edit-package-multi-exact-001',
+            'payment-edit-package-multi-exact-001',
+            'note-edit-package-multi-001',
+            250000,
+        );
+
+        DB::table('payment_component_allocations')->insert([
+            [
+                'id' => 'pca-edit-package-multi-exact-old-a',
+                'customer_payment_id' => 'payment-edit-package-multi-exact-001',
+                'note_id' => 'note-edit-package-multi-001',
+                'work_item_id' => 'wi-edit-package-multi-001',
+                'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+                'component_ref_id' => 'ssl-edit-package-multi-a',
+                'component_amount_rupiah_snapshot' => 100000,
+                'allocated_amount_rupiah' => 100000,
+                'allocation_priority' => 1,
+            ],
+            [
+                'id' => 'pca-edit-package-multi-exact-old-b',
+                'customer_payment_id' => 'payment-edit-package-multi-exact-001',
+                'note_id' => 'note-edit-package-multi-001',
+                'work_item_id' => 'wi-edit-package-multi-001',
+                'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+                'component_ref_id' => 'ssl-edit-package-multi-b',
+                'component_amount_rupiah_snapshot' => 30000,
+                'allocated_amount_rupiah' => 30000,
+                'allocation_priority' => 2,
+            ],
+            [
+                'id' => 'pca-edit-package-multi-exact-old-service',
+                'customer_payment_id' => 'payment-edit-package-multi-exact-001',
+                'note_id' => 'note-edit-package-multi-001',
+                'work_item_id' => 'wi-edit-package-multi-001',
+                'component_type' => PaymentComponentType::SERVICE_FEE,
+                'component_ref_id' => 'wi-edit-package-multi-001',
+                'component_amount_rupiah_snapshot' => 120000,
+                'allocated_amount_rupiah' => 120000,
+                'allocation_priority' => 3,
+            ],
+        ]);
+
+        $user = User::query()->create([
+            'name' => 'Admin Package Revision Exact Paid Characterization',
+            'email' => 'admin-package-revision-exact-paid-characterization@example.test',
+            'password' => 'password',
+        ]);
+
+        DB::table('actor_accesses')->insert([
+            'actor_id' => (string) $user->getAuthIdentifier(),
+            'role' => 'admin',
+        ]);
+
+        DB::table('admin_transaction_capability_states')->updateOrInsert(
+            ['actor_id' => (string) $user->getAuthIdentifier()],
+            ['active' => true],
+        );
+
+        $response = $this->actingAs($user)->patch(
+            route('admin.notes.workspace.update', ['noteId' => 'note-edit-package-multi-001']),
+            [
+                'reason' => 'Package multi-product exact-paid settlement characterization.',
+                'note' => [
+                    'customer_name' => 'Budi Edit Package Multi Exact Paid Revised',
+                    'customer_phone' => '08123456789',
+                    'transaction_date' => '2026-06-01',
+                    'operational_note' => 'Alasan revisi exact paid package multi.',
+                ],
+                'items' => [
+                    [
+                        'entry_mode' => 'service',
+                        'description' => null,
+                        'part_source' => 'store_stock',
+                        'pricing_mode' => 'package_auto_split',
+                        'package_total_rupiah' => 250000,
+                        'service' => [
+                            'name' => 'Servis Paket Multi Exact Paid Revised',
+                            'price_rupiah' => 0,
+                            'notes' => null,
+                        ],
+                        'product_lines' => [
+                            [
+                                'product_id' => 'product-package-edit-a',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 50000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                            [
+                                'product_id' => 'product-package-edit-b',
+                                'qty' => 2,
+                                'unit_price_rupiah' => 30000,
+                                'price_basis' => 'revision_snapshot',
+                            ],
+                        ],
+                        'external_purchase_lines' => [],
+                    ],
+                ],
+            ]
+        );
+
+        $response->assertRedirect(route('admin.notes.show', ['noteId' => 'note-edit-package-multi-001']));
+
+        $workItemId = (string) DB::table('work_items')
+            ->where('note_id', 'note-edit-package-multi-001')
+            ->value('id');
+
+        self::assertNotSame('', $workItemId);
+        self::assertNotSame('wi-edit-package-multi-001', $workItemId);
+
+        $replacementLineIds = DB::table('work_item_store_stock_lines')
+            ->where('work_item_id', $workItemId)
+            ->pluck('id', 'product_id');
+
+        self::assertArrayHasKey('product-package-edit-a', $replacementLineIds->all());
+        self::assertArrayHasKey('product-package-edit-b', $replacementLineIds->all());
+
+        $this->assertDatabaseMissing('payment_component_allocations', [
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => 'wi-edit-package-multi-001',
+        ]);
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => 'payment-edit-package-multi-exact-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+            'component_ref_id' => (string) $replacementLineIds['product-package-edit-a'],
+            'component_amount_rupiah_snapshot' => 100000,
+            'allocated_amount_rupiah' => 100000,
+            'allocation_priority' => 1,
+        ]);
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => 'payment-edit-package-multi-exact-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_STORE_STOCK_PART,
+            'component_ref_id' => (string) $replacementLineIds['product-package-edit-b'],
+            'component_amount_rupiah_snapshot' => 60000,
+            'allocated_amount_rupiah' => 60000,
+            'allocation_priority' => 2,
+        ]);
+
+        $this->assertDatabaseHas('payment_component_allocations', [
+            'customer_payment_id' => 'payment-edit-package-multi-exact-001',
+            'note_id' => 'note-edit-package-multi-001',
+            'work_item_id' => $workItemId,
+            'component_type' => PaymentComponentType::SERVICE_FEE,
+            'component_ref_id' => $workItemId,
+            'component_amount_rupiah_snapshot' => 90000,
+            'allocated_amount_rupiah' => 90000,
+            'allocation_priority' => 3,
+        ]);
+
+        self::assertSame(
+            250000,
+            (int) DB::table('payment_component_allocations')
+                ->where('note_id', 'note-edit-package-multi-001')
+                ->where('customer_payment_id', 'payment-edit-package-multi-exact-001')
+                ->sum('allocated_amount_rupiah'),
+        );
+
+        $this->assertDatabaseHas('customer_payments', [
+            'id' => 'payment-edit-package-multi-exact-001',
+            'amount_rupiah' => 250000,
+        ]);
+
+        $this->assertDatabaseHas('note_revision_settlements', [
+            'id' => 'note-edit-package-multi-001-r002-settlement',
+            'note_revision_id' => 'note-edit-package-multi-001-r002',
+            'note_root_id' => 'note-edit-package-multi-001',
+            'gross_total_rupiah' => 250000,
+            'carry_forward_paid_rupiah' => 250000,
+            'carry_forward_refunded_rupiah' => 0,
+            'net_paid_rupiah' => 250000,
+            'outstanding_rupiah' => 0,
+            'surplus_rupiah' => 0,
+            'settlement_status' => 'paid',
+        ]);
+    }
+
+
     private function seedOpenMultiProductPackageNote(): void
     {
         $this->seedNoteBase(
