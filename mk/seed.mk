@@ -149,6 +149,14 @@ create-all-v3: seed-create-all-v3
 	$(MAKE) seed-audit-baseline
 	php artisan projection:rebuild-indexes all
 
+.PHONY: seed-create-all-month-normal-100m
+seed-create-all-month-normal-100m: seed-create-all-v3 seed-transaction-month-normal-100m
+
+.PHONY: create-all-month-normal-100m
+create-all-month-normal-100m: seed-create-all-month-normal-100m
+	$(MAKE) seed-audit-baseline
+	php artisan projection:rebuild-indexes all
+
 .PHONY: help
 help:
 	@echo ""
@@ -183,6 +191,7 @@ help:
 	@echo "  make create-all-v1                Run source seed dataset v1, then audit baseline and rebuild projections once"
 	@echo "  make create-all-v2                Run source seed dataset v2, then audit baseline and rebuild projections once"
 	@echo "  make create-all-v3                Run source seed dataset v3, then audit baseline and rebuild projections once"
+	@echo "  make create-all-month-normal-100m Run dataset v3 plus monthly normal 100M, then audit baseline and rebuild projections once"
 	@echo ""
 	@echo "Raw source-only targets:"
 	@echo "  make seed-create-all-v1           Source-only aggregate v1; does not run audit baseline"
